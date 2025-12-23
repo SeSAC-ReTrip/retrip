@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>로그인 - Retrip</title>
+  <!-- CSS는 프론트 팀원에게 받아서 추가 -->
+  <style>
+    /* 기본 스타일 - 프론트 팀원이 수정 예정 */
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 400px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .error {
+      color: red;
+      margin-bottom: 10px;
+    }
+    .success {
+      color: green;
+      margin-bottom: 10px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .link {
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+<h1>로그인</h1>
+
+<!-- 에러 메시지 -->
+<div th:if="${error}" class="error" th:text="${error}"></div>
+
+<!-- 로그아웃 메시지 -->
+<div th:if="${message}" class="success" th:text="${message}"></div>
+
+<!-- 회원가입 완료 메시지 -->
+<div th:if="${param.signup}" class="success">
+  회원가입이 완료되었습니다. 로그인해주세요.
+</div>
+
+<!-- 로그인 폼 -->
+<form th:action="@{/login}" method="post">
+  <div>
+    <label for="email">이메일</label>
+    <input type="email" id="email" name="email" required autofocus>
+  </div>
+
+  <div>
+    <label for="password">비밀번호</label>
+    <input type="password" id="password" name="password" required>
+  </div>
+
+  <button type="submit">로그인</button>
+</form>
+
+<div class="link">
+  <a th:href="@{/signup}">회원가입</a>
+</div>
+</body>
+</html>
