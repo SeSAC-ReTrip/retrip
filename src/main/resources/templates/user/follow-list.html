@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${type == 'followers' ? '팔로워' : '팔로잉'} + ' - Retrip'">팔로우 목록</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+    .navbar {
+      background-color: white;
+      padding: 15px 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .navbar-brand { font-size: 1.5em; font-weight: bold; color: #007bff; text-decoration: none; }
+    .nav-links { display: flex; gap: 20px; }
+    .nav-links a { text-decoration: none; color: #333; padding: 8px 16px; border-radius: 5px; }
+    .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+    .header {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+    h1 { color: #007bff; }
+    .user-card {
+      background-color: white;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .user-info { display: flex; align-items: center; gap: 15px; }
+    .user-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: #e0e0e0;
+    }
+    .user-name { font-weight: bold; font-size: 1.1em; }
+    .user-email { color: #666; font-size: 0.9em; }
+    .btn {
+      padding: 8px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .empty {
+      background-color: white;
+      padding: 60px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .logout-btn {
+      padding: 8px 20px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<div class="navbar">
+  <a th:href="@{/home}" class="navbar-brand">🌍 Retrip</a>
+  <div class="nav-links">
+    <a th:href="@{/posts}">📰 피드</a>
+    <a th:href="@{/travels}">✈️ 내 여행</a>
+    <a th:href="@{/users/me}">👤 내 정보</a>
+  </div>
+  <form th:action="@{/logout}" method="post" style="margin: 0;">
+    <button type="submit" class="logout-btn">로그아웃</button>
+  </form>
+</div>
+
+<div class="container">
+  <div class="header">
+    <h1 th:text="${type == 'followers' ? '팔로워 목록' : '팔로잉 목록'}">목록</h1>
+  </div>
+
+  <!-- 팔로워 목록 -->
+  <div th:if="${type == 'followers' and followers != null and !followers.empty}">
+    <div th:each="follower : ${followers}" class="user-card">
+      <div class="user-info">
+        <img th:src="${follower.profileImage != null ? follower.profileImage : 'https://via.placeholder.com/60'}"
+             alt="프로필" class="user-avatar" />
+        <div>
+          <div class="user-name" th:text="${follower.name}">이름</div>
+          <div class="user-email" th:text="${follower.email}">이메일</div>
+        </div>
+      </div>
+      <a th:href="@{/users/{id}(id=${follower.userId})}" class="btn">프로필 보기</a>
+    </div>
+  </div>
+
+  <!-- 팔로잉 목록 -->
+  <div th:if="${type == 'followings' and followings != null and !followings.empty}">
+    <div th:each="following : ${followings}" class="user-card">
+      <div class="user-info">
+        <img th:src="${following.profileImage != null ? following.profileImage : 'https://via.placeholder.com/60'}"
+             alt="프로필" class="user-avatar" />
+        <div>
+          <div class="user-name" th:text="${following.name}">이름</div>
+          <div class="user-email" th:text="${following.email}">이메일</div>
+        </div>
+      </div>
+      <a th:href="@{/users/{id}(id=${following.userId})}" class="btn">프로필 보기</a>
+    </div>
+  </div>
+
+  <!-- 빈 목록 -->
+  <div th:if="${(type == 'followers' and (followers == null or followers.empty)) or
+                      (type == 'followings' and (followings == null or followings.empty))}"
+       class="empty">
+    <p th:text="${type == 'followers' ? '팔로워가 없습니다.' : '팔로잉이 없습니다.'}">목록 없음</p>
+  </div>
+</div>
+</body>
+</html>
