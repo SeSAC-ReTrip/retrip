@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>게시글 상세 - Retrip</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .back-btn {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 8px 16px;
+      background-color: #6c757d;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+    .post-detail {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .post-header {
+      border-bottom: 2px solid #eee;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    .post-title {
+      font-size: 1.8em;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .post-meta {
+      display: flex;
+      gap: 20px;
+      color: #666;
+      font-size: 0.9em;
+    }
+    .post-content {
+      line-height: 1.6;
+      margin: 20px 0;
+    }
+    .post-actions {
+      display: flex;
+      gap: 10px;
+      padding: 20px 0;
+      border-top: 2px solid #eee;
+      border-bottom: 2px solid #eee;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-like {
+      background-color: #ff4757;
+      color: white;
+    }
+    .btn-liked {
+      background-color: #ccc;
+      color: #666;
+    }
+    .btn-edit {
+      background-color: #007bff;
+      color: white;
+    }
+    .btn-delete {
+      background-color: #dc3545;
+      color: white;
+    }
+    .comments-section {
+      margin-top: 30px;
+    }
+    .comment-item {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+    }
+    .comment-author {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .comment-date {
+      color: #666;
+      font-size: 0.85em;
+    }
+    .comment-form textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+<a th:href="@{/posts}" class="back-btn">← 목록으로</a>
+
+<div class="post-detail">
+  <div class="post-header">
+    <div class="post-title" th:text="${post.title}">게시글 제목</div>
+    <div class="post-meta">
+      <span th:text="${post.author.name}">작성자</span>
+      <span>|</span>
+      <span th:text="${post.travel.city + ', ' + post.travel.country}">파리, 프랑스</span>
+      <span>|</span>
+      <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-21</span>
+    </div>
+  </div>
+
+  <div class="post-content" th:text="${post.content}">
+    게시글 내용
+  </div>
+
+  <div class="post-actions">
+    <!-- 좋아요 -->
+    <form th:if="${!isLiked}" th:action="@{/posts/{id}/like(id=${post.postId})}" method="post" style="margin: 0;">
+      <button type="submit" class="btn btn-like">❤️ 좋아요 (<span th:text="${post.likeCount}">0</span>)</button>
+    </form>
+    <form th:if="${isLiked}" th:action="@{/posts/{id}/unlike(id=${post.postId})}" method="post" style="margin: 0;">
+      <button type="submit" class="btn btn-liked">💔 좋아요 취소 (<span th:text="${post.likeCount}">0</span>)</button>
+    </form>
+
+    <!-- 수정/삭제 (작성자만) -->
+    <div th:if="${isAuthor}" style="display: flex; gap: 10px;">
+      <a th:href="@{/posts/{id}/edit(id=${post.postId})}" class="btn btn-edit">수정</a>
+      <form th:action="@{/posts/{id}/delete(id=${post.postId})}" method="post" style="margin: 0;"
+            onsubmit="return confirm('정말 삭제하시겠습니까?');">
+        <button type="submit" class="btn btn-delete">삭제</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 댓글 섹션 -->
+  <div class="comments-section">
+    <h3>댓글 (<span th:text="${comments.size()}">0</span>)</h3>
+
+    <!-- 댓글 작성 -->
+    <form th:action="@{/posts/{id}/comments(id=${post.postId})}" method="post" class="comment-form">
+      <textarea name="content" rows="3" placeholder="댓글을 입력하세요..." required></textarea>
+      <button type="submit" class="btn btn-edit">댓글 작성</button>
+    </form>
+
+    <!-- 댓글 목록 -->
+    <div th:each="comment : ${comments}" class="comment-item">
+      <div class="comment-author" th:text="${comment.author.name}">작성자</div>
+      <div class="comment-date" th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-21</div>
+      <div th:text="${comment.content}">댓글 내용</div>
+    </div>
+
+    <div th:if="${comments.empty}" style="text-align: center; padding: 20px; color: #666;">
+      첫 번째 댓글을 작성해보세요!
+    </div>
+  </div>
+</div>
+</body>
+</html>
