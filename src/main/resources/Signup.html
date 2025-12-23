@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #fff;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #E8E5DC;
+            position: relative;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3D4A3C;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: #9AE19C;
+        }
+
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .logo-text {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            font-weight: 700;
+            color: #3D4A3C;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 440px;
+            margin: 0 auto;
+            padding: 60px 20px 40px;
+        }
+
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .welcome-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #3D4A3C;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            color: #6FAF71;
+            line-height: 1.5;
+        }
+
+        /* Form */
+        .signup-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .form-label {
+            min-width: 80px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #3D4A3C;
+            padding: 12px 16px;
+            background: #FAF9F6;
+            border: 1px solid #E8E5DC;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .form-input {
+            flex: 1;
+            padding: 12px 16px;
+            font-size: 14px;
+            border: 1px solid #E8E5DC;
+            border-radius: 8px;
+            background: #FEFDFB;
+            color: #3D4A3C;
+            transition: all 0.2s;
+        }
+
+        .form-input::placeholder {
+            color: #C4C9C1;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #9AE19C;
+            background: #fff;
+        }
+
+        .form-input:hover {
+            border-color: #C1EEC3;
+        }
+
+        /* Submit Button */
+        .submit-btn {
+            margin-top: 32px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            background: #9AE19C;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: #88D68A;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(154, 225, 156, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 40px 16px 32px;
+            }
+
+            .welcome-section {
+                margin-bottom: 36px;
+            }
+
+            .welcome-title {
+                font-size: 20px;
+            }
+
+            .welcome-subtitle {
+                font-size: 15px;
+            }
+
+            .form-group {
+                flex-direction: column;
+                gap: 8px;
+                align-items: stretch;
+            }
+
+            .form-label {
+                min-width: auto;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header class="header">
+    <button class="back-btn" onclick="history.back()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </button>
+    <h1 class="logo-text">ReTrip</h1>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+    <div class="welcome-section">
+        <h2 class="welcome-title">ReTrip에 회원가입<br>영수증으로 여행을 기록해 보세요.</h2>
+    </div>
+
+    <!--
+    백엔드 연동 시 사용할 Thymeleaf form
+    <form class="signup-form" th:action="@{/signup}" th:object="${signupForm}" method="post">
+        <div class="form-group">
+            <label class="form-label" for="name">이름</label>
+            <input type="text" id="name" class="form-input" th:field="*{name}" placeholder="이름을 입력하세요.">
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="userId">아이디</label>
+            <input type="text" id="userId" class="form-input" th:field="*{userId}" placeholder="아이디를 입력하세요.">
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="password">비밀번호</label>
+            <input type="password" id="password" class="form-input" th:field="*{password}" placeholder="비밀번호를 입력하세요.">
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="passwordConfirm">비밀번호<br>확인</label>
+            <input type="password" id="passwordConfirm" class="form-input" th:field="*{passwordConfirm}" placeholder="위와 동일한 비밀번호를 입력하세요.">
+        </div>
+        <button type="submit" class="submit-btn">Sign up</button>
+    </form>
+    -->
+
+    <!-- 샘플 Form -->
+    <form class="signup-form">
+        <div class="form-group">
+            <label class="form-label" for="name">이름</label>
+            <input type="text" id="name" class="form-input" placeholder="이름을 입력하세요.">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="userId">아이디</label>
+            <input type="text" id="userId" class="form-input" placeholder="아이디를 입력하세요.">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="password">비밀번호</label>
+            <input type="password" id="password" class="form-input" placeholder="비밀번호를 입력하세요.">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="passwordConfirm">비밀번호<br>확인</label>
+            <input type="password" id="passwordConfirm" class="form-input" placeholder="위와 동일한 비밀번호를 입력하세요.">
+        </div>
+
+        <button type="submit" class="submit-btn">Sign up</button>
+    </form>
+</main>
+</body>
+</html>
