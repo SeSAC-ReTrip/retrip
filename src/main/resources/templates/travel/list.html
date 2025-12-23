@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>내 여행 - Retrip</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .navbar {
+      background-color: white;
+      padding: 15px 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .navbar-brand {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #007bff;
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 20px;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: #333;
+      padding: 8px 16px;
+      border-radius: 5px;
+    }
+    .nav-links a:hover {
+      background-color: #e7f3ff;
+    }
+    .page-header {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn {
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn:hover {
+      background-color: #218838;
+    }
+    .travel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .travel-card {
+      background-color: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.3s;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .travel-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .travel-flag {
+      font-size: 3em;
+      margin-bottom: 15px;
+    }
+    .travel-location {
+      font-size: 1.5em;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #007bff;
+    }
+    .travel-dates {
+      color: #666;
+      margin-bottom: 15px;
+    }
+    .travel-amount {
+      font-size: 1.2em;
+      color: #28a745;
+      font-weight: bold;
+    }
+    .empty-state {
+      background-color: white;
+      padding: 60px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .empty-state p {
+      color: #666;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+<!-- 네비게이션 -->
+<div class="navbar">
+  <a th:href="@{/home}" class="navbar-brand">🌍 Retrip</a>
+  <div class="nav-links">
+    <a th:href="@{/posts}">📰 피드</a>
+    <a th:href="@{/travels}">✈️ 내 여행</a>
+    <a th:href="@{/users/me}">👤 내 정보</a>
+    <a th:href="@{/search}">🔍 검색</a>
+  </div>
+</div>
+
+<!-- 페이지 헤더 -->
+<div class="page-header">
+  <h1>내 여행</h1>
+  <a th:href="@{/travels/create}" class="btn">+ 새 여행 추가</a>
+</div>
+
+<!-- 여행 목록 -->
+<div th:if="${travels != null and !travels.empty}" class="travel-grid">
+  <a th:each="travel : ${travels}"
+     th:href="@{/travels/{id}(id=${travel.travelId})}"
+     class="travel-card">
+    <div class="travel-flag">🌍</div>
+    <div class="travel-location" th:text="${travel.city + ', ' + travel.country}">파리, 프랑스</div>
+    <div class="travel-dates"
+         th:text="${#temporals.format(travel.startDate, 'yyyy-MM-dd')} + ' ~ ' + ${#temporals.format(travel.endDate, 'yyyy-MM-dd')}">
+      2024-05-01 ~ 2024-05-04
+    </div>
+    <div class="travel-amount" th:text="'총 지출: ' + ${#numbers.formatInteger(travel.totalAmount, 0, 'COMMA')} + '원'">
+      총 지출: 1,250,000원
+    </div>
+  </a>
+</div>
+
+<!-- 여행 없음 -->
+<div th:if="${travels == null or travels.empty}" class="empty-state">
+  <h2>📭 여행이 없습니다</h2>
+  <p>첫 번째 여행을 만들어보세요!</p>
+  <a th:href="@{/travels/create}" class="btn">+ 새 여행 만들기</a>
+</div>
+</body>
+</html>

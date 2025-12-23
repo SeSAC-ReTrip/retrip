@@ -3,79 +3,170 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>로그인 - Retrip</title>
-  <!-- CSS는 프론트 팀원에게 받아서 추가 -->
+  <title>Login</title>
+
   <style>
-    /* 기본 스타일 - 프론트 팀원이 수정 예정 */
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 400px;
-      margin: 50px auto;
-      padding: 20px;
-    }
-    .error {
-      color: red;
-      margin-bottom: 10px;
-    }
-    .success {
-      color: green;
-      margin-bottom: 10px;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 5px 0;
+    * {
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
     }
-    button {
-      width: 100%;
-      padding: 10px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-      margin-top: 10px;
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background-color: #fff;
+      min-height: 100vh;
     }
-    button:hover {
-      background-color: #0056b3;
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid #E8E5DC;
     }
-    .link {
+
+    .logo-text {
+      font-size: 20px;
+      font-weight: 700;
+      color: #3D4A3C;
+    }
+
+    /* Main Content */
+    .main-content {
+      max-width: 440px;
+      margin: 0 auto;
+      padding: 80px 20px 40px;
+    }
+
+    .title-section {
       text-align: center;
-      margin-top: 20px;
+      margin-bottom: 40px;
+    }
+
+    .page-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #3D4A3C;
+    }
+
+    /* Messages */
+    .message-error {
+      color: red;
+      font-size: 13px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .message-success {
+      color: green;
+      font-size: 13px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    /* Form */
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .form-label {
+      min-width: 80px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #3D4A3C;
+      padding: 12px 16px;
+      background: #FAF9F6;
+      border: 1px solid #E8E5DC;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .form-input {
+      flex: 1;
+      padding: 12px 16px;
+      font-size: 14px;
+      border: 1px solid #E8E5DC;
+      border-radius: 8px;
+      background: #FEFDFB;
+    }
+
+    /* Submit Button */
+    .submit-btn {
+      margin-top: 24px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      background: #9AE19C;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
     }
   </style>
 </head>
+
 <body>
-<h1>로그인</h1>
 
-<!-- 에러 메시지 -->
-<div th:if="${error}" class="error" th:text="${error}"></div>
+<header class="header">
+  <h1 class="logo-text">ReTrip</h1>
+</header>
 
-<!-- 로그아웃 메시지 -->
-<div th:if="${message}" class="success" th:text="${message}"></div>
-
-<!-- 회원가입 완료 메시지 -->
-<div th:if="${param.signup}" class="success">
-  회원가입이 완료되었습니다. 로그인해주세요.
-</div>
-
-<!-- 로그인 폼 -->
-<form th:action="@{/login}" method="post">
-  <div>
-    <label for="email">이메일</label>
-    <input type="email" id="email" name="email" required autofocus>
+<main class="main-content">
+  <div class="title-section">
+    <h2 class="page-title">ReTrip에 로그인</h2>
   </div>
 
-  <div>
-    <label for="password">비밀번호</label>
-    <input type="password" id="password" name="password" required>
+  <!-- 메시지 -->
+  <div th:if="${param.error}" class="message-error">
+    이메일 또는 비밀번호가 올바르지 않습니다.
   </div>
 
-  <button type="submit">로그인</button>
-</form>
+  <div th:if="${param.logout}" class="message-success">
+    로그아웃되었습니다.
+  </div>
 
-<div class="link">
-  <a th:href="@{/signup}">회원가입</a>
-</div>
+  <div th:if="${param.signup}" class="message-success">
+    회원가입이 완료되었습니다. 로그인해주세요.
+  </div>
+
+  <!-- 로그인 폼 -->
+  <form class="login-form"
+        th:action="@{/login}"
+        method="post">
+
+    <div class="form-group">
+      <label class="form-label" for="email">이메일</label>
+      <input type="email"
+             id="email"
+             name="email"
+             class="form-input"
+             placeholder="이메일을 입력하세요"
+             required autofocus>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="password">비밀번호</label>
+      <input type="password"
+             id="password"
+             name="password"
+             class="form-input"
+             placeholder="비밀번호를 입력하세요"
+             required>
+    </div>
+
+    <button type="submit" class="submit-btn">Log in</button>
+  </form>
+</main>
+
 </body>
 </html>
