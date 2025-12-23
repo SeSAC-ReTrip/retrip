@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>여행 수정 - Retrip</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+    .navbar {
+      background-color: white;
+      padding: 15px 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .navbar-brand { font-size: 1.5em; font-weight: bold; color: #007bff; text-decoration: none; }
+    .nav-links { display: flex; gap: 20px; }
+    .nav-links a { text-decoration: none; color: #333; padding: 8px 16px; border-radius: 5px; }
+    .container { max-width: 700px; margin: 30px auto; padding: 0 20px; }
+    .form-box {
+      background-color: white;
+      padding: 40px;
+      border-radius: 10px;
+    }
+    h1 { color: #007bff; margin-bottom: 30px; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: bold; }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+    textarea { resize: vertical; }
+    .btn {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary { background-color: #007bff; color: white; }
+    .btn-secondary { background-color: #6c757d; color: white; }
+    .actions { display: flex; gap: 10px; margin-top: 30px; }
+  </style>
+</head>
+<body>
+<div class="navbar">
+  <a th:href="@{/home}" class="navbar-brand">🌍 Retrip</a>
+  <div class="nav-links">
+    <a th:href="@{/posts}">📰 피드</a>
+    <a th:href="@{/travels}">✈️ 내 여행</a>
+    <a th:href="@{/users/me}">👤 내 정보</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="form-box">
+    <h1>✏️ 여행 수정</h1>
+
+    <form th:action="@{/travels/{id}/edit(id=${travel.travelId})}" method="post">
+      <div class="form-group">
+        <label for="country">국가 *</label>
+        <input type="text" id="country" name="country"
+               th:value="${travel.country}" required>
+      </div>
+
+      <div class="form-group">
+        <label for="city">도시 *</label>
+        <input type="text" id="city" name="city"
+               th:value="${travel.city}" required>
+      </div>
+
+      <div class="form-group">
+        <label for="startDate">시작일 *</label>
+        <input type="date" id="startDate" name="startDate"
+               th:value="${travel.startDate}" required>
+      </div>
+
+      <div class="form-group">
+        <label for="endDate">종료일 *</label>
+        <input type="date" id="endDate" name="endDate"
+               th:value="${travel.endDate}" required>
+      </div>
+
+      <div class="form-group">
+        <label for="memo">메모</label>
+        <textarea id="memo" name="memo" rows="5" th:text="${travel.memo}"></textarea>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary">수정하기</button>
+        <a th:href="@{/travels/{id}(id=${travel.travelId})}" class="btn btn-secondary">취소</a>
+      </div>
+    </form>
+  </div>
+</div>
+</body>
+</html>

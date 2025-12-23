@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>여행 상세 - Retrip</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+    .navbar {
+      background-color: white;
+      padding: 15px 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .navbar-brand { font-size: 1.5em; font-weight: bold; color: #007bff; text-decoration: none; }
+    .nav-links { display: flex; gap: 20px; }
+    .nav-links a { text-decoration: none; color: #333; padding: 8px 16px; border-radius: 5px; }
+    .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+    .travel-header {
+      background-color: white;
+      padding: 40px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+    .title { font-size: 2em; color: #007bff; margin-bottom: 15px; }
+    .dates { color: #666; font-size: 1.1em; margin-bottom: 10px; }
+    .amount { font-size: 1.3em; color: #28a745; font-weight: bold; margin-bottom: 20px; }
+    .memo { color: #333; line-height: 1.6; margin: 20px 0; }
+    .actions { display: flex; gap: 10px; }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary { background-color: #007bff; color: white; }
+    .btn-danger { background-color: #dc3545; color: white; }
+    .posts-section {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+    }
+    .section-title { font-size: 1.5em; margin-bottom: 20px; }
+    .post-card {
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .post-card:hover { background-color: #f9f9f9; }
+    .post-title { font-weight: bold; margin-bottom: 5px; }
+    .post-date { color: #666; font-size: 0.9em; }
+    .empty { text-align: center; padding: 40px; color: #666; }
+    .logout-btn {
+      padding: 8px 20px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<div class="navbar">
+  <a th:href="@{/home}" class="navbar-brand">🌍 Retrip</a>
+  <div class="nav-links">
+    <a th:href="@{/posts}">📰 피드</a>
+    <a th:href="@{/travels}">✈️ 내 여행</a>
+    <a th:href="@{/users/me}">👤 내 정보</a>
+  </div>
+  <form th:action="@{/logout}" method="post" style="margin: 0;">
+    <button type="submit" class="logout-btn">로그아웃</button>
+  </form>
+</div>
+
+<div class="container">
+  <div class="travel-header">
+    <div class="title" th:text="${travel.city + ', ' + travel.country}">파리, 프랑스</div>
+    <div class="dates"
+         th:text="${#temporals.format(travel.startDate, 'yyyy-MM-dd')} + ' ~ ' + ${#temporals.format(travel.endDate, 'yyyy-MM-dd')}">
+      2024-05-01 ~ 2024-05-04
+    </div>
+    <div class="amount" th:text="'총 지출: ' + ${#numbers.formatInteger(travel.totalAmount, 0, 'COMMA')} + '원'">
+      총 지출: 0원
+    </div>
+    <div class="memo" th:if="${travel.memo != null and !travel.memo.isBlank()}" th:text="${travel.memo}">
+      메모 내용
+    </div>
+
+    <div th:if="${isOwner}" class="actions">
+      <a th:href="@{/travels/{id}/edit(id=${travel.travelId})}" class="btn btn-primary">수정</a>
+      <form th:action="@{/travels/{id}/delete(id=${travel.travelId})}" method="post"
+            style="display: inline;" onsubmit="return confirm('정말 삭제하시겠습니까?');">
+        <button type="submit" class="btn btn-danger">삭제</button>
+      </form>
+      <a th:href="@{/posts/create(travelId=${travel.travelId})}" class="btn btn-primary">게시글 작성</a>
+    </div>
+  </div>
+
+  <div class="posts-section">
+    <h2 class="section-title">이 여행의 게시글</h2>
+
+    <div th:if="${posts != null and !posts.empty}">
+      <a th:each="post : ${posts}"
+         th:href="@{/posts/{id}(id=${post.postId})}"
+         class="post-card">
+        <div class="post-title" th:text="${post.title}">게시글 제목</div>
+        <div class="post-date" th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">날짜</div>
+      </a>
+    </div>
+
+    <div th:if="${posts == null or posts.empty}" class="empty">
+      <p>아직 게시글이 없습니다.</p>
+      <a th:href="@{/posts/create}" class="btn btn-primary">첫 게시글 작성하기</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
