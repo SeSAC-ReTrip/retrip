@@ -246,8 +246,6 @@
 
 <!-- Feed Container -->
 <main class="feed-container">
-
-<!--  백엔드 연동 시 아래 주석을 해제하고 샘플 카드 3개를 삭제하세요-->
   <article class="post-card" th:each="post : ${posts}">
       <div class="post-image" th:if="${post.imageUrl != null}">
           <img th:src="${post.imageUrl}" th:alt="${post.title}" style="width: 100%; height: 100%; object-fit: cover;">
@@ -266,6 +264,7 @@
       </div>
   </article>
 
+  <!-- 게시물 업로드 시 샘플카드 삭제 -->
   <!-- 샘플 카드 1 -->
   <article class="post-card">
     <div class="post-image">
