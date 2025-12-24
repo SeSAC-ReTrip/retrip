@@ -22,15 +22,40 @@
     .header {
       display: flex;
       align-items: center;
-      justify-content: center;
       padding: 16px 20px;
       border-bottom: 1px solid #E8E5DC;
+      position: relative;
+    }
+
+    .back-btn {
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #3D4A3C;
+        transition: color 0.2s;
+    }
+
+    .back-btn:hover {
+        color: #9AE19C;
+    }
+
+    .back-btn svg {
+        width: 24px;
+        height: 24px;
     }
 
     .logo-text {
-      font-size: 20px;
-      font-weight: 700;
-      color: #3D4A3C;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 20px;
+        font-weight: 700;
+        color: #3D4A3C;
     }
 
     /* Main Content */
@@ -42,7 +67,7 @@
 
     .title-section {
       text-align: center;
-      margin-bottom: 40px;
+      margin-bottom: 60px;
     }
 
     .page-title {
@@ -98,19 +123,46 @@
       border: 1px solid #E8E5DC;
       border-radius: 8px;
       background: #FEFDFB;
+      color: #3D4A3C;
+      transition: all 0.2s;
+    }
+
+    .form-input::placeholder {
+        color: #C4C9C1;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #9AE19C;
+        background: #fff;
+    }
+
+    .form-input:hover {
+        border-color: #C1EEC3;
     }
 
     /* Submit Button */
     .submit-btn {
-      margin-top: 24px;
-      padding: 16px;
-      font-size: 16px;
-      font-weight: 600;
-      color: #fff;
-      background: #9AE19C;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
+        margin-top: 32px;
+        padding: 16px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+        background: #9AE19C;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .submit-btn:hover {
+        background: #88D68A;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(212, 207, 192, 0.3);
+    }
+
+    .submit-btn:active {
+        transform: translateY(0);
     }
   </style>
 </head>
@@ -118,7 +170,12 @@
 <body>
 
 <header class="header">
-  <h1 class="logo-text">ReTrip</h1>
+    <button class="back-btn" onclick="history.back()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </button>
+    <h1 class="logo-text">ReTrip</h1>
 </header>
 
 <main class="main-content">
