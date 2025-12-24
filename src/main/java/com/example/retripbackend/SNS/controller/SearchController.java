@@ -31,7 +31,7 @@ public class SearchController {
             model.addAttribute("keyword", keyword);
         }
 
-        return "search/result";
+        return "search/explore";
     }
 
     // 인기 도시 목록
