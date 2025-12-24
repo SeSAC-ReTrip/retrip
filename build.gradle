@@ -45,8 +45,7 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // Google Generative AI (Gemini)
-    implementation 'com.google.generative-ai:google-generative-ai:0.2.2'
-
+    implementation "com.google.ai.client:generativeai-java:0.8.0"
 }
 
 tasks.named('test') {
