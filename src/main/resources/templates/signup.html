@@ -3,22 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
+  <title>Signup</title>
 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
       background-color: #fff;
       min-height: 100vh;
     }
-
-    /* Header */
     .header {
       display: flex;
       align-items: center;
@@ -50,60 +43,37 @@
     }
 
     .logo-text {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 20px;
-        font-weight: 700;
-        color: #3D4A3C;
-    }
-
-    /* Main Content */
-    .main-content {
-      max-width: 440px;
-      margin: 0 auto;
-      padding: 80px 20px 40px;
-    }
-
-    .title-section {
-      text-align: center;
-      margin-bottom: 60px;
-    }
-
-    .page-title {
-      font-size: 24px;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
       font-weight: 700;
       color: #3D4A3C;
     }
-
-    /* Messages */
-    .message-error {
-      color: red;
-      font-size: 13px;
-      text-align: center;
-      margin-bottom: 12px;
+    .main-content {
+      max-width: 440px;
+      margin: 0 auto;
+      padding: 60px 20px 40px;
     }
-
-    .message-success {
-      color: green;
-      font-size: 13px;
+    .welcome-section {
       text-align: center;
-      margin-bottom: 12px;
+      margin-bottom: 48px;
     }
-
-    /* Form */
-    .login-form {
+    .welcome-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #3D4A3C;
+    }
+    .signup-form {
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
-
     .form-group {
       display: flex;
       gap: 12px;
       align-items: center;
     }
-
     .form-label {
       min-width: 80px;
       font-size: 14px;
@@ -115,35 +85,20 @@
       border-radius: 8px;
       text-align: center;
     }
-
     .form-input {
       flex: 1;
       padding: 12px 16px;
       font-size: 14px;
       border: 1px solid #E8E5DC;
       border-radius: 8px;
-      background: #FEFDFB;
-      color: #3D4A3C;
-      transition: all 0.2s;
     }
-
-    .form-input::placeholder {
-        color: #C4C9C1;
+    .field-error {
+      color: red;
+      font-size: 12px;
+      margin-left: 92px;
     }
-
-    .form-input:focus {
-        outline: none;
-        border-color: #9AE19C;
-        background: #fff;
-    }
-
-    .form-input:hover {
-        border-color: #C1EEC3;
-    }
-
-    /* Submit Button */
     .submit-btn {
-      margin-top: 24px;
+      margin-top: 32px;
       padding: 16px;
       font-size: 16px;
       font-weight: 600;
@@ -158,7 +113,7 @@
     .submit-btn:hover {
         background: #88D68A;
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(212, 207, 192, 0.3);
+        box-shadow: 0 4px 12px rgba(154, 225, 156, 0.3);
     }
 
     .submit-btn:active {
@@ -170,58 +125,72 @@
 <body>
 
 <header class="header">
-    <button class="back-btn" onclick="history.back()">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-        </svg>
-    </button>
-    <h1 class="logo-text">ReTrip</h1>
+  <button class="back-btn" onclick="history.back()">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 19l-7-7 7-7"/>
+    </svg>
+  </button>
+  <h1 class="logo-text">ReTrip</h1>
 </header>
 
 <main class="main-content">
-  <div class="title-section">
-    <h2 class="page-title">ReTrip에 로그인</h2>
+  <div class="welcome-section">
+    <h2 class="welcome-title">
+      ReTrip에 회원가입<br>영수증으로 여행을 기록해 보세요.
+    </h2>
   </div>
 
-  <!-- 메시지 -->
-  <div th:if="${param.error}" class="message-error">
-    이메일 또는 비밀번호가 올바르지 않습니다.
-  </div>
-
-  <div th:if="${param.logout}" class="message-success">
-    로그아웃되었습니다.
-  </div>
-
-  <div th:if="${param.signup}" class="message-success">
-    회원가입이 완료되었습니다. 로그인해주세요.
-  </div>
-
-  <!-- 로그인 폼 -->
-  <form class="login-form"
-        th:action="@{/login}"
+  <form class="signup-form"
+        th:action="@{/signup}"
+        th:object="${signupForm}"
         method="post">
 
     <div class="form-group">
       <label class="form-label" for="email">이메일</label>
-      <input type="email"
-             id="email"
-             name="email"
+      <input type="email" id="email"
              class="form-input"
-             placeholder="이메일을 입력하세요"
-             required autofocus>
+             th:field="*{email}"
+             placeholder="이메일을 입력하세요">
     </div>
+    <div class="field-error"
+         th:if="${#fields.hasErrors('email')}"
+         th:errors="*{email}"></div>
 
     <div class="form-group">
       <label class="form-label" for="password">비밀번호</label>
-      <input type="password"
-             id="password"
-             name="password"
+      <input type="password" id="password"
              class="form-input"
-             placeholder="비밀번호를 입력하세요"
-             required>
+             th:field="*{password}"
+             placeholder="비밀번호를 입력하세요">
     </div>
+    <div class="field-error"
+         th:if="${#fields.hasErrors('password')}"
+         th:errors="*{password}"></div>
 
-    <button type="submit" class="submit-btn">Log in</button>
+    <div class="form-group">
+      <label class="form-label" for="passwordConfirm">비밀번호<br>확인</label>
+      <input type="password" id="passwordConfirm"
+             class="form-input"
+             th:field="*{passwordConfirm}"
+             placeholder="비밀번호를 다시 입력하세요">
+    </div>
+    <div class="field-error"
+         th:if="${#fields.hasErrors('passwordConfirm')}"
+         th:errors="*{passwordConfirm}"></div>
+
+    <div class="form-group">
+      <label class="form-label" for="name">이름</label>
+      <input type="text" id="name"
+             class="form-input"
+             th:field="*{name}"
+             placeholder="이름을 입력하세요">
+    </div>
+    <div class="field-error"
+         th:if="${#fields.hasErrors('name')}"
+         th:errors="*{name}"></div>
+
+    <button type="submit" class="submit-btn">Sign up</button>
   </form>
 </main>
 
