@@ -5,37 +5,215 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>profile</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #fff; padding-bottom: 70px; min-height: 100vh; }
-        .profile-header { padding: 40px 20px; text-align: center; border-bottom: 8px solid #F5F3ED; }
-        .profile-image-wrapper { width: 100px; height: 100px; margin: 0 auto 16px; border-radius: 50%; background: #F5F3ED; border: 3px solid #E8E5DC; display: flex; align-items: center; justify-content: center; transition: all 0.2s; overflow: hidden; }
-        .profile-image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-image-wrapper:hover { border-color: #9AE19C; }
-        .profile-icon { width: 50px; height: 50px; color: #C4C9C1; }
-        .profile-name { font-size: 20px; font-weight: 600; color: #3D4A3C; margin-bottom: 12px; }
-        .edit-profile-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; background: #F5F3ED; border: 1px solid #E8E5DC; border-radius: 20px; font-size: 14px; font-weight: 500; color: #5A9F5C; cursor: pointer; transition: all 0.2s; text-decoration: none; }
-        .edit-profile-btn:hover { background: #E8F9E8; border-color: #9AE19C; }
-        .arrow-icon { font-size: 12px; }
-        .menu-list { padding: 0 20px; }
-        .menu-item { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; border-bottom: 1px solid #F5F3ED; cursor: pointer; transition: all 0.2s; text-decoration: none; }
-        .menu-item:hover { background: #FEFDFB; padding-left: 8px; padding-right: 8px; margin: 0 -8px; border-radius: 8px; }
-        .menu-item:hover .menu-text { color: #5A9F5C; }
-        .menu-text { font-size: 16px; font-weight: 500; color: #3D4A3C; transition: color 0.2s; }
-        .menu-arrow { font-size: 14px; color: #C4C9C1; }
-        .logout-section { padding: 32px 20px; display: flex; justify-content: center; }
-        .logout-btn { width: 100%; max-width: 600px; padding: 16px; background: #9AE19C; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; color: #fff; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(61, 74, 60, 0.2); }
-        .logout-btn:hover { background: #88D68A; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(61, 74, 60, 0.3); }
-        .logout-btn:active { transform: translateY(0); }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #FEFDFB; border-top: 1px solid #E8E5DC; display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: #A0A99D; text-decoration: none; flex: 1; transition: color 0.2s; }
-        .nav-item:hover { color: #9AE19C; }
-        .nav-item.active { color: #5A9F5C; }
-        .nav-icon { width: 24px; height: 24px; }
-        .nav-label { font-size: 11px; font-weight: 500; }
-        @media (max-width: 480px) { .profile-header { padding: 32px 16px; } .menu-list { padding: 0 16px; } .logout-section { padding: 24px 16px; } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #fff;
+            padding-bottom: 70px;
+            min-height: 100vh;
+        }
+
+        .profile-header {
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 8px solid #F5F3ED;
+        }
+
+        .profile-image-wrapper {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            background: #F5F3ED;
+            border: 3px solid #E8E5DC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .profile-image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-image-wrapper:hover {
+            border-color: #9AE19C;
+        }
+
+        .profile-icon {
+            width: 50px;
+            height: 50px;
+            color: #C4C9C1;
+        }
+
+        .profile-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #3D4A3C;
+            margin-bottom: 12px;
+        }
+
+        .edit-profile-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 20px;
+            background: #F5F3ED;
+            border: 1px solid #E8E5DC;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #5A9F5C;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .edit-profile-btn:hover {
+            background: #E8F9E8;
+            border-color: #9AE19C;
+        }
+
+        .arrow-icon {
+            font-size: 12px;
+        }
+
+        .menu-list {
+            padding: 0 20px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid #F5F3ED;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .menu-item:hover {
+            background: #FEFDFB;
+            padding-left: 8px;
+            padding-right: 8px;
+            margin: 0 -8px;
+            border-radius: 8px;
+        }
+
+        .menu-item:hover .menu-text {
+            color: #5A9F5C;
+        }
+
+        .menu-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: #3D4A3C;
+            transition: color 0.2s;
+        }
+
+        .menu-arrow {
+            font-size: 14px;
+            color: #C4C9C1;
+        }
+
+        .logout-section {
+            padding: 32px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .logout-btn {
+            width: 100%;
+            max-width: 600px;
+            padding: 16px;
+            background: #9AE19C;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(61, 74, 60, 0.2);
+        }
+
+        .logout-btn:hover {
+            background: #88D68A;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(61, 74, 60, 0.3);
+        }
+
+        .logout-btn:active {
+            transform: translateY(0);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #FEFDFB;
+            border-top: 1px solid #E8E5DC;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            color: #A0A99D;
+            text-decoration: none;
+            flex: 1;
+            transition: color 0.2s;
+        }
+
+        .nav-item:hover {
+            color: #9AE19C;
+        }
+
+        .nav-item.active {
+            color: #5A9F5C;
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 480px) {
+            .profile-header {
+                padding: 32px 16px;
+            }
+            .menu-list {
+                padding: 0 16px;
+            }
+            .logout-section {
+                padding: 24px 16px;
+            }
+        }
     </style>
 </head>
 <body>
+
 <section class="profile-header">
     <div class="profile-image-wrapper">
         <img th:if="${user.profileImage != null}" th:src="${user.profileImage}" alt="프로필">
@@ -44,7 +222,6 @@
         </svg>
     </div>
     <h2 class="profile-name" th:text="${user.name}">이름</h2>
-
     <a th:if="${isMe == null or isMe}" th:href="@{/users/me/edit}" class="edit-profile-btn">
         <span>프로필 편집</span>
         <span class="arrow-icon">›</span>
