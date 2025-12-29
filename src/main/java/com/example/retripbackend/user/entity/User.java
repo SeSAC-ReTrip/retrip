@@ -1,6 +1,5 @@
 package com.example.retripbackend.user.entity;
 
-
 import com.example.retripbackend.baseEntity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
