@@ -45,6 +45,7 @@ public class ReceiptController {
             }
 
             // 파일을 Base64로 변환
+            // Base64: 바이너리 데이터(이미지, 파일)를 텍스트로 인코딩하는 방식
             String base64Image = Base64.getEncoder()
                 .encodeToString(file.getBytes());
 
