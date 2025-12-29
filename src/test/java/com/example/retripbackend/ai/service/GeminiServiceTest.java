@@ -88,7 +88,7 @@ class GeminiServiceTest {
     @DisplayName("정상적인 영수증 분석 성공 - JapanReceipt 이미지 사용")
     void analyzeReceipt_WithJapanReceipt_ReturnsValidJson() throws IOException {
         // given
-        Path imagePath = Paths.get("src/test/resources/testImage/JapanReceipt.png");
+        Path imagePath = Paths.get("src/test/resources/testImage/ChinaReceipt.png");
         
         // 테스트 이미지가 없으면 스킵
         if (!Files.exists(imagePath)) {

@@ -123,11 +123,15 @@ public class GeminiService {
             7. longitude: 경도 (주소 또는 placeName을 기반으로 추정 가능한 경우)
                - 영수증에 주소가 있으면 주소를 기반으로 추정
                - 주소가 없으면 placeName과 도시/국가 정보를 결합하여 추정
-            8. expenseItems: 소비 항목 리스트 (각 항목의 itemName, amount, quantity)
-               - amount는 소수점 포함 가능 (예: 12.50, 9.99)
+            
+            언어 규칙:
+            - 영수증이 한국 영수증(한국어로 작성된 영수증, 통화가 KRW인 경우 등)이면 모든 텍스트 필드를 한글로 응답
+            - 한국 영수증이 아닌 경우(해외 영수증)에는 모든 텍스트 필드를 영어로 응답
+            - placeName, address 필드는 위 언어 규칙에 따라 응답하되, 원본 영수증의 언어도 고려하여 적절히 변환
             
             주의사항:
-            - placeName은 영수증 상단의 상호명이나 가게명을 우선적으로 추출 (영문 또는 현지 언어)
+            - placeName은 영수증 상단의 상호명이나 가게명을 우선적으로 추출
+            - 한국 영수증이면 한글로, 해외 영수증이면 영어로 placeName을 제공
             - amount는 소수점을 포함하여 정확히 추출 (예: 12.50, 9.99, 1500.00)
             - currency는 반드시 ISO 4217 통화 코드 형식으로 추출 (3자리 영문 대문자)
             - paidAt은 영수증의 날짜 형식을 파악하여 ISO 8601 형식으로 변환
@@ -145,14 +149,7 @@ public class GeminiService {
               "paidAt": "2024-01-15T14:30:00",
               "address": "주소",
               "latitude": 위도값_또는_null,
-              "longitude": 경도값_또는_null,
-              "expenseItems": [
-                {
-                  "itemName": "항목명",
-                  "amount": 12.50,
-                  "quantity": 1
-                }
-              ]
+              "longitude": 경도값_또는_null
             }
             
             반드시 유효한 JSON 형식으로만 응답해주세요. 다른 설명이나 텍스트는 포함하지 마세요.
