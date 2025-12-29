@@ -51,6 +51,9 @@ public class PostController {
         return "post/feed";
     }
 
+    @Value("${google.map.api.key}")
+    private String googleMapApiKey;
+
     // 게시글 상세
     @GetMapping("/{postId}")
     public String detail(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
@@ -66,6 +69,9 @@ public class PostController {
         model.addAttribute("comments", comments);
         model.addAttribute("isLiked", isLiked);
         model.addAttribute("isAuthor", isAuthor);
+
+        // Google Maps API 키 전달
+        model.addAttribute("googleMapApiKey", googleMapApiKey);
 
         return "post/detail";
     }
@@ -199,20 +205,6 @@ public class PostController {
         @RequestParam Long postId) {
         // 댓글 삭제 로직 (CommentRepository 필요)
         return "redirect:/posts/" + postId;
-    }
-
-    @Value("${google.map.api.key}")
-    private String googleMapApiKey;
-
-    @GetMapping("/post/{id}")
-    public String getPost(@PathVariable Long id, Model model) {
-        // 게시물 데이터 추가
-        // model.addAttribute("post", post);
-
-        // Google Maps API 키 전달 (중요!)
-        model.addAttribute("googleMapApiKey", googleMapApiKey);
-
-        return "content";
     }
 }
 

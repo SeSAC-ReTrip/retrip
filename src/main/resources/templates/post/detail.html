@@ -1,165 +1,558 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>게시글 상세 - Retrip</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 20px;
-    }
-    .back-btn {
-      display: inline-block;
-      margin-bottom: 20px;
-      padding: 8px 16px;
-      background-color: #6c757d;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-    }
-    .post-detail {
-      background-color: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .post-header {
-      border-bottom: 2px solid #eee;
-      padding-bottom: 15px;
-      margin-bottom: 20px;
-    }
-    .post-title {
-      font-size: 1.8em;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    .post-meta {
-      display: flex;
-      gap: 20px;
-      color: #666;
-      font-size: 0.9em;
-    }
-    .post-content {
-      line-height: 1.6;
-      margin: 20px 0;
-    }
-    .post-actions {
-      display: flex;
-      gap: 10px;
-      padding: 20px 0;
-      border-top: 2px solid #eee;
-      border-bottom: 2px solid #eee;
-    }
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-    }
-    .btn-like {
-      background-color: #ff4757;
-      color: white;
-    }
-    .btn-liked {
-      background-color: #ccc;
-      color: #666;
-    }
-    .btn-edit {
-      background-color: #007bff;
-      color: white;
-    }
-    .btn-delete {
-      background-color: #dc3545;
-      color: white;
-    }
-    .comments-section {
-      margin-top: 30px;
-    }
-    .comment-item {
-      padding: 15px;
-      border-bottom: 1px solid #eee;
-    }
-    .comment-author {
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-    .comment-date {
-      color: #666;
-      font-size: 0.85em;
-    }
-    .comment-form textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      margin-bottom: 10px;
-      box-sizing: border-box;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>post-detail</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #fff;
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+
+        /* Header */
+        .header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #E8E5DC;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3D4A3C;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: #9AE19C;
+        }
+
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+
+        /* Post Header */
+        .post-header {
+            margin-bottom: 24px;
+        }
+
+        .post-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #3D4A3C;
+            margin-bottom: 16px;
+        }
+
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #E8E5DC;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .meta-label {
+            font-size: 12px;
+            color: #A0A99D;
+            font-weight: 500;
+        }
+
+        .meta-value {
+            font-size: 14px;
+            color: #3D4A3C;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .author-icon {
+            width: 18px;
+            height: 18px;
+            color: #9AE19C;
+        }
+
+        /* Receipt Card */
+        .receipt-card {
+            background: #F5F3ED;
+            border: 1px solid #E8E5DC;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .receipt-header {
+            font-size: 15px;
+            font-weight: 600;
+            color: #3D4A3C;
+            margin-bottom: 12px;
+        }
+
+        .receipt-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .receipt-row {
+            font-size: 14px;
+            color: #5A6F57;
+            line-height: 1.5;
+        }
+
+        /* Image Box */
+        .image-box {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: linear-gradient(135deg, #F5F3ED 0%, #EAE7DC 100%);
+            border: 1px solid #E8E5DC;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-placeholder {
+            color: #D4E9D5;
+        }
+
+        .image-placeholder svg {
+            width: 48px;
+            height: 48px;
+        }
+
+        /* Content Section */
+        .content-section {
+            margin-bottom: 24px;
+        }
+
+        .content-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #3D4A3C;
+            margin-bottom: 12px;
+        }
+
+        .content-text {
+            font-size: 14px;
+            color: #5A6F57;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Location Section */
+        .location-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: #F5F3ED;
+            border: 1px solid #E8E5DC;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .location-icon {
+            width: 20px;
+            height: 20px;
+            color: #9AE19C;
+            flex-shrink: 0;
+        }
+
+        .location-text {
+            font-size: 14px;
+            color: #5A6F57;
+            font-weight: 500;
+        }
+
+        /* Map Section */
+        .map-section {
+            margin-top: 40px;
+            padding-top: 32px;
+            border-top: 8px solid #F5F3ED;
+        }
+
+        .section-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: #3D4A3C;
+            margin-bottom: 20px;
+        }
+
+        .map-container {
+            width: 100%;
+            height: 300px;
+            background: #F5F3ED;
+            border: 1px solid #E8E5DC;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Comments Section */
+        .comments-section {
+            margin-top: 40px;
+            padding-top: 32px;
+            border-top: 8px solid #F5F3ED;
+        }
+
+        .comment-input-wrapper {
+            margin-bottom: 24px;
+        }
+
+        .comment-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #F5F3ED;
+            border: 1px solid #E8E5DC;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #3D4A3C;
+            transition: all 0.2s;
+            resize: vertical;
+            min-height: 50px;
+        }
+
+        .comment-input::placeholder {
+            color: #C4C9C1;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: #9AE19C;
+            background: #fff;
+        }
+
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .comment-item {
+            padding: 16px;
+            background: #F5F3ED;
+            border: 1px solid #E8E5DC;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #5A6F57;
+            transition: all 0.2s;
+        }
+
+        .comment-item:hover {
+            background: #EAE7DC;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 20px 16px;
+            }
+
+            .post-title {
+                font-size: 22px;
+            }
+
+            .receipt-card {
+                padding: 16px;
+            }
+
+            .map-container {
+                height: 250px;
+            }
+        }
+    </style>
 </head>
 <body>
-<a th:href="@{/posts}" class="back-btn">← 목록으로</a>
+<!-- Header -->
+<header class="header">
+    <button class="back-btn" onclick="history.back()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </button>
+</header>
 
-<div class="post-detail">
-  <div class="post-header">
-    <div class="post-title" th:text="${post.title}">게시글 제목</div>
-    <div class="post-meta">
-      <span th:text="${post.author.name}">작성자</span>
-      <span>|</span>
-      <span th:text="${post.travel.city + ', ' + post.travel.country}">파리, 프랑스</span>
-      <span>|</span>
-      <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-21</span>
-    </div>
-  </div>
-
-  <div class="post-content" th:text="${post.content}">
-    게시글 내용
-  </div>
-
-  <div class="post-actions">
-    <!-- 좋아요 -->
-    <form th:if="${!isLiked}" th:action="@{/posts/{id}/like(id=${post.postId})}" method="post" style="margin: 0;">
-      <button type="submit" class="btn btn-like">❤️ 좋아요 (<span th:text="${post.likeCount}">0</span>)</button>
-    </form>
-    <form th:if="${isLiked}" th:action="@{/posts/{id}/unlike(id=${post.postId})}" method="post" style="margin: 0;">
-      <button type="submit" class="btn btn-liked">💔 좋아요 취소 (<span th:text="${post.likeCount}">0</span>)</button>
-    </form>
-
-    <!-- 수정/삭제 (작성자만) -->
-    <div th:if="${isAuthor}" style="display: flex; gap: 10px;">
-      <a th:href="@{/posts/{id}/edit(id=${post.postId})}" class="btn btn-edit">수정</a>
-      <form th:action="@{/posts/{id}/delete(id=${post.postId})}" method="post" style="margin: 0;"
-            onsubmit="return confirm('정말 삭제하시겠습니까?');">
-        <button type="submit" class="btn btn-delete">삭제</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- 댓글 섹션 -->
-  <div class="comments-section">
-    <h3>댓글 (<span th:text="${comments.size()}">0</span>)</h3>
-
-    <!-- 댓글 작성 -->
-    <form th:action="@{/posts/{id}/comments(id=${post.postId})}" method="post" class="comment-form">
-      <textarea name="content" rows="3" placeholder="댓글을 입력하세요..." required></textarea>
-      <button type="submit" class="btn btn-edit">댓글 작성</button>
-    </form>
-
-    <!-- 댓글 목록 -->
-    <div th:each="comment : ${comments}" class="comment-item">
-      <div class="comment-author" th:text="${comment.author.name}">작성자</div>
-      <div class="comment-date" th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-21</div>
-      <div th:text="${comment.content}">댓글 내용</div>
+<!-- Main Content -->
+<main class="main-content">
+    <!--
+    백엔드 연동 시 사용할 코드
+    <div class="post-header">
+        <h1 class="post-title" th:text="${post.title}">제목</h1>
+        <div class="post-meta">
+            <div class="meta-item">
+                <span class="meta-label">여행지</span>
+                <span class="meta-value" th:text="${post.destination}">여행지</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">여행기간</span>
+                <span class="meta-value" th:text="${post.travelPeriod}">여행기간</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">총 경비</span>
+                <span class="meta-value" th:text="${post.totalCost}">총 경비</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">작성자</span>
+                <span class="meta-value">
+                    <svg class="author-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    <span th:text="${post.author}">작성자</span>
+                </span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">작성일</span>
+                <span class="meta-value" th:text="${post.createdDate}">작성일</span>
+            </div>
+        </div>
     </div>
 
-    <div th:if="${comments.empty}" style="text-align: center; padding: 20px; color: #666;">
-      첫 번째 댓글을 작성해보세요!
+    <div th:each="receipt : ${post.receipts}">
+        <div class="receipt-card">
+            <div class="receipt-header" th:text="${receipt.header}">영수증 내용</div>
+            <div class="receipt-info">
+                <div class="receipt-row" th:each="line : ${receipt.lines}" th:text="${line}">장소</div>
+            </div>
+        </div>
+
+        <div class="image-box" th:if="${receipt.imageUrl != null}">
+            <img th:src="${receipt.imageUrl}" th:alt="${receipt.header}">
+        </div>
+        <div class="image-box" th:unless="${receipt.imageUrl != null}">
+            <div class="image-placeholder">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
+
+    <div class="content-section">
+        <h3 class="content-title">영수증, 사진 등 설명 및 일기</h3>
+        <p class="content-text" th:text="${post.content}">내용</p>
+    </div>
+
+    <div class="location-section" th:if="${post.location != null}">
+        <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <span class="location-text" th:text="${post.location}">위치</span>
+    </div>
+    -->
+
+    <!-- 샘플 콘텐츠 -->
+    <div class="post-header">
+        <h1 class="post-title">제목</h1>
+        <div class="post-meta">
+            <div class="meta-item">
+                <span class="meta-label">여행지</span>
+                <span class="meta-value">여행지</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">여행기간</span>
+                <span class="meta-value">여행기간</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">총 경비</span>
+                <span class="meta-value">총 경비</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">작성자</span>
+                <span class="meta-value">
+                        <svg class="author-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        <span>작성자</span>
+                    </span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">작성일</span>
+                <span class="meta-value">작성일</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 영수증 카드 1 -->
+    <div class="receipt-card">
+        <div class="receipt-header">영수증 내용</div>
+        <div class="receipt-info">
+            <div class="receipt-row">장소</div>
+            <div class="receipt-row">결제일</div>
+            <div class="receipt-row">결제 금액</div>
+        </div>
+    </div>
+
+    <div class="image-box">
+        <div class="image-placeholder">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <h3 class="content-title">영수증, 사진 등 설명 및 일기</h3>
+        <p class="content-text">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            ~~~</p>
+    </div>
+
+    <div class="location-section">
+        <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <span class="location-text">위치</span>
+    </div>
+
+    <!-- 영수증 카드 2 -->
+    <div class="receipt-card">
+        <div class="receipt-header">영수증 내용</div>
+        <div class="receipt-info">
+            <div class="receipt-row">장소</div>
+            <div class="receipt-row">결제일</div>
+            <div class="receipt-row">결제 금액</div>
+        </div>
+    </div>
+
+    <div class="image-box">
+        <div class="image-placeholder">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- 지도 섹션 -->
+    <section class="map-section">
+        <h3 class="section-header">지도</h3>
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+    </section>
+
+    <!-- 댓글 섹션 -->
+    <section class="comments-section">
+        <h3 class="section-header">댓글</h3>
+        <div class="comment-input-wrapper">
+            <textarea class="comment-input" placeholder="댓글을 입력하세요..."></textarea>
+        </div>
+        <div class="comments-list">
+            <div class="comment-item">comment</div>
+            <div class="comment-item">comment</div>
+            <div class="comment-item">comment</div>
+            <div class="comment-item">comment</div>
+            <div class="comment-item">comment</div>
+        </div>
+    </section>
+</main>
+
+<!-- Google Maps API -->
+<script  async defer th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}"></script>
+<script>
+    function initMap() {
+        // 지도 중심 좌표 설정 (예: 서울)
+        const center = { lat: 37.5665, lng: 126.9780 };
+
+        // 지도 생성
+        const map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 13,
+            center: center,
+            mapTypeControl: false,
+            streetViewControl: false,
+            styles: [
+                {
+                    featureType: "all",
+                    elementType: "geometry",
+                    stylers: [{ saturation: -20 }]
+                }
+            ]
+        });
+
+        // 마커 위치 배열 (백엔드에서 받아올 데이터)
+        const locations = [
+            { lat: 37.5665, lng: 126.9780, title: "장소 1" },
+            { lat: 37.5560, lng: 126.9720, title: "장소 2" },
+            { lat: 37.5700, lng: 126.9850, title: "장소 3" },
+            { lat: 37.5620, lng: 126.9910, title: "장소 4" },
+            { lat: 37.5500, lng: 126.9880, title: "장소 5" }
+        ];
+
+        // 마커 생성
+        locations.forEach((location, index) => {
+            const marker = new google.maps.Marker({
+                position: { lat: location.lat, lng: location.lng },
+                map: map,
+                title: location.title,
+                icon: {
+                    path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+                    fillColor: "#9AE19C",
+                    fillOpacity: 1,
+                    strokeColor: "#fff",
+                    strokeWeight: 2,
+                    scale: 1.5,
+                    anchor: new google.maps.Point(12, 24)
+                },
+                animation: google.maps.Animation.DROP
+            });
+
+            // 정보창 생성 (선택사항)
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<div style="padding: 8px; color: #3D4A3C; font-weight: 500;">${location.title}</div>`
+            });
+
+            // 마커 클릭 이벤트
+            marker.addListener('click', () => {
+                infoWindow.open(map, marker);
+            });
+        });
+    }
+</script>
 </body>
 </html>
