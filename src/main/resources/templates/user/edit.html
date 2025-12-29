@@ -1,104 +1,258 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>프로필 수정 - Retrip</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
-    .navbar {
-      background-color: white;
-      padding: 15px 30px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .navbar-brand { font-size: 1.5em; font-weight: bold; color: #007bff; text-decoration: none; }
-    .nav-links { display: flex; gap: 20px; }
-    .nav-links a { text-decoration: none; color: #333; padding: 8px 16px; border-radius: 5px; }
-    .container { max-width: 700px; margin: 30px auto; padding: 0 20px; }
-    .form-box {
-      background-color: white;
-      padding: 40px;
-      border-radius: 10px;
-    }
-    h1 { color: #007bff; margin-bottom: 30px; }
-    .form-group { margin-bottom: 20px; }
-    label { display: block; margin-bottom: 8px; font-weight: bold; }
-    input, textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 1em;
-    }
-    textarea { resize: vertical; }
-    .btn {
-      padding: 12px 30px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1em;
-      text-decoration: none;
-      display: inline-block;
-    }
-    .btn-primary { background-color: #007bff; color: white; }
-    .btn-secondary { background-color: #6c757d; color: white; }
-    .actions { display: flex; gap: 10px; margin-top: 30px; }
-    .logout-btn {
-      padding: 8px 20px;
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>profile-edit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #fff;
+            min-height: 100vh;
+        }
+
+        .header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #E8E5DC;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3D4A3C;
+            transition: color 0.2s;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            color: #9AE19C;
+        }
+
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .main-content {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .profile-image-section {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 48px;
+        }
+
+        .profile-image-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            cursor: pointer;
+        }
+
+        .profile-image-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #F5F3ED;
+            border: 3px solid #E8E5DC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .profile-image-wrapper:hover .profile-image-circle {
+            border-color: #9AE19C;
+        }
+
+        .profile-icon {
+            width: 60px;
+            height: 60px;
+            color: #C4C9C1;
+        }
+
+        .profile-image-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .profile-image-circle.has-image img {
+            display: block;
+        }
+
+        .profile-image-circle.has-image .profile-icon {
+            display: none;
+        }
+
+        .edit-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #3D4A3C;
+            padding: 12px 16px;
+            background: #F5F3ED;
+            border: 1px solid #E8E5DC;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .form-input {
+            padding: 12px 16px;
+            font-size: 14px;
+            border: 1px solid #E8E5DC;
+            border-radius: 8px;
+            background: #FEFDFB;
+            color: #3D4A3C;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #9AE19C;
+            background: #fff;
+        }
+
+        .save-btn-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        .save-btn {
+            width: 100%;
+            max-width: 600px;
+            padding: 16px;
+            background: #9AE19C;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(154, 225, 156, 0.3);
+        }
+
+        .save-btn:hover {
+            background: #88D68A;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(154, 225, 156, 0.4);
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 32px 16px;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .form-label {
+                text-align: left;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="navbar">
-  <a th:href="@{/home}" class="navbar-brand">🌍 Retrip</a>
-  <div class="nav-links">
-    <a th:href="@{/posts}">📰 피드</a>
-    <a th:href="@{/travels}">✈️ 내 여행</a>
-    <a th:href="@{/users/me}">👤 내 정보</a>
-  </div>
-  <form th:action="@{/logout}" method="post" style="margin: 0;">
-    <button type="submit" class="logout-btn">로그아웃</button>
-  </form>
-</div>
 
-<div class="container">
-  <div class="form-box">
-    <h1>✏️ 프로필 수정</h1>
+<header class="header">
+    <a th:href="@{/users/me}" class="back-btn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </a>
+</header>
 
-    <form th:action="@{/users/me/edit}" method="post">
-      <div class="form-group">
-        <label for="name">이름 *</label>
-        <input type="text" id="name" name="name"
-               th:value="${user.name}" required>
-      </div>
+<main class="main-content">
+    <form th:action="@{/users/me/edit}" method="post" id="profileEditForm">
+        <div class="profile-image-section">
+            <div class="profile-image-wrapper">
+                <div class="profile-image-circle" id="profileImageCircle" th:classappend="${user.profileImage != null} ? 'has-image' : ''">
+                    <svg class="profile-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    <img id="profilePreview" th:src="${user.profileImage}" alt="프로필 이미지" th:style="${user.profileImage != null} ? 'display:block' : 'display:none'">
+                </div>
+            </div>
+        </div>
 
-      <div class="form-group">
-        <label for="bio">자기소개</label>
-        <textarea id="bio" name="bio" rows="5"
-                  th:text="${user.bio}"></textarea>
-      </div>
+        <div class="edit-form">
+            <div class="form-row">
+                <label class="form-label" for="name">이름</label>
+                <input type="text" id="name" name="name" class="form-input" th:value="${user.name}" placeholder="이름을 입력하세요." required>
+            </div>
 
-      <div class="form-group">
-        <label for="profileImage">프로필 이미지 URL</label>
-        <input type="url" id="profileImage" name="profileImage"
-               th:value="${user.profileImage}"
-               placeholder="https://example.com/image.jpg">
-      </div>
+            <div class="form-row">
+                <label class="form-label" for="bio">자기소개</label>
+                <input type="text" id="bio" name="bio" class="form-input" th:value="${user.bio}" placeholder="자기소개를 입력하세요.">
+            </div>
 
-      <div class="actions">
-        <button type="submit" class="btn btn-primary">수정하기</button>
-        <a th:href="@{/users/me}" class="btn btn-secondary">취소</a>
-      </div>
+            <div class="form-row">
+                <label class="form-label" for="profileImage">이미지 URL</label>
+                <input type="url" id="profileImage" name="profileImage" class="form-input" th:value="${user.profileImage}" placeholder="https://example.com/image.jpg" oninput="updatePreview(this.value)">
+            </div>
+        </div>
+
+        <div class="save-btn-container">
+            <button type="submit" class="save-btn">수정 완료</button>
+        </div>
     </form>
-  </div>
-</div>
+</main>
+
+<script>
+    // 이미지 URL 입력 시 동적으로 미리보기 업데이트
+    function updatePreview(url) {
+        const preview = document.getElementById('profilePreview');
+        const circle = document.getElementById('profileImageCircle');
+
+        if (url && url.trim() !== "") {
+            preview.src = url;
+            preview.style.display = 'block';
+            circle.classList.add('has-image');
+        } else {
+            preview.style.display = 'none';
+            circle.classList.remove('has-image');
+        }
+    }
+
+    // 페이지 로드 시 기존 URL 데이터가 있다면 미리보기 적용
+    window.onload = function() {
+        const initialUrl = document.getElementById('profileImage').value;
+        if (initialUrl) {
+            updatePreview(initialUrl);
+        }
+    };
+</script>
+
 </body>
 </html>
