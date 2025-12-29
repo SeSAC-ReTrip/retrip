@@ -11,6 +11,7 @@ import com.example.retripbackend.user.entity.User;
 import com.example.retripbackend.user.service.CustomUserDetailsService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -198,6 +199,20 @@ public class PostController {
         @RequestParam Long postId) {
         // 댓글 삭제 로직 (CommentRepository 필요)
         return "redirect:/posts/" + postId;
+    }
+
+    @Value("${google.map.api.key}")
+    private String googleMapApiKey;
+
+    @GetMapping("/post/{id}")
+    public String getPost(@PathVariable Long id, Model model) {
+        // 게시물 데이터 추가
+        // model.addAttribute("post", post);
+
+        // Google Maps API 키 전달 (중요!)
+        model.addAttribute("googleMapApiKey", googleMapApiKey);
+
+        return "content";
     }
 }
 
