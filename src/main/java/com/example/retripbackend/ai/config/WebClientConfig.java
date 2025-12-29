@@ -1,4 +1,4 @@
-package com.example.retripbackend.config;
+package com.example.retripbackend.ai.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
