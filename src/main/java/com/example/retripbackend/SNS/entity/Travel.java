@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -48,41 +49,32 @@ public class Travel extends BaseEntity {
     @Column(nullable = false)
     private int totalAmount = 0;
 
-    // 정적 팩토리 메서드
-    public static Travel of(User user, String country, String city, LocalDate startDate, LocalDate endDate) {
-        Travel travel = new Travel();
-        travel.user = user;
-        travel.country = country;
-        travel.city = city;
-        travel.startDate = startDate;
-        travel.endDate = endDate;
-        return travel;
+    @Builder
+    public Travel(User user, String country, String city, LocalDate startDate, LocalDate endDate, String memo) {
+        this.user = user;
+        this.country = country;
+        this.city = city;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.memo = memo;
     }
 
-    // 비즈니스 메서드
-    public void update(String country, String city, LocalDate startDate, LocalDate endDate, String memo) {
-        if (country != null && !country.isBlank()) {
-            this.country = country;
-        }
-        if (city != null && !city.isBlank()) {
-            this.city = city;
-        }
-        if (startDate != null) {
-            this.startDate = startDate;
-        }
-        if (endDate != null) {
-            this.endDate = endDate;
-        }
-        if (memo != null) {
-            this.memo = memo;
-        }
-    }
-
-    public void updateTotalAmount(int amount) {
-        this.totalAmount = amount;
-    }
-
+    // 권한 체크
     public boolean isOwner(User user) {
         return this.user.getUserId().equals(user.getUserId());
+    }
+
+    // 수정 (나중에 가계부와 연동 시 제거 가능)
+    public void updateInfo(String country, String city, LocalDate startDate, LocalDate endDate, String memo) {
+        this.country = country;
+        this.city = city;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.memo = memo;
+    }
+
+    // 총액 업데이트 (가계부에서 호출)
+    public void updateTotalAmount(int amount) {
+        this.totalAmount = amount;
     }
 }

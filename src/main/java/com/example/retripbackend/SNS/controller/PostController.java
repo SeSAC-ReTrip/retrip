@@ -11,6 +11,7 @@ import com.example.retripbackend.user.entity.User;
 import com.example.retripbackend.user.service.CustomUserDetailsService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -50,6 +51,9 @@ public class PostController {
         return "post/feed";
     }
 
+    @Value("${google.map.api.key}")
+    private String googleMapApiKey;
+
     // 게시글 상세
     @GetMapping("/{postId}")
     public String detail(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
@@ -65,6 +69,9 @@ public class PostController {
         model.addAttribute("comments", comments);
         model.addAttribute("isLiked", isLiked);
         model.addAttribute("isAuthor", isAuthor);
+
+        // Google Maps API 키 전달
+        model.addAttribute("googleMapApiKey", googleMapApiKey);
 
         return "post/detail";
     }
