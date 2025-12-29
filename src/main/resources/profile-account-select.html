@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReTrip - 영수증 선택</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #fff;
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+
+        /* Header */
+        .header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #E8E5DC;
+            position: relative;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3D4A3C;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: #9AE19C;
+        }
+
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #F5F3ED;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #9AE19C;
+            width: 50%;
+            transition: width 0.3s ease;
+        }
+
+        /* Page Title */
+        .page-title-section {
+            padding: 32px 20px 20px;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #3D4A3C;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            font-size: 14px;
+            color: #A0A99D;
+            line-height: 1.5;
+        }
+
+        /* Receipts Grid */
+        .receipts-container {
+            padding: 0 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .receipts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        /* Receipt Card */
+        .receipt-card {
+            position: relative;
+            aspect-ratio: 3/4;
+            border: 2px solid #E8E5DC;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #F5F3ED;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .receipt-card:hover {
+            border-color: #9AE19C;
+            transform: scale(1.02);
+        }
+
+        .receipt-card.selected {
+            border-color: #9AE19C;
+            border-width: 3px;
+        }
+
+        .receipt-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .receipt-card.has-image .receipt-image {
+            display: block;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #D4E9D5;
+        }
+
+        .receipt-card.has-image .image-placeholder {
+            display: none;
+        }
+
+        .image-placeholder svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .selected-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(154, 225, 156, 0.2);
+            display: none;
+        }
+
+        .receipt-card.selected .selected-overlay {
+            display: block;
+        }
+
+        .selected-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 24px;
+            height: 24px;
+            background: #9AE19C;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(154, 225, 156, 0.5);
+            z-index: 10;
+        }
+
+        .receipt-card.selected .selected-badge {
+            display: flex;
+        }
+
+        .checkmark {
+            width: 14px;
+            height: 14px;
+            color: #fff;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Next Button */
+        .next-btn-container {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 20px;
+            display: flex;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .next-btn {
+            width: 100%;
+            max-width: 600px;
+            padding: 16px;
+            background: #9AE19C;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(154, 225, 156, 0.3);
+        }
+
+        .next-btn:hover:not(:disabled) {
+            background: #88D68A;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(154, 225, 156, 0.4);
+        }
+
+        .next-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .next-btn:disabled {
+            background: #E8E5DC;
+            color: #A0A99D;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #E8E5DC;
+            border-top-color: #9AE19C;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: #5A9F5C;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .receipts-grid {
+                gap: 8px;
+            }
+
+            .page-title-section {
+                padding: 24px 16px 16px;
+            }
+
+            .page-title {
+                font-size: 20px;
+            }
+
+            .receipts-container {
+                padding: 0 16px;
+            }
+
+            .next-btn-container {
+                padding: 0 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header class="header">
+    <button class="back-btn" onclick="history.back()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </button>
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
+    </div>
+</header>
+
+<!-- Page Title -->
+<section class="page-title-section">
+    <h1 class="page-title">영수증 업로드</h1>
+    <p class="page-subtitle">로컬 사진첩에서 영수증 사진을 선택하세요</p>
+</section>
+
+<!-- Receipts Container -->
+<main class="receipts-container">
+    <div class="receipts-grid" id="receiptsGrid">
+        <!-- 사진 선택 카드들이 동적으로 추가됩니다 -->
+    </div>
+</main>
+
+<!-- File Input -->
+<input type="file" id="fileInput" class="file-input" accept="image/*" multiple onchange="handleFileSelect(event)">
+
+<!-- Next Button -->
+<div class="next-btn-container">
+    <button class="next-btn" id="nextBtn" disabled onclick="processReceipts()">
+        영수증 분석하기
+    </button>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <p class="loading-text">Gemini가 영수증을 분석하고 있습니다...</p>
+</div>
+
+<script>
+    let selectedFiles = [];
+
+    // 페이지 로드 시 파일 선택 대화상자 자동 실행
+    window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('fileInput').click();
+    });
+
+    function handleFileSelect(event) {
+        const files = Array.from(event.target.files);
+        const grid = document.getElementById('receiptsGrid');
+
+        if (files.length === 0) return;
+
+        // 기존 카드 제거
+        grid.innerHTML = '';
+        selectedFiles = [];
+
+        files.forEach((file, index) => {
+            // 이미지 미리보기 생성
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const card = createReceiptCard(e.target.result, file, index);
+                grid.appendChild(card);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function createReceiptCard(imageSrc, file, index) {
+        const card = document.createElement('div');
+        card.className = 'receipt-card has-image';
+        card.dataset.index = index;
+        card.onclick = () => toggleReceipt(card, file);
+
+        card.innerHTML = `
+                <img class="receipt-image" src="${imageSrc}" alt="영수증 ${index + 1}">
+                <div class="image-placeholder">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <div class="selected-overlay"></div>
+                <div class="selected-badge">
+                    <svg class="checkmark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+            `;
+
+        return card;
+    }
+
+    function toggleReceipt(card, file) {
+        card.classList.toggle('selected');
+
+        const index = parseInt(card.dataset.index);
+        const fileIndex = selectedFiles.findIndex(f => f.index === index);
+
+        if (fileIndex > -1) {
+            selectedFiles.splice(fileIndex, 1);
+        } else {
+            selectedFiles.push({ file, index });
+        }
+
+        updateNextButton();
+    }
+
+    function updateNextButton() {
+        const nextBtn = document.getElementById('nextBtn');
+
+        if (selectedFiles.length > 0) {
+            nextBtn.disabled = false;
+            nextBtn.textContent = `영수증 분석하기 (${selectedFiles.length})`;
+        } else {
+            nextBtn.disabled = true;
+            nextBtn.textContent = '영수증 분석하기';
+        }
+    }
+
+    async function processReceipts() {
+        if (selectedFiles.length === 0) return;
+
+        // 로딩 오버레이 표시
+        document.getElementById('loadingOverlay').classList.add('active');
+
+        try {
+            // FormData 생성
+            const formData = new FormData();
+            selectedFiles.forEach(({ file }) => {
+                formData.append('receipts', file);
+            });
+
+            // 서버로 이미지 전송 및 Gemini 분석 요청
+            // const response = await fetch('/api/receipts/analyze', {
+            //     method: 'POST',
+            //     body: formData
+            // });
+            // const result = await response.json();
+
+            // 시뮬레이션 (실제로는 위의 API 호출 사용)
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // 분석 완료 후 가계부 상세 페이지로 이동
+            alert(`${selectedFiles.length}개의 영수증이 분석되었습니다!`);
+            window.location.href = '/account/lists/1'; // 생성된 가계부 ID로 이동
+
+        } catch (error) {
+            console.error('영수증 분석 오류:', error);
+            alert('영수증 분석 중 오류가 발생했습니다.');
+        } finally {
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+    }
+
+    // 다시 사진 선택하기 (필요시)
+    function reSelectPhotos() {
+        document.getElementById('fileInput').click();
+    }
+</script>
+</body>
+</html>

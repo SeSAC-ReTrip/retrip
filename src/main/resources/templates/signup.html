@@ -6,7 +6,6 @@
   <title>Signup</title>
 
   <style>
-    /* (디자인 CSS 그대로 유지) */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
@@ -20,11 +19,29 @@
       border-bottom: 1px solid #E8E5DC;
       position: relative;
     }
+
     .back-btn {
-      width: 40px; height: 40px; border: none; background: none;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      color: #3D4A3C;
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #3D4A3C;
+        transition: color 0.2s;
     }
+
+    .back-btn:hover {
+        color: #9AE19C;
+    }
+
+    .back-btn svg {
+        width: 24px;
+        height: 24px;
+    }
+
     .logo-text {
       position: absolute;
       left: 50%;
@@ -75,6 +92,20 @@
       border: 1px solid #E8E5DC;
       border-radius: 8px;
     }
+    .form-input::placeholder {
+        color: #C4C9C1;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #9AE19C;
+        background: #fff;
+    }
+
+    .form-input:hover {
+        border-color: #C1EEC3;
+    }
+
     .field-error {
       color: red;
       font-size: 12px;
@@ -124,7 +155,6 @@
     </h2>
   </div>
 
-  <!-- 🔥 백엔드 연동 Form -->
   <form class="signup-form"
         th:action="@{/signup}"
         th:object="${signupForm}"
