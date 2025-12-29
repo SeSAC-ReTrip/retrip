@@ -113,10 +113,16 @@ public class GeminiService {
                - 다양한 날짜 형식 지원 (MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD 등)
             5. address: 영수증에 기재된 주소 (전체 주소 또는 가능한 상세 주소)
                - 해외 주소 형식 지원 (영문 주소, 현지 언어 주소 등)
+               - 영수증에 주소가 없으면 placeName과 영수증의 도시/국가 정보를 결합하여 주소를 유추
+               - 예: "Starbucks Tokyo" + 영수증의 도시 정보 → "Tokyo, Japan" 또는 더 상세한 주소
             
             선택 정보 (가능한 경우에만):
-            6. latitude: 위도 (주소를 기반으로 추정 가능한 경우)
-            7. longitude: 경도 (주소를 기반으로 추정 가능한 경우)
+            6. latitude: 위도 (주소 또는 placeName을 기반으로 추정 가능한 경우)
+               - 영수증에 주소가 있으면 주소를 기반으로 추정
+               - 주소가 없으면 placeName과 도시/국가 정보를 결합하여 추정
+            7. longitude: 경도 (주소 또는 placeName을 기반으로 추정 가능한 경우)
+               - 영수증에 주소가 있으면 주소를 기반으로 추정
+               - 주소가 없으면 placeName과 도시/국가 정보를 결합하여 추정
             8. expenseItems: 소비 항목 리스트 (각 항목의 itemName, amount, quantity)
                - amount는 소수점 포함 가능 (예: 12.50, 9.99)
             
@@ -126,7 +132,9 @@ public class GeminiService {
             - currency는 반드시 ISO 4217 통화 코드 형식으로 추출 (3자리 영문 대문자)
             - paidAt은 영수증의 날짜 형식을 파악하여 ISO 8601 형식으로 변환
             - address는 가능한 한 상세하게 추출 (도로명, 도시명, 국가명 포함)
-            - latitude와 longitude는 주소가 명확한 경우에만 포함 (없으면 null)
+            - 영수증에 주소가 없어도 placeName과 영수증의 도시/국가 정보를 활용하여 주소를 유추해주세요
+            - latitude와 longitude는 주소 또는 placeName을 기반으로 추정 가능한 경우 반드시 포함
+            - placeName만으로도 해당 가게의 대략적인 위치(도시 중심지 등)를 추정하여 좌표를 제공해주세요
             - 해외 영수증의 다양한 형식과 언어를 지원해야 함
             
             JSON 형식:
