@@ -2,156 +2,135 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>내 여행 - Retrip</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>가계부 목록 - Retrip</title>
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: Arial, sans-serif;
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: #f5f5f5;
+      padding: 20px;
     }
-    .navbar {
+
+    .header {
       background-color: white;
-      padding: 15px 30px;
+      padding: 20px;
       border-radius: 10px;
+      margin-bottom: 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
     }
-    .navbar-brand {
-      font-size: 1.5em;
-      font-weight: bold;
-      color: #007bff;
-      text-decoration: none;
+    .header h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
     }
-    .nav-links {
-      display: flex;
-      gap: 20px;
-    }
-    .nav-links a {
-      text-decoration: none;
-      color: #333;
-      padding: 8px 16px;
-      border-radius: 5px;
-    }
-    .nav-links a:hover {
-      background-color: #e7f3ff;
-    }
-    .page-header {
-      background-color: white;
-      padding: 30px;
-      border-radius: 10px;
-      margin-bottom: 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .btn {
-      padding: 10px 20px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-    }
-    .btn:hover {
-      background-color: #218838;
-    }
-    .travel-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
-    }
+
     .travel-card {
       background-color: white;
-      padding: 25px;
+      padding: 20px;
       border-radius: 10px;
+      margin-bottom: 15px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      transition: transform 0.3s;
-      text-decoration: none;
-      color: inherit;
-      display: block;
+      cursor: pointer;
+      transition: transform 0.2s;
     }
     .travel-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
-    .travel-flag {
-      font-size: 3em;
-      margin-bottom: 15px;
-    }
-    .travel-location {
-      font-size: 1.5em;
+
+    .card-title {
+      font-size: 20px;
       font-weight: bold;
       margin-bottom: 10px;
       color: #007bff;
     }
-    .travel-dates {
+    .card-info {
+      font-size: 14px;
       color: #666;
-      margin-bottom: 15px;
+      margin-bottom: 5px;
     }
-    .travel-amount {
-      font-size: 1.2em;
-      color: #28a745;
+    .card-amount {
+      font-size: 18px;
       font-weight: bold;
+      color: #28a745;
+      margin-top: 10px;
     }
-    .empty-state {
-      background-color: white;
-      padding: 60px;
-      border-radius: 10px;
+
+    .empty {
       text-align: center;
+      padding: 60px 20px;
+      background-color: white;
+      border-radius: 10px;
     }
-    .empty-state p {
-      color: #666;
-      margin-bottom: 20px;
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn-edit {
+      background-color: #007bff;
+      color: white;
+    }
+    .btn-delete {
+      background-color: #dc3545;
+      color: white;
     }
   </style>
 </head>
 <body>
-<!-- 네비게이션 -->
-<div class="navbar">
-  <a th:href="@{/home}" class="navbar-brand">🌍 Retrip</a>
-  <div class="nav-links">
-    <a th:href="@{/posts}">📰 피드</a>
-    <a th:href="@{/travels}">✈️ 내 여행</a>
-    <a th:href="@{/users/me}">👤 내 정보</a>
-    <a th:href="@{/search}">🔍 검색</a>
-  </div>
-</div>
-
-<!-- 페이지 헤더 -->
-<div class="page-header">
-  <h1>내 여행</h1>
-  <a th:href="@{/travels/create}" class="btn">+ 새 여행 추가</a>
+<div class="header">
+  <h1>🏠 가계부 목록</h1>
+  <p style="color: #666;">가계부에서 생성된 여행을 선택하세요</p>
 </div>
 
 <!-- 여행 목록 -->
-<div th:if="${travels != null and !travels.empty}" class="travel-grid">
-  <a th:each="travel : ${travels}"
-     th:href="@{/travels/{id}(id=${travel.travelId})}"
-     class="travel-card">
-    <div class="travel-flag">🌍</div>
-    <div class="travel-location" th:text="${travel.city + ', ' + travel.country}">파리, 프랑스</div>
-    <div class="travel-dates"
-         th:text="${#temporals.format(travel.startDate, 'yyyy-MM-dd')} + ' ~ ' + ${#temporals.format(travel.endDate, 'yyyy-MM-dd')}">
-      2024-05-01 ~ 2024-05-04
+<div th:if="${travels != null and !travels.empty}">
+  <div th:each="travel : ${travels}" class="travel-card">
+    <div th:onclick="'location.href=\'/travels/' + ${travel.travelId} + '\''">
+      <div class="card-title" th:text="${travel.city + ', ' + travel.country}">파리, 프랑스</div>
+      <div class="card-info"
+           th:text="'기간: ' + ${#temporals.format(travel.startDate, 'yyyy-MM-dd')} + ' ~ ' + ${#temporals.format(travel.endDate, 'yyyy-MM-dd')}">
+        기간: 2024-05-01 ~ 2024-05-04
+      </div>
+      <div class="card-amount" th:text="'총 지출: ' + ${#numbers.formatInteger(travel.totalAmount, 0, 'COMMA')} + '원'">
+        총 지출: 1,250,000원
+      </div>
+      <div th:if="${travel.memo != null and !travel.memo.isBlank()}"
+           class="card-info"
+           style="margin-top: 10px; font-style: italic;"
+           th:text="'메모: ' + ${travel.memo}">
+        메모: 즐거운 여행이었어요
+      </div>
     </div>
-    <div class="travel-amount" th:text="'총 지출: ' + ${#numbers.formatInteger(travel.totalAmount, 0, 'COMMA')} + '원'">
-      총 지출: 1,250,000원
+
+    <!-- 수정/삭제 버튼 -->
+    <div class="btn-group" onclick="event.stopPropagation();">
+      <button class="btn btn-edit"
+              th:onclick="'location.href=\'/travels/' + ${travel.travelId} + '/edit\''">
+        수정
+      </button>
+      <form th:action="@{/travels/{id}/delete(id=${travel.travelId})}"
+            method="post"
+            style="display: inline;"
+            onsubmit="return confirm('정말 삭제하시겠습니까?');">
+        <button type="submit" class="btn btn-delete">삭제</button>
+      </form>
     </div>
-  </a>
+  </div>
 </div>
 
-<!-- 여행 없음 -->
-<div th:if="${travels == null or travels.empty}" class="empty-state">
-  <h2>📭 여행이 없습니다</h2>
-  <p>첫 번째 여행을 만들어보세요!</p>
-  <a th:href="@{/travels/create}" class="btn">+ 새 여행 만들기</a>
+<!-- 빈 상태 -->
+<div th:if="${travels == null or travels.empty}" class="empty">
+  <h2>📭 가계부가 없습니다</h2>
+  <p>가계부 시스템에서 영수증을 업로드하면 여기에 표시됩니다.</p>
 </div>
 </body>
 </html>
