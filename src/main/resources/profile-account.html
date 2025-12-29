@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReTrip - 가계부</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #fff;
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+
+        /* Header */
+        .header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #E8E5DC;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3D4A3C;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: #9AE19C;
+        }
+
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Page Title */
+        .page-title-section {
+            padding: 24px 20px 16px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #3D4A3C;
+        }
+
+        /* Account Books Container */
+        .account-books-container {
+            padding: 0 20px 20px;
+        }
+
+        /* Account Book Card */
+        .account-book-card {
+            margin-bottom: 20px;
+            border: 1px solid #E8E5DC;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #FEFDFB;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .account-book-card:hover {
+            box-shadow: 0 4px 12px rgba(154, 225, 156, 0.2);
+            border-color: #D4CFC0;
+            transform: translateY(-2px);
+        }
+
+        .book-image {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, #F5F3ED 0%, #EAE7DC 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #D4E9D5;
+        }
+
+        .book-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-placeholder svg {
+            width: 48px;
+            height: 48px;
+        }
+
+        .book-info {
+            padding: 16px;
+            background: #FEFDFB;
+        }
+
+        .book-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .meta-label {
+            font-size: 11px;
+            color: #A0A99D;
+            font-weight: 500;
+        }
+
+        .meta-value {
+            font-size: 13px;
+            color: #5A9F5C;
+            font-weight: 500;
+        }
+
+        /* Create Button */
+        .create-btn-container {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 20px;
+            display: flex;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .create-btn {
+            width: 100%;
+            max-width: 600px;
+            padding: 16px;
+            background: #9AE19C;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(154, 225, 156, 0.3);
+        }
+
+        .create-btn:hover {
+            background: #88D68A;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(154, 225, 156, 0.4);
+        }
+
+        .create-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            color: #E8E5DC;
+        }
+
+        .empty-text {
+            font-size: 16px;
+            color: #A0A99D;
+            margin-bottom: 8px;
+        }
+
+        .empty-subtext {
+            font-size: 14px;
+            color: #C4C9C1;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .page-title-section {
+                padding: 20px 16px 12px;
+            }
+
+            .page-title {
+                font-size: 22px;
+            }
+
+            .account-books-container {
+                padding: 0 16px 16px;
+            }
+
+            .book-info {
+                padding: 14px;
+            }
+
+            .create-btn-container {
+                padding: 0 16px;
+            }
+
+            .book-meta {
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header class="header">
+    <button class="back-btn" onclick="history.back()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </button>
+</header>
+
+<!-- Page Title -->
+<section class="page-title-section">
+    <h1 class="page-title">가계부</h1>
+</section>
+
+<!-- Account Books Container -->
+<main class="account-books-container">
+    <!--
+    백엔드 연동 시 아래 주석을 해제하고 샘플 카드를 삭제하세요
+    <article class="account-book-card" th:each="book : ${accountBooks}" th:onclick="'goToBook(' + ${book.id} + ')'">
+        <div class="book-image">
+            <img th:if="${book.thumbnailUrl != null}" th:src="${book.thumbnailUrl}" th:alt="${book.title}">
+            <div th:unless="${book.thumbnailUrl != null}" class="image-placeholder">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+            </div>
+        </div>
+        <div class="book-info">
+            <div class="book-meta">
+                <div class="meta-item">
+                    <span class="meta-label">제목</span>
+                    <span class="meta-value" th:text="${book.title}">제목</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">여행지</span>
+                    <span class="meta-value" th:text="${book.destination}">여행지</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">여행기간</span>
+                    <span class="meta-value" th:text="${book.period}">여행기간</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">총 경비</span>
+                    <span class="meta-value" th:text="${book.totalCost}">총 경비</span>
+                </div>
+            </div>
+        </div>
+    </article>
+    -->
+
+    <!-- 샘플 가계부 카드 1 -->
+    <article class="account-book-card" onclick="goToBook(1)">
+        <div class="book-image">
+            <div class="image-placeholder">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+            </div>
+        </div>
+        <div class="book-info">
+            <div class="book-meta">
+                <div class="meta-item">
+                    <span class="meta-label">제목</span>
+                    <span class="meta-value">제목</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">여행지</span>
+                    <span class="meta-value">여행지</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">여행기간</span>
+                    <span class="meta-value">여행기간</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">총 경비</span>
+                    <span class="meta-value">총 경비</span>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <!-- 샘플 가계부 카드 2 -->
+    <article class="account-book-card" onclick="goToBook(2)">
+        <div class="book-image">
+            <div class="image-placeholder">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+            </div>
+        </div>
+        <div class="book-info">
+            <div class="book-meta">
+                <div class="meta-item">
+                    <span class="meta-label">제목</span>
+                    <span class="meta-value">제목</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">여행지</span>
+                    <span class="meta-value">여행지</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">여행기간</span>
+                    <span class="meta-value">여행기간</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">총 경비</span>
+                    <span class="meta-value">총 경비</span>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <!-- Empty State (가계부가 없을 때 표시)
+    <div class="empty-state">
+        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <p class="empty-text">아직 작성된 가계부가 없습니다.</p>
+        <p class="empty-subtext">첫 번째 가계부를 만들어보세요!</p>
+    </div>
+    -->
+</main>
+
+<!-- Create Button -->
+<div class="create-btn-container">
+    <button class="create-btn" onclick="createAccountBook()">새 가계부 만들기</button>
+</div>
+
+<script>
+    function goToBook(bookId) {
+        // 가계부 상세 페이지로 이동
+        window.location.href = `/account/lists/${bookId}`;
+    }
+
+    function createAccountBook() {
+        // 가계부 생성 페이지로 이동
+        window.location.href = '/account/lists/create';
+    }
+</script>
+</body>
+</html>
