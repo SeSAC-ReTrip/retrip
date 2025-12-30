@@ -80,16 +80,8 @@ public class TravelService {
         travelRepository.delete(travel);
     }
 
-    /**
-     * 인기 도시 조회 (통계)
-     */
-    public List<Object[]> getPopularCities() {
-        return travelRepository.findPopularCities();
-    }
 
-    /**
-     * 사용자의 여행 수 조회
-     */
+    //  사용자의 여행 수 조회
     public long countUserTravels(User user) {
         return travelRepository.countByUser(user);
     }
