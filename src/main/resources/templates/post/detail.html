@@ -324,7 +324,6 @@
             border: 1px solid #E8E5DC;
             border-radius: 12px;
             overflow: hidden;
-            margin-bottom: 80px;
         }
 
         #map {
@@ -519,6 +518,7 @@
 </div>
 
 <!-- Google Maps API -->
+<script  async defer th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}"></script>
 <script>
     function initMap() {
         const center = { lat: 37.5665, lng: 126.9780 };
@@ -588,6 +588,67 @@
     function uploadPost() {
         alert('게시물을 업로드합니다!');
         // 실제 업로드 로직 처리
+    }
+
+    <!-- Google Maps API -->
+    <script async defer th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}"></script>
+<script>
+    function initMap() {
+        // 지도 중심 좌표 설정 (예: 서울)
+        const center = { lat: 37.5665, lng: 126.9780 };
+
+        // 지도 생성
+        const map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 13,
+            center: center,
+            mapTypeControl: false,
+            streetViewControl: false,
+            styles: [
+                {
+                    featureType: "all",
+                    elementType: "geometry",
+                    stylers: [{ saturation: -20 }]
+                }
+            ]
+        });
+
+        // 마커 위치 배열 (백엔드에서 받아올 데이터)
+        const locations = [
+            { lat: 37.5665, lng: 126.9780, title: "장소 1" },
+            { lat: 37.5560, lng: 126.9720, title: "장소 2" },
+            { lat: 37.5700, lng: 126.9850, title: "장소 3" },
+            { lat: 37.5620, lng: 126.9910, title: "장소 4" },
+            { lat: 37.5500, lng: 126.9880, title: "장소 5" }
+        ];
+
+        // 마커 생성
+        locations.forEach((location, index) => {
+            const marker = new google.maps.Marker({
+                position: { lat: location.lat, lng: location.lng },
+                map: map,
+                title: location.title,
+                icon: {
+                    path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+                    fillColor: "#9AE19C",
+                    fillOpacity: 1,
+                    strokeColor: "#fff",
+                    strokeWeight: 2,
+                    scale: 1.5,
+                    anchor: new google.maps.Point(12, 24)
+                },
+                animation: google.maps.Animation.DROP
+            });
+
+            // 정보창 생성 (선택사항)
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<div style="padding: 8px; color: #3D4A3C; font-weight: 500;">${location.title}</div>`
+            });
+
+            // 마커 클릭 이벤트
+            marker.addListener('click', () => {
+                infoWindow.open(map, marker);
+            });
+        });
     }
 </script>
 </body>
