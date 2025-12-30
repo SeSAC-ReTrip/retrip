@@ -349,7 +349,13 @@
 
 <script>
     function toggleSelection(card) {
-        card.classList.toggle('selected');
+        const isAlreadySelected = card.classList.contains('selected');
+        document.querySelectorAll('.account-book-card').forEach(c => {
+            c.classList.remove('selected');
+        });
+        if (!isAlreadySelected) {
+            card.classList.add('selected');
+        }
         updateUploadButton();
     }
 
@@ -357,20 +363,19 @@
         const selectedCards = document.querySelectorAll('.account-book-card.selected');
         const uploadBtn = document.getElementById('uploadBtn');
 
-        if (selectedCards.length > 0) {
+        if (selectedCards.length === 1) {
             uploadBtn.disabled = false;
             uploadBtn.textContent = `선택한 가계부 업로드하기 (${selectedCards.length})`;
         } else {
             uploadBtn.disabled = true;
-            uploadBtn.textContent = '선택한 가계부 업로드하기';
+            uploadBtn.textContent = '가계부를 선택해주세요.';
         }
     }
 
     function uploadSelected() {
         const selectedCards = document.querySelectorAll('.account-book-card.selected');
-        if (selectedCards.length > 0) {
-            // 여기서 실제 업로드 로직 처리
-            alert(`${selectedCards.length}개의 가계부를 업로드합니다.`);
+        if (selectedCards.length === 1) {
+            alert(`가계부를 업로드합니다.`);
         }
     }
 </script>
