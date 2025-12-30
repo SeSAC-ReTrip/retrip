@@ -31,7 +31,7 @@ public class SearchController {
 
         // 만약 게시물이 아직 없으면 빈 리스트가 표시됨
         model.addAttribute("popularCities", popularCities);
-        return "search/search";
+        return "search/explore";
     }
 
     /**
