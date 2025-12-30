@@ -1,99 +1,383 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>게시글 작성 - Retrip</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
-    .navbar {
-      background-color: white;
-      padding: 15px 30px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .navbar-brand { font-size: 1.5em; font-weight: bold; color: #007bff; text-decoration: none; }
-    .nav-links { display: flex; gap: 20px; }
-    .nav-links a { text-decoration: none; color: #333; padding: 8px 16px; border-radius: 5px; }
-    .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
-    .form-box { background-color: white; padding: 40px; border-radius: 10px; }
-    h1 { color: #007bff; margin-bottom: 30px; }
-    .form-group { margin-bottom: 20px; }
-    label { display: block; margin-bottom: 8px; font-weight: bold; }
-    input, select, textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 1em;
-    }
-    textarea { resize: vertical; font-family: Arial, sans-serif; }
-    .btn {
-      padding: 12px 30px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1em;
-      text-decoration: none;
-    }
-    .btn-primary { background-color: #007bff; color: white; }
-    .btn-secondary { background-color: #6c757d; color: white; }
-    .actions { display: flex; gap: 10px; margin-top: 30px; }
-    .alert { background-color: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>upload</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #fff;
+            padding-bottom: 70px;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+
+        /* Page Header */
+        .page-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #3D4A3C;
+        }
+
+        /* Account Book List */
+        .account-book-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Account Book Card */
+        .account-book-card {
+            background: #FEFDFB;
+            border: 2px solid #E8E5DC;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .account-book-card:hover {
+            border-color: #9AE19C;
+            box-shadow: 0 4px 12px rgba(154, 225, 156, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .account-book-card.selected {
+            border-color: #9AE19C;
+            border-width: 3px;
+            background: #F5FDF5;
+        }
+
+        .card-image {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, #F5F3ED 0%, #EAE7DC 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #D4E9D5;
+            position: relative;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-placeholder svg {
+            width: 48px;
+            height: 48px;
+        }
+
+        .selected-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #9AE19C;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .account-book-card.selected .selected-badge {
+            display: block;
+        }
+
+        .card-info {
+            padding: 16px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #3D4A3C;
+            margin-bottom: 12px;
+        }
+
+        .card-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .meta-label {
+            font-size: 11px;
+            color: #A0A99D;
+            font-weight: 500;
+        }
+
+        .meta-value {
+            font-size: 13px;
+            color: #5A9F5C;
+            font-weight: 500;
+        }
+
+        /* Upload Button */
+        .upload-button-container {
+            position: fixed;
+            bottom: 80px;
+            left: 0;
+            right: 0;
+            padding: 0 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .upload-btn {
+            max-width: 600px;
+            width: 100%;
+            padding: 16px;
+            background: #9AE19C;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(154, 225, 156, 0.3);
+        }
+
+        .upload-btn:hover {
+            background: #88D68A;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(154, 225, 156, 0.4);
+        }
+
+        .upload-btn:active {
+            transform: translateY(0);
+        }
+
+        .upload-btn:disabled {
+            background: #E8E5DC;
+            color: #A0A99D;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #FEFDFB;
+            border-top: 1px solid #E8E5DC;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            color: #A0A99D;
+            text-decoration: none;
+            flex: 1;
+            transition: color 0.2s;
+        }
+
+        .nav-item:hover {
+            color: #9AE19C;
+        }
+
+        .nav-item.active {
+            color: #5A9F5C;
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 20px 16px;
+            }
+
+            .upload-button-container {
+                padding: 0 16px;
+            }
+
+            .card-meta {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="navbar">
-  <a th:href="@{/home}" class="navbar-brand">🌍 Retrip</a>
-  <div class="nav-links">
-    <a th:href="@{/posts}">📰 피드</a>
-    <a th:href="@{/travels}">✈️ 내 여행</a>
-    <a th:href="@{/users/me}">👤 내 정보</a>
-  </div>
-</div>
-
-<div class="container">
-  <div class="form-box">
-    <h1>📝 게시글 작성</h1>
-
-    <div th:if="${travels == null or #lists.isEmpty(travels)}" class="alert">
-      게시글을 작성하려면 먼저 여행을 만들어야 합니다.
-      <a th:href="@{/travels/create}">여행 만들기</a>
+<!-- Main Content -->
+<main class="main-content">
+    <div class="page-header">
+        <h1 class="page-title">일정에 업로드 할 가계부를 선택해주세요.</h1>
     </div>
 
-    <form th:if="${travels != null and !#lists.isEmpty(travels)}"
-          th:action="@{/posts/create}" method="post">
-      <div class="form-group">
-        <label for="travelId">여행 선택 *</label>
-        <select id="travelId" name="travelId" required>
-          <option value="">여행을 선택하세요</option>
-          <option th:each="travel : ${travels}"
-                  th:value="${travel.travelId}"
-                  th:text="${travel.city} + ', ' + ${travel.country} + ' (' + ${#temporals.format(travel.startDate, 'yyyy-MM-dd')} + ')'">
-          </option>
-        </select>
-      </div>
+    <!-- Account Book List -->
+    <div class="account-book-list">
+        <!-- 샘플 가계부 카드 1 -->
+        <div class="account-book-card" onclick="toggleSelection(this)">
+            <div class="card-image">
+                <div class="image-placeholder">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <span class="selected-badge">선택됨</span>
+            </div>
+            <div class="card-info">
+                <h3 class="card-title">제목</h3>
+                <div class="card-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">여행지</span>
+                        <span class="meta-value">여행지</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">여행기간</span>
+                        <span class="meta-value">여행기간</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">총 경비</span>
+                        <span class="meta-value">총 경비</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-      <div class="form-group">
-        <label for="title">제목 *</label>
-        <input type="text" id="title" name="title"
-               placeholder="게시글 제목" maxlength="100" required />
-      </div>
+        <!-- 샘플 가계부 카드 2 -->
+        <div class="account-book-card" onclick="toggleSelection(this)">
+            <div class="card-image">
+                <div class="image-placeholder">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <span class="selected-badge">선택됨</span>
+            </div>
+            <div class="card-info">
+                <h3 class="card-title">제목</h3>
+                <div class="card-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">여행지</span>
+                        <span class="meta-value">여행지</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">여행기간</span>
+                        <span class="meta-value">여행기간</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">총 경비</span>
+                        <span class="meta-value">총 경비</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
 
-      <div class="form-group">
-        <label for="content">내용 *</label>
-        <textarea id="content" name="content" rows="15"
-                  placeholder="여행 이야기를 작성해주세요..." required></textarea>
-      </div>
-
-      <div class="actions">
-        <button type="submit" class="btn btn-primary">작성하기</button>
-        <a th:href="@{/posts}" class="btn btn-secondary">취소</a>
-      </div>
-    </form>
-  </div>
+<!-- Upload Button -->
+<div class="upload-button-container">
+    <button class="upload-btn" id="uploadBtn" disabled onclick="uploadSelected()">
+        선택한 가계부 업로드하기
+    </button>
 </div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+    <a href="#" class="nav-item">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+        <span class="nav-label">Home</span>
+    </a>
+    <a href="#" class="nav-item">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <span class="nav-label">Explore</span>
+    </a>
+    <a href="#" class="nav-item active">
+        <svg class="nav-icon" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <span class="nav-label">Upload</span>
+    </a>
+    <a href="#" class="nav-item">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+        <span class="nav-label">Profile</span>
+    </a>
+</nav>
+
+<script>
+    function toggleSelection(card) {
+        const isAlreadySelected = card.classList.contains('selected');
+        document.querySelectorAll('.account-book-card').forEach(c => {
+            c.classList.remove('selected');
+        });
+        if (!isAlreadySelected) {
+            card.classList.add('selected');
+        }
+        updateUploadButton();
+    }
+
+    function updateUploadButton() {
+        const selectedCards = document.querySelectorAll('.account-book-card.selected');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        if (selectedCards.length === 1) {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = `선택한 가계부 업로드하기 (${selectedCards.length})`;
+        } else {
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = '가계부를 선택해주세요.';
+        }
+    }
+
+    function uploadSelected() {
+        const selectedCards = document.querySelectorAll('.account-book-card.selected');
+        if (selectedCards.length === 1) {
+            alert(`가계부를 업로드합니다.`);
+        }
+    }
+</script>
 </body>
 </html>

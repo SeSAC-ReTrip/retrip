@@ -5,12 +5,12 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+@Configuration
+@ConfigurationProperties(prefix = "gemini")
 @Getter
 @Setter
-@Configuration
-@ConfigurationProperties(prefix = "google.gemini")
 public class GeminiConfig {
-
     private String apiKey;
-    private String modelName = "gemini-1.5-flash";
+    private String modelName = "gemini-2.5-flash";
 }
+
