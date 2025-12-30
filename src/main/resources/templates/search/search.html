@@ -127,14 +127,14 @@
 <div th:if="${popularCities != null and !popularCities.empty}">
   <div class="section-title">게시물이 가장 많은 여행지를 둘러보세요.</div>
   <div class="city-tags">
-    <!-- ✅ data 속성 사용 + JavaScript 함수 호출 -->
-    <button th:each="city : ${popularCities}"
-            class="city-tag"
-            th:text="${city}"
-            th:data-city="${city}"
-            onclick="searchCity(this.dataset.city)">
-      도쿄
-    </button>
+    <!-- ✅ Form 방식 (한글 자동 인코딩) -->
+    <form th:each="city : ${popularCities}"
+          action="/search/results"
+          method="get"
+          style="display: inline;">
+      <input type="hidden" name="keyword" th:value="${city}">
+      <button type="submit" class="city-tag" th:text="${city}">파리</button>
+    </form>
   </div>
 </div>
 
@@ -143,19 +143,5 @@
   <h3>📭 아직 게시물이 없습니다</h3>
   <p>첫 번째 게시물을 작성해보세요!</p>
 </div>
-
-<script>
-  // 도시 검색 함수
-  function searchCity(city) {
-    location.href = '/search/city?city=' + encodeURIComponent(city);
-  }
-
-  // 엔터키로 검색
-  document.querySelector('.search-input').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      this.form.submit();
-    }
-  });
-</script>
 </body>
 </html>

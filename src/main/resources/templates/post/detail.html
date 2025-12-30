@@ -108,6 +108,7 @@
   <div class="post-header">
     <div class="post-title" th:text="${post.title}">게시글 제목</div>
     <div class="post-meta">
+      <!-- ✅ name 필드 사용 (User 엔티티에 있음) -->
       <span th:text="${post.author.name}">작성자</span>
       <span>|</span>
       <span th:text="${post.travel.city + ', ' + post.travel.country}">파리, 프랑스</span>
@@ -151,6 +152,7 @@
 
     <!-- 댓글 목록 -->
     <div th:each="comment : ${comments}" class="comment-item">
+      <!-- ✅ name 필드 사용 (User 엔티티에 있음) -->
       <div class="comment-author" th:text="${comment.author.name}">작성자</div>
       <div class="comment-date" th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-21</div>
       <div th:text="${comment.content}">댓글 내용</div>
