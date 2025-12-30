@@ -20,56 +20,45 @@ public class SearchController {
     private final PostService postService;
 
     /**
-     * 검색 초기 화면
-     * - 실제 게시물이 많은 도시들을 DB에서 조회하여 표시
-     * GET /search
+     * [STEP 1] Explore 메인 화면
+     * - 전체 게시물 혹은 추천 게시물을 보여주는 첫 화면
      */
-    @GetMapping("/search")
-    public String searchPage(Model model) {
-        // DB에서 실제 게시물이 많은 도시 상위 16개 조회
-        List<String> popularCities = postService.getTopCitiesByPostCount(16);
-
-        // 만약 게시물이 아직 없으면 빈 리스트가 표시됨
-        model.addAttribute("popularCities", popularCities);
+    @GetMapping("/explore")
+    public String explorePage(Model model) {
+        // 예시: 최신 게시물 10개 조회 (기존 postService 활용)
+        Page<Post> allPosts = postService.searchPostsByCity("", 0, 10);
+        model.addAttribute("posts", allPosts);
         return "search/explore";
     }
 
     /**
-     * 검색 결과 화면
-     * - 도시명으로 게시물 검색
-     * GET /search/results?keyword=파리&page=0
+     * [STEP 2] Search 검색 입력 화면
+     * - "어디로 여행 가시나요?" 도시 선택 및 검색어 입력 단계
+     */
+    @GetMapping("/search")
+    public String searchInputPage(Model model) {
+        // 인기 도시 리스트 상위 16개
+        List<String> popularCities = postService.getTopCitiesByPostCount(16);
+        model.addAttribute("popularCities", popularCities);
+        return "search/explore-search";
+    }
+
+    /**
+     * [STEP 3] 검색 결과 화면
+     * - 특정 도시 검색 결과 피드
      */
     @GetMapping("/search/results")
     public String searchResults(@RequestParam String keyword,
         @RequestParam(defaultValue = "0") int page,
         Model model) {
-        // 빈 검색어 처리
         if (keyword == null || keyword.isBlank()) {
-            return "redirect:/search/explore";
+            return "redirect:/search";
         }
 
-        // 도시명으로 게시물 검색 (Travel의 city 필드 기준)
         Page<Post> posts = postService.searchPostsByCity(keyword, page, 10);
-
         model.addAttribute("keyword", keyword);
         model.addAttribute("posts", posts);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", posts.getTotalPages());
 
         return "search/results";
-    }
-
-    /**
-     * 인기 도시 태그 클릭 시 바로 검색 결과로 이동
-     * GET /search/city?city=일본
-     *
-     * ✅ RedirectAttributes를 사용하면 Spring이 자동으로 URL 인코딩 처리
-     */
-    @GetMapping("/search/city")
-    public String searchByCity(@RequestParam String city,
-        RedirectAttributes redirectAttributes) {
-        // Spring이 자동으로 한글을 URL 인코딩 처리
-        redirectAttributes.addAttribute("keyword", city);
-        return "redirect:/search/results";
     }
 }
