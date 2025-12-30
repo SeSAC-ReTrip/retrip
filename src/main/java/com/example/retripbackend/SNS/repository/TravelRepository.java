@@ -16,13 +16,6 @@ public interface TravelRepository extends JpaRepository<Travel, Long> {
     // 여행 수 조회
     long countByUser(User user);
 
-    // 인기 도시 (게시글 많은 순)
-    @Query("SELECT t.city, COUNT(p) as postCount " +
-        "FROM Travel t " +
-        "LEFT JOIN Post p ON p.travel = t " +
-        "GROUP BY t.city " +
-        "ORDER BY postCount DESC")
-    List<Object[]> findPopularCities();
 }
 
 

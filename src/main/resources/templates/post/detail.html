@@ -393,46 +393,18 @@
     </style>
 </head>
 <body>
-<!-- Header -->
-<header class="header">
-    <button class="back-btn" onclick="history.back()">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-        </svg>
-    </button>
-</header>
+<a th:href="@{/posts}" class="back-btn">← 목록으로</a>
 
-<!-- Main Content -->
-<main class="main-content">
-    <div class="post-header">
-        <input type="text" class="post-title-input" placeholder="제목">
-        <div class="post-meta">
-            <div class="meta-item">
-                <span class="meta-label">여행지</span>
-                <input type="text" class="meta-input" placeholder="여행지">
-            </div>
-            <div class="meta-item">
-                <span class="meta-label">여행기간</span>
-                <input type="text" class="meta-input" placeholder="여행기간">
-            </div>
-            <div class="meta-item">
-                <span class="meta-label">총 경비</span>
-                <input type="text" class="meta-input" placeholder="총 경비">
-            </div>
-            <div class="meta-item">
-                <span class="meta-label">작성자</span>
-                <div class="meta-value">
-                    <svg class="author-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                    <span>작성자</span>
-                </div>
-            </div>
-            <div class="meta-item">
-                <span class="meta-label">작성일</span>
-                <div class="meta-value">작성일</div>
-            </div>
-        </div>
+<div class="post-detail">
+  <div class="post-header">
+    <div class="post-title" th:text="${post.title}">게시글 제목</div>
+    <div class="post-meta">
+      <!-- ✅ name 필드 사용 (User 엔티티에 있음) -->
+      <span th:text="${post.author.name}">작성자</span>
+      <span>|</span>
+      <span th:text="${post.travel.city + ', ' + post.travel.country}">파리, 프랑스</span>
+      <span>|</span>
+      <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-21</span>
     </div>
 
     <!-- 영수증 카드 1 -->
@@ -454,19 +426,24 @@
         </div>
         <img id="preview1" alt="preview">
     </div>
-    <input type="file" id="fileInput1" class="file-input" accept="image/*" onchange="previewImage(this, 'preview1')">
+  </div>
 
-    <div class="content-section">
-        <h3 class="content-title">영수증, 사진 등 설명 및 일기</h3>
-        <textarea class="content-textarea" placeholder="내용을 입력하세요..."></textarea>
-    </div>
+  <!-- 댓글 섹션 -->
+  <div class="comments-section">
+    <h3>댓글 (<span th:text="${comments.size()}">0</span>)</h3>
 
-    <div class="location-section">
-        <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-        </svg>
-        <input type="text" class="location-input" placeholder="위치">
+    <!-- 댓글 작성 -->
+    <form th:action="@{/posts/{id}/comments(id=${post.postId})}" method="post" class="comment-form">
+      <textarea name="content" rows="3" placeholder="댓글을 입력하세요..." required></textarea>
+      <button type="submit" class="btn btn-edit">댓글 작성</button>
+    </form>
+
+    <!-- 댓글 목록 -->
+    <div th:each="comment : ${comments}" class="comment-item">
+      <!-- ✅ name 필드 사용 (User 엔티티에 있음) -->
+      <div class="comment-author" th:text="${comment.author.name}">작성자</div>
+      <div class="comment-date" th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-21</div>
+      <div th:text="${comment.content}">댓글 내용</div>
     </div>
 
     <!-- 영수증 카드 2 -->
