@@ -45,7 +45,7 @@ public class SearchController {
         Model model) {
         // 빈 검색어 처리
         if (keyword == null || keyword.isBlank()) {
-            return "redirect:/search";
+            return "redirect:/search/explore";
         }
 
         // 도시명으로 게시물 검색 (Travel의 city 필드 기준)
