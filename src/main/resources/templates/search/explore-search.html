@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>explore-search</title>
+    <title>ReTrip - 여행지 검색</title>
     <style>
         * {
             margin: 0;
@@ -17,7 +17,7 @@
             min-height: 100vh;
         }
 
-        /* Header */
+        /* Header with Back Button */
         .header {
             padding: 16px 20px;
         }
@@ -32,19 +32,9 @@
             align-items: center;
             justify-content: center;
             color: #3D4A3C;
-            transition: color 0.2s;
         }
 
-        .back-btn:hover {
-            color: #9AE19C;
-        }
-
-        .back-btn svg {
-            width: 24px;
-            height: 24px;
-        }
-
-        /* Main Content */
+        /* Main Content Section */
         .main-content {
             max-width: 440px;
             margin: 0 auto;
@@ -63,7 +53,7 @@
             margin-bottom: 20px;
         }
 
-        /* Search Box */
+        /* Search Input */
         .search-box {
             display: flex;
             align-items: center;
@@ -72,20 +62,13 @@
             background: #F5F3ED;
             border: 1px solid #E8E5DC;
             border-radius: 24px;
-            transition: all 0.2s;
             margin-bottom: 48px;
-        }
-
-        .search-box:focus-within {
-            background: #fff;
-            border-color: #9AE19C;
         }
 
         .search-icon {
             width: 20px;
             height: 20px;
             color: #A0A99D;
-            flex-shrink: 0;
         }
 
         .search-input {
@@ -101,11 +84,7 @@
             color: #C4C9C1;
         }
 
-        /* Destinations Section */
-        .destinations-section {
-            margin-bottom: 32px;
-        }
-
+        /* Popular Destinations Grid */
         .section-title {
             font-size: 16px;
             font-weight: 600;
@@ -120,16 +99,19 @@
         }
 
         .destination-btn {
-            padding: 12px 16px;
+            padding: 12px 4px;
             background: #F5F3ED;
             border: 1px solid #E8E5DC;
             border-radius: 20px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             color: #3D4A3C;
             cursor: pointer;
             transition: all 0.2s;
             text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .destination-btn:hover {
@@ -137,52 +119,30 @@
             border-color: #9AE19C;
             color: #fff;
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(154, 225, 156, 0.2);
         }
 
-        .destination-btn:active {
-            transform: translateY(0);
-        }
-
-        /* Responsive */
         @media (max-width: 480px) {
-            .main-content {
-                padding: 30px 16px;
-            }
-
-            .page-title {
-                font-size: 20px;
-            }
-
-            .destinations-grid {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 10px;
-            }
-
-            .destination-btn {
-                padding: 10px 12px;
-                font-size: 13px;
-            }
-        }
-
-        @media (max-width: 360px) {
             .destinations-grid {
                 grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+            .destination-btn {
+                padding: 10px 8px;
+                font-size: 12px;
             }
         }
     </style>
 </head>
 <body>
-<!-- Header -->
+
 <header class="header">
     <button class="back-btn" onclick="history.back()">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
     </button>
 </header>
 
-<!-- Main Content -->
 <main class="main-content">
     <div class="title-section">
         <h2 class="page-title">어디로 여행 가시나요?</h2>
@@ -190,43 +150,46 @@
             <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-            <input type="text" class="search-input" placeholder="목적지를 입력해주세요.">
+            <input type="text" id="searchInput" class="search-input" placeholder="목적지를 입력해주세요." onkeypress="if(event.keyCode==13) executeSearch()">
         </div>
     </div>
 
-    <!-- Destinations Section -->
     <section class="destinations-section">
         <h3 class="section-title">게시물이 가장 많은 여행지를 둘러보세요.</h3>
-
-        <!--
-        백엔드 연동 시 사용할 코드
         <div class="destinations-grid">
-            <button class="destination-btn" th:each="destination : ${popularDestinations}" th:text="${destination.name}">
-                여행지
+            <button type="button"
+                    class="destination-btn"
+                    th:each="city : ${popularCities}"
+                    th:text="${city}"
+                    th:data-city="${city}"
+                    onclick="searchByCity(this)">
+                도시명
             </button>
-        </div>
-        -->
-
-        <!-- 샘플 여행지 -->
-        <div class="destinations-grid">
-            <button class="destination-btn">일본</button>
-            <button class="destination-btn">뉴욕</button>
-            <button class="destination-btn">런던</button>
-            <button class="destination-btn">파리</button>
-            <button class="destination-btn">아이슬란드</button>
-            <button class="destination-btn">오사후</button>
-            <button class="destination-btn">도쿄</button>
-            <button class="destination-btn">스페인</button>
-            <button class="destination-btn">베트남</button>
-            <button class="destination-btn">대한민국</button>
-            <button class="destination-btn">바르셀로나</button>
-            <button class="destination-btn">홍콩</button>
-            <button class="destination-btn">뉴질랜드</button>
-            <button class="destination-btn">시카고</button>
-            <button class="destination-btn">리스본</button>
-            <button class="destination-btn">싱가포르</button>
         </div>
     </section>
 </main>
+
+<script th:inline="javascript">
+    /**
+     * 인기 도시 버튼 클릭 시 실행
+     */
+    function searchByCity(button) {
+        const city = button.getAttribute('data-city');
+        if (city) {
+            location.href = '/search/results?keyword=' + encodeURIComponent(city);
+        }
+    }
+
+    /**
+     * 검색창 입력 후 실행
+     */
+    function executeSearch() {
+        const keyword = document.getElementById('searchInput').value.trim();
+        if (keyword) {
+            location.href = '/search/results?keyword=' + encodeURIComponent(keyword);
+        }
+    }
+</script>
+
 </body>
 </html>
