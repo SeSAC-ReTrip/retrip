@@ -2,12 +2,13 @@ package com.example.retripbackend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
+@ConfigurationPropertiesScan
 public class RetripBackendApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(RetripBackendApplication.class, args);
     }
-
 }

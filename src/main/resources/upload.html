@@ -252,6 +252,40 @@
 
     <!-- Account Book List -->
     <div class="account-book-list">
+        <!--
+        백엔드 연동 시 사용할 코드
+        <div class="account-book-card" th:each="book : ${accountBooks}"
+             th:data-id="${book.id}"
+             onclick="toggleSelection(this)">
+            <div class="card-image">
+                <img th:if="${book.thumbnailUrl != null}" th:src="${book.thumbnailUrl}" th:alt="${book.title}">
+                <div th:unless="${book.thumbnailUrl != null}" class="image-placeholder">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <span class="selected-badge">선택됨</span>
+            </div>
+            <div class="card-info">
+                <h3 class="card-title" th:text="${book.title}">제목</h3>
+                <div class="card-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">여행지</span>
+                        <span class="meta-value" th:text="${book.destination}">여행지</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">여행기간</span>
+                        <span class="meta-value" th:text="${book.period}">여행기간</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">총 경비</span>
+                        <span class="meta-value" th:text="${book.totalCost}">총 경비</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        -->
+
         <!-- 샘플 가계부 카드 1 -->
         <div class="account-book-card" onclick="toggleSelection(this)">
             <div class="card-image">
@@ -349,13 +383,7 @@
 
 <script>
     function toggleSelection(card) {
-        const isAlreadySelected = card.classList.contains('selected');
-        document.querySelectorAll('.account-book-card').forEach(c => {
-            c.classList.remove('selected');
-        });
-        if (!isAlreadySelected) {
-            card.classList.add('selected');
-        }
+        card.classList.toggle('selected');
         updateUploadButton();
     }
 
@@ -363,19 +391,20 @@
         const selectedCards = document.querySelectorAll('.account-book-card.selected');
         const uploadBtn = document.getElementById('uploadBtn');
 
-        if (selectedCards.length === 1) {
+        if (selectedCards.length > 0) {
             uploadBtn.disabled = false;
             uploadBtn.textContent = `선택한 가계부 업로드하기 (${selectedCards.length})`;
         } else {
             uploadBtn.disabled = true;
-            uploadBtn.textContent = '가계부를 선택해주세요.';
+            uploadBtn.textContent = '선택한 가계부 업로드하기';
         }
     }
 
     function uploadSelected() {
         const selectedCards = document.querySelectorAll('.account-book-card.selected');
-        if (selectedCards.length === 1) {
-            alert(`가계부를 업로드합니다.`);
+        if (selectedCards.length > 0) {
+            // 여기서 실제 업로드 로직 처리
+            alert(`${selectedCards.length}개의 가계부를 업로드합니다.`);
         }
     }
 </script>

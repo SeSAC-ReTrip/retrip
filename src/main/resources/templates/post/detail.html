@@ -1,105 +1,396 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>게시글 상세 - Retrip</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 20px;
-    }
-    .back-btn {
-      display: inline-block;
-      margin-bottom: 20px;
-      padding: 8px 16px;
-      background-color: #6c757d;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-    }
-    .post-detail {
-      background-color: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .post-header {
-      border-bottom: 2px solid #eee;
-      padding-bottom: 15px;
-      margin-bottom: 20px;
-    }
-    .post-title {
-      font-size: 1.8em;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    .post-meta {
-      display: flex;
-      gap: 20px;
-      color: #666;
-      font-size: 0.9em;
-    }
-    .post-content {
-      line-height: 1.6;
-      margin: 20px 0;
-    }
-    .post-actions {
-      display: flex;
-      gap: 10px;
-      padding: 20px 0;
-      border-top: 2px solid #eee;
-      border-bottom: 2px solid #eee;
-    }
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-    }
-    .btn-like {
-      background-color: #ff4757;
-      color: white;
-    }
-    .btn-liked {
-      background-color: #ccc;
-      color: #666;
-    }
-    .btn-edit {
-      background-color: #007bff;
-      color: white;
-    }
-    .btn-delete {
-      background-color: #dc3545;
-      color: white;
-    }
-    .comments-section {
-      margin-top: 30px;
-    }
-    .comment-item {
-      padding: 15px;
-      border-bottom: 1px solid #eee;
-    }
-    .comment-author {
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-    .comment-date {
-      color: #666;
-      font-size: 0.85em;
-    }
-    .comment-form textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      margin-bottom: 10px;
-      box-sizing: border-box;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>upload-detail</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #fff;
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+
+        /* Header */
+        .header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #E8E5DC;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3D4A3C;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: #9AE19C;
+        }
+
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+
+        /* Post Header */
+        .post-header {
+            margin-bottom: 24px;
+        }
+
+        .post-title-input {
+            width: 100%;
+            font-size: 24px;
+            font-weight: 700;
+            color: #3D4A3C;
+            border: none;
+            background: none;
+            margin-bottom: 16px;
+            padding: 8px 0;
+            outline: none;
+        }
+
+        .post-title-input::placeholder {
+            color: #C4C9C1;
+        }
+
+        .post-meta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #E8E5DC;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .meta-label {
+            font-size: 12px;
+            color: #A0A99D;
+            font-weight: 500;
+        }
+
+        .meta-input {
+            font-size: 14px;
+            color: #3D4A3C;
+            font-weight: 500;
+            border: none;
+            background: none;
+            padding: 4px 0;
+            outline: none;
+        }
+
+        .meta-input::placeholder {
+            color: #C4C9C1;
+        }
+
+        .meta-value {
+            font-size: 14px;
+            color: #3D4A3C;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .author-icon {
+            width: 18px;
+            height: 18px;
+            color: #9AE19C;
+        }
+
+        /* Receipt Card */
+        .receipt-card {
+            background: #F5F3ED;
+            border: 1px solid #E8E5DC;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .receipt-header-input {
+            width: 100%;
+            font-size: 15px;
+            font-weight: 600;
+            color: #3D4A3C;
+            border: none;
+            background: none;
+            margin-bottom: 12px;
+            outline: none;
+        }
+
+        .receipt-header-input::placeholder {
+            color: #C4C9C1;
+        }
+
+        .receipt-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .receipt-input {
+            font-size: 14px;
+            color: #5A6F57;
+            border: none;
+            background: none;
+            padding: 4px 0;
+            outline: none;
+        }
+
+        .receipt-input::placeholder {
+            color: #C4C9C1;
+        }
+
+        /* Image Box */
+        .image-box {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: linear-gradient(135deg, #F5F3ED 0%, #EAE7DC 100%);
+            border: 2px dashed #D4CFC0;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .image-box:hover {
+            border-color: #9AE19C;
+            background: linear-gradient(135deg, #F5FDF5 0%, #E8F9E8 100%);
+        }
+
+        .image-box.has-image {
+            border-style: solid;
+        }
+
+        .image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .image-box.has-image img {
+            display: block;
+        }
+
+        .image-placeholder {
+            color: #D4E9D5;
+            text-align: center;
+        }
+
+        .image-box.has-image .image-placeholder {
+            display: none;
+        }
+
+        .image-placeholder svg {
+            width: 48px;
+            height: 48px;
+        }
+
+        .upload-text {
+            font-size: 14px;
+            color: #A0A99D;
+            margin-top: 8px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Content Section */
+        .content-section {
+            margin-bottom: 24px;
+        }
+
+        .content-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #3D4A3C;
+            margin-bottom: 12px;
+        }
+
+        .content-textarea {
+            width: 100%;
+            min-height: 150px;
+            font-size: 14px;
+            color: #5A6F57;
+            line-height: 1.8;
+            border: 1px solid #E8E5DC;
+            border-radius: 8px;
+            padding: 12px;
+            background: #FEFDFB;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .content-textarea::placeholder {
+            color: #C4C9C1;
+        }
+
+        .content-textarea:focus {
+            border-color: #9AE19C;
+            background: #fff;
+        }
+
+        /* Location Section */
+        .location-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: #F5F3ED;
+            border: 1px solid #E8E5DC;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .location-section:hover {
+            background: #E8F9E8;
+            border-color: #9AE19C;
+        }
+
+        .location-icon {
+            width: 20px;
+            height: 20px;
+            color: #9AE19C;
+            flex-shrink: 0;
+        }
+
+        .location-input {
+            flex: 1;
+            font-size: 14px;
+            color: #5A6F57;
+            font-weight: 500;
+            border: none;
+            background: none;
+            outline: none;
+        }
+
+        .location-input::placeholder {
+            color: #C4C9C1;
+        }
+
+        /* Map Section */
+        .map-section {
+            margin-top: 40px;
+            padding-top: 32px;
+            border-top: 8px solid #F5F3ED;
+        }
+
+        .section-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: #3D4A3C;
+            margin-bottom: 20px;
+        }
+
+        .map-container {
+            width: 100%;
+            height: 300px;
+            background: #F5F3ED;
+            border: 1px solid #E8E5DC;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Upload Button */
+        .upload-button-container {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 20px;
+            display: flex;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .upload-btn {
+            max-width: 600px;
+            width: 100%;
+            padding: 16px;
+            background: #9AE19C;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(61, 74, 60, 0.3);
+        }
+
+        .upload-btn:hover {
+            background: #88D68A;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(61, 74, 60, 0.4);
+        }
+
+        .upload-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 20px 16px;
+            }
+
+            .post-title-input {
+                font-size: 22px;
+            }
+
+            .receipt-card {
+                padding: 16px;
+            }
+
+            .post-meta {
+                grid-template-columns: 1fr;
+            }
+
+            .upload-button-container {
+                padding: 0 16px;
+            }
+        }
+    </style>
 </head>
 <body>
 <a th:href="@{/posts}" class="back-btn">← 목록으로</a>
@@ -115,28 +406,25 @@
       <span>|</span>
       <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-21</span>
     </div>
-  </div>
 
-  <div class="post-content" th:text="${post.content}">
-    게시글 내용
-  </div>
+    <!-- 영수증 카드 1 -->
+    <div class="receipt-card">
+        <input type="text" class="receipt-header-input" placeholder="영수증 내용">
+        <div class="receipt-info">
+            <input type="text" class="receipt-input" placeholder="장소">
+            <input type="text" class="receipt-input" placeholder="결제일">
+            <input type="text" class="receipt-input" placeholder="결제 금액">
+        </div>
+    </div>
 
-  <div class="post-actions">
-    <!-- 좋아요 -->
-    <form th:if="${!isLiked}" th:action="@{/posts/{id}/like(id=${post.postId})}" method="post" style="margin: 0;">
-      <button type="submit" class="btn btn-like">❤️ 좋아요 (<span th:text="${post.likeCount}">0</span>)</button>
-    </form>
-    <form th:if="${isLiked}" th:action="@{/posts/{id}/unlike(id=${post.postId})}" method="post" style="margin: 0;">
-      <button type="submit" class="btn btn-liked">💔 좋아요 취소 (<span th:text="${post.likeCount}">0</span>)</button>
-    </form>
-
-    <!-- 수정/삭제 (작성자만) -->
-    <div th:if="${isAuthor}" style="display: flex; gap: 10px;">
-      <a th:href="@{/posts/{id}/edit(id=${post.postId})}" class="btn btn-edit">수정</a>
-      <form th:action="@{/posts/{id}/delete(id=${post.postId})}" method="post" style="margin: 0;"
-            onsubmit="return confirm('정말 삭제하시겠습니까?');">
-        <button type="submit" class="btn btn-delete">삭제</button>
-      </form>
+    <div class="image-box" onclick="document.getElementById('fileInput1').click()">
+        <div class="image-placeholder">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <p class="upload-text">이미지를 업로드하세요</p>
+        </div>
+        <img id="preview1" alt="preview">
     </div>
   </div>
 
@@ -158,10 +446,187 @@
       <div th:text="${comment.content}">댓글 내용</div>
     </div>
 
-    <div th:if="${comments.empty}" style="text-align: center; padding: 20px; color: #666;">
-      첫 번째 댓글을 작성해보세요!
+    <!-- 영수증 카드 2 -->
+    <div class="receipt-card">
+        <input type="text" class="receipt-header-input" placeholder="영수증 내용">
+        <div class="receipt-info">
+            <input type="text" class="receipt-input" placeholder="장소">
+            <input type="text" class="receipt-input" placeholder="결제일">
+            <input type="text" class="receipt-input" placeholder="결제 금액">
+        </div>
     </div>
-  </div>
+
+    <div class="image-box" onclick="document.getElementById('fileInput2').click()">
+        <div class="image-placeholder">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <p class="upload-text">이미지를 업로드하세요</p>
+        </div>
+        <img id="preview2" alt="preview">
+    </div>
+    <input type="file" id="fileInput2" class="file-input" accept="image/*" onchange="previewImage(this, 'preview2')">
+
+    <div class="content-section">
+        <h3 class="content-title">영수증, 사진 등 설명 및 일기</h3>
+        <textarea class="content-textarea" placeholder="내용을 입력하세요..."></textarea>
+    </div>
+
+    <div class="location-section">
+        <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <input type="text" class="location-input" placeholder="위치">
+    </div>
+
+    <!-- 지도 섹션 -->
+    <section class="map-section">
+        <h3 class="section-header">지도</h3>
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+    </section>
+</main>
+
+<!-- Upload Button -->
+<div class="upload-button-container">
+    <button class="upload-btn" onclick="uploadPost()">Upload</button>
 </div>
+
+<!-- Google Maps API -->
+<script  async defer th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}"></script>
+<script>
+    function initMap() {
+        const center = { lat: 37.5665, lng: 126.9780 };
+
+        const map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 13,
+            center: center,
+            mapTypeControl: false,
+            streetViewControl: false,
+            styles: [
+                {
+                    featureType: "all",
+                    elementType: "geometry",
+                    stylers: [{ saturation: -20 }]
+                }
+            ]
+        });
+
+        const locations = [
+            { lat: 37.5665, lng: 126.9780, title: "장소 1" },
+            { lat: 37.5560, lng: 126.9720, title: "장소 2" },
+            { lat: 37.5700, lng: 126.9850, title: "장소 3" },
+            { lat: 37.5620, lng: 126.9910, title: "장소 4" },
+            { lat: 37.5500, lng: 126.9880, title: "장소 5" }
+        ];
+
+        locations.forEach((location) => {
+            const marker = new google.maps.Marker({
+                position: { lat: location.lat, lng: location.lng },
+                map: map,
+                title: location.title,
+                icon: {
+                    path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+                    fillColor: "#9AE19C",
+                    fillOpacity: 1,
+                    strokeColor: "#fff",
+                    strokeWeight: 2,
+                    scale: 1.5,
+                    anchor: new google.maps.Point(12, 24)
+                },
+                animation: google.maps.Animation.DROP
+            });
+
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<div style="padding: 8px; color: #3D4A3C; font-weight: 500;">${location.title}</div>`
+            });
+
+            marker.addListener('click', () => {
+                infoWindow.open(map, marker);
+            });
+        });
+    }
+
+    function previewImage(input, previewId) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById(previewId);
+                preview.src = e.target.result;
+                preview.parentElement.classList.add('has-image');
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function uploadPost() {
+        alert('게시물을 업로드합니다!');
+        // 실제 업로드 로직 처리
+    }
+
+    <!-- Google Maps API -->
+    <script async defer th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}"></script>
+<script>
+    function initMap() {
+        // 지도 중심 좌표 설정 (예: 서울)
+        const center = { lat: 37.5665, lng: 126.9780 };
+
+        // 지도 생성
+        const map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 13,
+            center: center,
+            mapTypeControl: false,
+            streetViewControl: false,
+            styles: [
+                {
+                    featureType: "all",
+                    elementType: "geometry",
+                    stylers: [{ saturation: -20 }]
+                }
+            ]
+        });
+
+        // 마커 위치 배열 (백엔드에서 받아올 데이터)
+        const locations = [
+            { lat: 37.5665, lng: 126.9780, title: "장소 1" },
+            { lat: 37.5560, lng: 126.9720, title: "장소 2" },
+            { lat: 37.5700, lng: 126.9850, title: "장소 3" },
+            { lat: 37.5620, lng: 126.9910, title: "장소 4" },
+            { lat: 37.5500, lng: 126.9880, title: "장소 5" }
+        ];
+
+        // 마커 생성
+        locations.forEach((location, index) => {
+            const marker = new google.maps.Marker({
+                position: { lat: location.lat, lng: location.lng },
+                map: map,
+                title: location.title,
+                icon: {
+                    path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+                    fillColor: "#9AE19C",
+                    fillOpacity: 1,
+                    strokeColor: "#fff",
+                    strokeWeight: 2,
+                    scale: 1.5,
+                    anchor: new google.maps.Point(12, 24)
+                },
+                animation: google.maps.Animation.DROP
+            });
+
+            // 정보창 생성 (선택사항)
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<div style="padding: 8px; color: #3D4A3C; font-weight: 500;">${location.title}</div>`
+            });
+
+            // 마커 클릭 이벤트
+            marker.addListener('click', () => {
+                infoWindow.open(map, marker);
+            });
+        });
+    }
+</script>
 </body>
 </html>

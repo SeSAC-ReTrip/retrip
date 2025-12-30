@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReTrip - 가계부 생성</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #E8E5DC;
+            position: relative;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3D4A3C;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: #9AE19C;
+        }
+
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #F5F3ED;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #9AE19C;
+            width: 50%;
+            transition: width 0.3s ease;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            max-width: 640px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 60px 20px 40px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Question Section */
+        .question-section {
+            margin-bottom: 32px;
+        }
+
+        .question-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #3D4A3C;
+            text-align: center;
+            margin-bottom: 24px;
+            line-height: 1.4;
+        }
+
+        .input-wrapper {
+            margin-bottom: 48px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 15px;
+            border: 1px solid #E8E5DC;
+            border-radius: 12px;
+            background: #F5F3ED;
+            color: #3D4A3C;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .input-field::placeholder {
+            color: #C4C9C1;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #9AE19C;
+            background: #fff;
+        }
+
+        .input-field:hover {
+            border-color: #C1EEC3;
+        }
+
+        .textarea-field {
+            min-height: 120px;
+            resize: vertical;
+            text-align: left;
+        }
+
+        /* Next Button */
+        .next-btn-container {
+            margin-top: auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        .next-btn {
+            width: 100%;
+            max-width: 600px;
+            padding: 16px;
+            background: #9AE19C;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(154, 225, 156, 0.3);
+        }
+
+        .next-btn:hover {
+            background: #88D68A;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(154, 225, 156, 0.4);
+        }
+
+        .next-btn:active {
+            transform: translateY(0);
+        }
+
+        .next-btn:disabled {
+            background: #E8E5DC;
+            color: #A0A99D;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 40px 16px 32px;
+            }
+
+            .question-title {
+                font-size: 20px;
+            }
+
+            .input-field {
+                padding: 14px 18px;
+                font-size: 14px;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .question-section {
+            animation: fadeInUp 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header class="header">
+    <button class="back-btn" onclick="history.back()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </button>
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+    <div class="question-section" id="questionSection">
+        <!-- Step 1: 도시 입력 -->
+        <div class="step-content" id="step1">
+            <h2 class="question-title">어떤 도시를 여행하셨나요?</h2>
+            <div class="input-wrapper">
+                <input type="text" class="input-field" id="cityInput" placeholder="도시명을 입력하세요." onkeyup="handleEnter(event, 'nextStep')">
+            </div>
+        </div>
+
+        <!-- Step 2: 제목 입력 -->
+        <div class="step-content" id="step2" style="display: none;">
+            <h2 class="question-title">가계부의 제목을 설정해주세요.</h2>
+            <div class="input-wrapper">
+                <textarea class="input-field textarea-field" id="titleInput" placeholder="제목을 입력하세요."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Next Button -->
+    <div class="next-btn-container">
+        <button class="next-btn" id="nextBtn" onclick="nextStep()">다음</button>
+    </div>
+</main>
+
+<script>
+    let currentStep = 1;
+    const totalSteps = 2;
+
+    function updateProgress() {
+        const progress = (currentStep / totalSteps) * 100;
+        document.getElementById('progressFill').style.width = progress + '%';
+    }
+
+    function nextStep() {
+        if (currentStep === 1) {
+            const cityInput = document.getElementById('cityInput').value.trim();
+            if (!cityInput) {
+                alert('도시명을 입력해주세요.');
+                return;
+            }
+
+            // Step 2로 이동
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+            currentStep = 2;
+            updateProgress();
+
+            // 버튼 텍스트 변경
+            document.getElementById('nextBtn').textContent = '완료';
+
+        } else if (currentStep === 2) {
+            const titleInput = document.getElementById('titleInput').value.trim();
+            if (!titleInput) {
+                alert('제목을 입력해주세요.');
+                return;
+            }
+
+            // 가계부 생성 완료
+            createAccountBook();
+        }
+    }
+
+    function createAccountBook() {
+        const city = document.getElementById('cityInput').value.trim();
+        const title = document.getElementById('titleInput').value.trim();
+
+        // 서버로 데이터 전송
+        console.log('Creating account list:', { city, title });
+
+        // 가계부 상세 페이지로 이동 (실제로는 생성된 ID로 이동)
+        alert('가계부가 생성되었습니다!');
+        window.location.href = '/account/lists';
+    }
+
+    function handleEnter(event, action) {
+        if (event.key === 'Enter') {
+            if (action === 'nextStep') {
+                nextStep();
+            }
+        }
+    }
+
+    // 초기 진행률 설정
+    updateProgress();
+</script>
+</body>
+</html>
