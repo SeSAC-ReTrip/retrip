@@ -55,16 +55,28 @@ public class PostService {
         return postRepository.findByTravelId(travelId);
     }
 
-    // 게시글 작성
+    // 게시글 작성 (빌더 패턴 적용)
     @Transactional
     public Post createPost(User author, Travel travel, String title, String content) {
-        Post post = Post.of(author, travel, title, content);
+        Post post = Post.builder()
+            .author(author)
+            .travel(travel)
+            .title(title)
+            .content(content)
+            .build();
         return postRepository.save(post);
     }
 
     // 게시글 수정
     @Transactional
-    public void updatePost(Post post, String title, String content) {
+    public void updatePost(Long postId, String title, String content, User currentUser) {
+        Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+
+        if (!post.isAuthor(currentUser)) {
+            throw new RuntimeException("수정 권한이 없습니다.");
+        }
+
         post.update(title, content);
     }
 

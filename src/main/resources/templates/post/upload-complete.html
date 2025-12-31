@@ -15,7 +15,6 @@
       min-height: 100vh;
       padding: 20px;
     }
-
     .complete-box {
       background-color: white;
       padding: 60px 40px;
@@ -25,18 +24,8 @@
       max-width: 400px;
       width: 100%;
     }
-
-    .success-icon {
-      font-size: 80px;
-      margin-bottom: 30px;
-    }
-
-    h1 {
-      font-size: 24px;
-      margin-bottom: 40px;
-      color: #333;
-    }
-
+    .success-icon { font-size: 80px; margin-bottom: 30px; }
+    h1 { font-size: 24px; margin-bottom: 40px; color: #333; }
     .btn {
       width: 100%;
       padding: 15px;
@@ -47,24 +36,13 @@
       cursor: pointer;
       margin-bottom: 15px;
       transition: background-color 0.2s;
+      text-decoration: none;
+      display: block; /* a 태그일 경우를 대비 */
     }
-
-    .btn-primary {
-      background-color: #000;
-      color: white;
-    }
-    .btn-primary:hover {
-      background-color: #333;
-    }
-
-    .btn-secondary {
-      background-color: white;
-      color: #000;
-      border: 1px solid #ddd;
-    }
-    .btn-secondary:hover {
-      background-color: #f5f5f5;
-    }
+    .btn-primary { background-color: #000; color: white; }
+    .btn-primary:hover { background-color: #333; }
+    .btn-secondary { background-color: white; color: #000; border: 1px solid #ddd; }
+    .btn-secondary:hover { background-color: #f5f5f5; }
   </style>
 </head>
 <body>
@@ -72,12 +50,13 @@
   <div class="success-icon">✅</div>
   <h1>업로드가 완료되었습니다!</h1>
 
-  <button class="btn btn-primary" onclick="location.href='/posts'">
+  <button class="btn btn-primary" th:onclick="|location.href='@{/posts}'|">
     홈으로
   </button>
 
   <button class="btn btn-secondary"
-          th:onclick="'location.href=\'/posts/' + ${postId} + '\''">
+          th:if="${postId != null}"
+          th:onclick="|location.href='@{/posts/{id}(id=${postId})}'|">
     방금 쓴 게시물 보러가기
   </button>
 </div>

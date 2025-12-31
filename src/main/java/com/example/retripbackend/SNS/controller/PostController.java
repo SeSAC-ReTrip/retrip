@@ -32,29 +32,30 @@ public class PostController {
     private final PostLikeService postLikeService;
     private final TravelService travelService;
 
-    // 게시글 피드 (홈)
+    @Value("${google.map.api.key:}")
+    private String googleMapApiKey;
+
+    /**
+     * ✅ 홈 화면 (피드)
+     * 정렬 기준(최신순/추천순)에 따라 게시글 목록을 가져와 홈 화면을 렌더링합니다.
+     */
     @GetMapping
     public String feed(@RequestParam(defaultValue = "latest") String sort,
         @RequestParam(defaultValue = "0") int page,
         Model model) {
-        Page<Post> posts;
-
-        if ("recommend".equals(sort)) {
-            posts = postService.getRecommendedPosts(page, 10);
-        } else {
-            posts = postService.getLatestPosts(page, 10);
-        }
+        Page<Post> posts = "recommend".equals(sort)
+            ? postService.getRecommendedPosts(page, 10)
+            : postService.getLatestPosts(page, 10);
 
         model.addAttribute("posts", posts);
         model.addAttribute("sort", sort);
 
-        return "post/feed";
+        return "home"; // home.html
     }
 
-    @Value("${google.map.api.key}")
-    private String googleMapApiKey;
-
-    // 게시글 상세
+    /**
+     * ✅ 게시글 상세 조회
+     */
     @GetMapping("/{postId}")
     public String detail(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
@@ -62,6 +63,7 @@ public class PostController {
         User currentUser = userDetails.getUser();
         Post post = postService.getPostById(postId);
         List<Comment> comments = commentService.getPostComments(post);
+
         boolean isLiked = postLikeService.isLiked(post, currentUser);
         boolean isAuthor = post.isAuthor(currentUser);
 
@@ -69,158 +71,146 @@ public class PostController {
         model.addAttribute("comments", comments);
         model.addAttribute("isLiked", isLiked);
         model.addAttribute("isAuthor", isAuthor);
-
-        // Google Maps API 키 전달
         model.addAttribute("googleMapApiKey", googleMapApiKey);
 
         return "post/detail";
     }
 
-    // 게시글 작성 페이지
+    /**
+     * ✅ 게시글 작성 페이지
+     */
     @GetMapping("/create")
     public String createPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         Model model) {
-        User user = userDetails.getUser();
-        List<Travel> travels = travelService.getUserTravels(user);
-
+        List<Travel> travels = travelService.getUserTravels(userDetails.getUser());
         model.addAttribute("travels", travels);
-
         return "post/create";
     }
 
-    // 게시글 작성 처리 (수정)
+    /**
+     * ✅ 게시글 작성 처리 (Post.builder() 적용된 서비스 호출)
+     */
     @PostMapping("/create")
     public String create(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @RequestParam Long travelId,
         @RequestParam String title,
         @RequestParam String content) {
-        User author = userDetails.getUser();
         Travel travel = travelService.getTravelById(travelId);
+        Post post = postService.createPost(userDetails.getUser(), travel, title, content);
 
-        Post post = postService.createPost(author, travel, title, content);
-
-        // 업로드 완료 페이지로 이동 (postId 전달)
         return "redirect:/posts/upload/complete?postId=" + post.getPostId();
     }
 
-    // 업로드 완료 페이지
+    /**
+     * ✅ 업로드 완료 페이지
+     */
     @GetMapping("/upload/complete")
     public String uploadComplete(@RequestParam Long postId, Model model) {
         model.addAttribute("postId", postId);
         return "post/upload-complete";
     }
 
-    // 게시글 수정 페이지
+    /**
+     * ✅ 게시글 수정 페이지
+     */
     @GetMapping("/{postId}/edit")
     public String editPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
         Model model) {
-        User currentUser = userDetails.getUser();
         Post post = postService.getPostById(postId);
 
-        if (!post.isAuthor(currentUser)) {
+        // 작성자 본인이 아니면 상세 페이지로 리다이렉트
+        if (!post.isAuthor(userDetails.getUser())) {
             return "redirect:/posts/" + postId;
         }
 
         model.addAttribute("post", post);
-
         return "post/edit";
     }
 
-    // 게시글 수정 처리
+    /**
+     * ✅ 게시글 수정 처리
+     */
     @PostMapping("/{postId}/edit")
     public String edit(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
         @RequestParam String title,
         @RequestParam String content) {
-        User currentUser = userDetails.getUser();
-        Post post = postService.getPostById(postId);
-
-        if (!post.isAuthor(currentUser)) {
-            return "redirect:/posts/" + postId;
+        try {
+            // 서비스 레이어에서 수정 및 권한 체크 처리
+            postService.updatePost(postId, title, content, userDetails.getUser());
+        } catch (RuntimeException e) {
+            return "redirect:/posts/" + postId + "?error=unauthorized";
         }
-
-        postService.updatePost(post, title, content);
 
         return "redirect:/posts/" + postId;
     }
 
-    // 게시글 삭제
+    /**
+     * ✅ 게시글 삭제
+     */
     @PostMapping("/{postId}/delete")
     public String delete(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId) {
-        User currentUser = userDetails.getUser();
         Post post = postService.getPostById(postId);
 
-        if (!post.isAuthor(currentUser)) {
-            return "redirect:/posts/" + postId;
+        if (post.isAuthor(userDetails.getUser())) {
+            postService.deletePost(post);
         }
-
-        postService.deletePost(post);
 
         return "redirect:/posts";
     }
 
-    // 좋아요
+    /**
+     * ✅ 좋아요 처리
+     */
     @PostMapping("/{postId}/like")
     public String like(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId) {
-        User user = userDetails.getUser();
         Post post = postService.getPostById(postId);
-
         try {
-            postLikeService.like(post, user);
-        } catch (RuntimeException e) {
-            // 이미 좋아요한 경우 무시
-        }
+            postLikeService.like(post, userDetails.getUser());
+        } catch (RuntimeException ignored) { }
 
         return "redirect:/posts/" + postId;
     }
 
-    // 좋아요 취소
+    /**
+     * ✅ 좋아요 취소 처리
+     */
     @PostMapping("/{postId}/unlike")
     public String unlike(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId) {
-        User user = userDetails.getUser();
         Post post = postService.getPostById(postId);
-
         try {
-            postLikeService.unlike(post, user);
-        } catch (RuntimeException e) {
-            // 좋아요 안 한 경우 무시
-        }
+            postLikeService.unlike(post, userDetails.getUser());
+        } catch (RuntimeException ignored) { }
 
         return "redirect:/posts/" + postId;
     }
 
-    // 댓글 작성
+    /**
+     * ✅ 댓글 작성
+     */
     @PostMapping("/{postId}/comments")
     public String createComment(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
         @RequestParam String content) {
-        User author = userDetails.getUser();
         Post post = postService.getPostById(postId);
-
-        commentService.createComment(post, author, content);
+        commentService.createComment(post, userDetails.getUser(), content);
 
         return "redirect:/posts/" + postId;
     }
 
-    // 댓글 삭제
+    /**
+     * ✅ 댓글 삭제
+     */
     @PostMapping("/comments/{commentId}/delete")
     public String deleteComment(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long commentId,
         @RequestParam Long postId) {
-        // 댓글 삭제 로직 (CommentRepository 필요)
+        // CommentService에서 작성자 확인 후 삭제 로직 수행 권장
+        commentService.deleteComment(commentId, userDetails.getUser());
         return "redirect:/posts/" + postId;
     }
 }
-
-
-
-
-
-
-
-
-
