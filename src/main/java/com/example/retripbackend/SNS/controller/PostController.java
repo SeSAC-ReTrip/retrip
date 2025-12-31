@@ -88,7 +88,7 @@ public class PostController {
         return "post/create";
     }
 
-    // 게시글 작성 처리
+    // 게시글 작성 처리 (수정)
     @PostMapping("/create")
     public String create(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @RequestParam Long travelId,
@@ -99,7 +99,15 @@ public class PostController {
 
         Post post = postService.createPost(author, travel, title, content);
 
-        return "redirect:/posts/" + post.getPostId();
+        // 업로드 완료 페이지로 이동 (postId 전달)
+        return "redirect:/posts/upload/complete?postId=" + post.getPostId();
+    }
+
+    // 업로드 완료 페이지
+    @GetMapping("/upload/complete")
+    public String uploadComplete(@RequestParam Long postId, Model model) {
+        model.addAttribute("postId", postId);
+        return "post/upload-complete";
     }
 
     // 게시글 수정 페이지
