@@ -2,6 +2,7 @@ package com.example.retripbackend.user.controller;
 
 import com.example.retripbackend.SNS.entity.Post;
 import com.example.retripbackend.SNS.entity.Travel;
+import com.example.retripbackend.SNS.repository.PostLikeRepository;
 import com.example.retripbackend.SNS.service.FollowService;
 import com.example.retripbackend.SNS.service.PostService;
 import com.example.retripbackend.SNS.service.TravelService;
@@ -9,6 +10,7 @@ import com.example.retripbackend.user.entity.User;
 import com.example.retripbackend.user.service.CustomUserDetailsService;
 import com.example.retripbackend.user.service.UserService;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,6 +31,7 @@ public class UserController {
     private final PostService postService;
     private final TravelService travelService;
     private final FollowService followService;
+    private final PostLikeRepository postLikeRepository;
 
     // 내 정보 조회
     @GetMapping("/me")
@@ -125,6 +128,22 @@ public class UserController {
         model.addAttribute("travels", travels);
 
         return "user/travels";
+    }
+
+    //좋아요 리스트
+    @GetMapping("/me/likes")
+    public String myLikes(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        Model model) {
+        User currentUser = userDetails.getUser();
+
+        List<Post> likedPosts = postLikeRepository.findByUser(currentUser)
+            .stream()
+            .map(postLike -> postLike.getPost())
+            .collect(Collectors.toList());
+
+        model.addAttribute("likedPosts", likedPosts);
+
+        return "user/profile-likeLists";
     }
 
     // 특정 사용자 프로필 조회

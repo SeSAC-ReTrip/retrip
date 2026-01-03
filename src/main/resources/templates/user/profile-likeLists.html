@@ -221,12 +221,13 @@
 
 <!-- Posts Container -->
 <main class="posts-container">
-    <!--
-    백엔드 연동 시 아래 주석을 해제하고 샘플 카드를 삭제하세요
-    <article class="post-card" th:each="post : ${likedPosts}" th:onclick="'goToPost(' + ${post.id} + ')'">
+    <!-- 좋아요한 게시물 목록 -->
+    <article class="post-card"
+             th:each="post : ${likedPosts}"
+             th:data-post-id="${post.postId}"
+             onclick="goToPost(this.dataset.postId)">
         <div class="post-image">
-            <img th:if="${post.thumbnailUrl != null}" th:src="${post.thumbnailUrl}" th:alt="${post.title}">
-            <div th:unless="${post.thumbnailUrl != null}" class="image-placeholder">
+            <div class="image-placeholder">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
@@ -235,135 +236,33 @@
         <div class="post-info">
             <div class="post-header">
                 <h3 class="post-title" th:text="${post.title}">제목</h3>
-                <button class="like-btn" th:onclick="'removeLike(event, ' + ${post.id} + ')'">
-                    <svg fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                </button>
+                <form th:action="@{/posts/{id}/unlike(id=${post.postId})}" method="post" style="margin: 0;">
+                    <button type="submit" class="like-btn" onclick="event.stopPropagation(); return confirm('좋아요를 취소하시겠습니까?');">
+                        <svg fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    </button>
+                </form>
             </div>
             <div class="post-author">
                 <span class="author-icon">👤</span>
-                <span th:text="${post.author}">작성자</span>
-            </div>
-        </div>
-    </article>
-    -->
-
-    <!-- 샘플 게시물 카드 1 -->
-    <article class="post-card" onclick="goToPost(1)">
-        <div class="post-image">
-            <div class="image-placeholder">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-            </div>
-        </div>
-        <div class="post-info">
-            <div class="post-header">
-                <h3 class="post-title">제목</h3>
-                <button class="like-btn" onclick="removeLike(event, 1)">
-                    <svg fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="post-author">
-                <span class="author-icon">👤</span>
-                <span>작성자</span>
+                <span th:text="${post.author.name}">작성자</span>
             </div>
         </div>
     </article>
 
-    <!-- 샘플 게시물 카드 2 -->
-    <article class="post-card" onclick="goToPost(2)">
-        <div class="post-image">
-            <div class="image-placeholder">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-            </div>
-        </div>
-        <div class="post-info">
-            <div class="post-header">
-                <h3 class="post-title">제목</h3>
-                <button class="like-btn" onclick="removeLike(event, 2)">
-                    <svg fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="post-author">
-                <span class="author-icon">👤</span>
-                <span>작성자</span>
-            </div>
-        </div>
-    </article>
-
-    <!-- 샘플 게시물 카드 3 -->
-    <article class="post-card" onclick="goToPost(3)">
-        <div class="post-image">
-            <div class="image-placeholder">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-            </div>
-        </div>
-        <div class="post-info">
-            <div class="post-header">
-                <h3 class="post-title">제목</h3>
-                <button class="like-btn" onclick="removeLike(event, 3)">
-                    <svg fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="post-author">
-                <span class="author-icon">👤</span>
-                <span>작성자</span>
-            </div>
-        </div>
-    </article>
-
-    <!-- Empty State (좋아요한 게시물이 없을 때 표시)
-    <div class="empty-state">
+    <!-- 좋아요한 게시물이 없을 때 -->
+    <div th:if="${likedPosts.empty}" class="empty-state">
         <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
         </svg>
         <p class="empty-text">좋아요한 게시물이 없습니다.</p>
     </div>
-    -->
 </main>
 
 <script>
     function goToPost(postId) {
-        // 게시물 상세 페이지로 이동
-        window.location.href = `/post/${postId}`;
-    }
-
-    function removeLike(event, postId) {
-        event.stopPropagation(); // 카드 클릭 이벤트 방지
-
-        if (confirm('좋아요를 취소하시겠습니까?')) {
-            const card = event.currentTarget.closest('.post-card');
-
-            // 페이드아웃 애니메이션
-            card.style.opacity = '0';
-            card.style.transform = 'translateX(-20px)';
-
-            setTimeout(() => {
-                card.remove();
-
-                // 모든 카드가 제거되었는지 확인
-                const remainingCards = document.querySelectorAll('.post-card');
-                if (remainingCards.length === 0) {
-                    // Empty state 표시 (실제로는 백엔드에서 처리)
-                    console.log('No more liked posts');
-                }
-            }, 300);
-
-            // 서버에 좋아요 취소 전송
-            console.log('Remove like for post:', postId);
-        }
+        window.location.href = '/posts/' + postId;
     }
 </script>
 </body>
