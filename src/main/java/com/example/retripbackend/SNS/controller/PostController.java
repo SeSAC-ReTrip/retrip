@@ -35,10 +35,9 @@ public class PostController {
     @Value("${google.map.api.key:}")
     private String googleMapApiKey;
 
-    /**
-     * ✅ 홈 화면 (피드)
-     * 정렬 기준(최신순/추천순)에 따라 게시글 목록을 가져와 홈 화면을 렌더링합니다.
-     */
+
+      // 홈 화면 (피드)
+      //정렬 기준(최신순/추천순)에 따라 게시글 목록을 가져와 홈 화면을 렌더링합니다.
     @GetMapping
     public String feed(@RequestParam(defaultValue = "latest") String sort,
         @RequestParam(defaultValue = "0") int page,
@@ -53,9 +52,8 @@ public class PostController {
         return "home"; // home.html
     }
 
-    /**
-     * ✅ 게시글 상세 조회
-     */
+
+      //게시글 상세 조회
     @GetMapping("/{postId}")
     public String detail(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
@@ -76,9 +74,8 @@ public class PostController {
         return "post/detail";
     }
 
-    /**
-     * ✅ 게시글 작성 페이지
-     */
+
+      //게시글 작성 페이지
     @GetMapping("/create")
     public String createPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         Model model) {
@@ -87,9 +84,8 @@ public class PostController {
         return "post/create";
     }
 
-    /**
-     * ✅ 게시글 작성 처리 (Post.builder() 적용된 서비스 호출)
-     */
+
+     // 게시글 작성 처리 (Post.builder() 적용된 서비스 호출)
     @PostMapping("/create")
     public String create(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @RequestParam Long travelId,
@@ -101,18 +97,16 @@ public class PostController {
         return "redirect:/posts/upload/complete?postId=" + post.getPostId();
     }
 
-    /**
-     * ✅ 업로드 완료 페이지
-     */
+
+    //업로드 완료 페이지
     @GetMapping("/upload/complete")
     public String uploadComplete(@RequestParam Long postId, Model model) {
         model.addAttribute("postId", postId);
         return "post/upload-complete";
     }
 
-    /**
-     * ✅ 게시글 수정 페이지
-     */
+
+    // 게시글 수정 페이지
     @GetMapping("/{postId}/edit")
     public String editPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
@@ -128,9 +122,8 @@ public class PostController {
         return "post/edit";
     }
 
-    /**
-     * ✅ 게시글 수정 처리
-     */
+
+    // 게시글 수정 처리
     @PostMapping("/{postId}/edit")
     public String edit(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
@@ -146,9 +139,8 @@ public class PostController {
         return "redirect:/posts/" + postId;
     }
 
-    /**
-     * ✅ 게시글 삭제
-     */
+
+     //게시글 삭제
     @PostMapping("/{postId}/delete")
     public String delete(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId) {
@@ -161,9 +153,8 @@ public class PostController {
         return "redirect:/posts";
     }
 
-    /**
-     * ✅ 좋아요 처리
-     */
+
+      //좋아요 처리
     @PostMapping("/{postId}/like")
     public String like(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId) {
@@ -175,9 +166,8 @@ public class PostController {
         return "redirect:/posts/" + postId;
     }
 
-    /**
-     * ✅ 좋아요 취소 처리
-     */
+
+     //좋아요 취소 처리
     @PostMapping("/{postId}/unlike")
     public String unlike(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId) {
@@ -189,9 +179,8 @@ public class PostController {
         return "redirect:/posts/" + postId;
     }
 
-    /**
-     * ✅ 댓글 작성
-     */
+
+    //  댓글 작성
     @PostMapping("/{postId}/comments")
     public String createComment(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
@@ -202,9 +191,7 @@ public class PostController {
         return "redirect:/posts/" + postId;
     }
 
-    /**
-     * ✅ 댓글 삭제
-     */
+    //댓글 삭제
     @PostMapping("/comments/{commentId}/delete")
     public String deleteComment(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long commentId,
