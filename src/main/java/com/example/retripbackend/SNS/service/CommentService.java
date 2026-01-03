@@ -39,11 +39,10 @@ public class CommentService {
         comment.update(content);
     }
 
-    /**
-     * ✅ 댓글 삭제 (컨트롤러의 호출 방식에 맞게 수정)
-     * @param commentId 삭제할 댓글의 ID
-     * @param currentUser 삭제를 요청한 현재 로그인 유저
-     */
+
+     // 댓글 삭제 (컨트롤러의 호출 방식에 맞게 수정)
+     //@param commentId 삭제할 댓글의 ID
+     // @param currentUser 삭제를 요청한 현재 로그인 유저
     @Transactional
     public void deleteComment(Long commentId, User currentUser) {
         // 1. 댓글 조회
