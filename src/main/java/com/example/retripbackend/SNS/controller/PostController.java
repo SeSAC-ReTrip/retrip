@@ -3,6 +3,7 @@ package com.example.retripbackend.SNS.controller;
 import com.example.retripbackend.SNS.entity.Comment;
 import com.example.retripbackend.SNS.entity.Post;
 import com.example.retripbackend.SNS.entity.Travel;
+import com.example.retripbackend.SNS.repository.PostLikeRepository;
 import com.example.retripbackend.SNS.service.CommentService;
 import com.example.retripbackend.SNS.service.PostLikeService;
 import com.example.retripbackend.SNS.service.PostService;
@@ -10,6 +11,7 @@ import com.example.retripbackend.SNS.service.TravelService;
 import com.example.retripbackend.user.entity.User;
 import com.example.retripbackend.user.service.CustomUserDetailsService;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -35,9 +37,7 @@ public class PostController {
     @Value("${google.map.api.key:}")
     private String googleMapApiKey;
 
-
-      // 홈 화면 (피드)
-      //정렬 기준(최신순/추천순)에 따라 게시글 목록을 가져와 홈 화면을 렌더링합니다.
+    // 홈 화면 (피드)
     @GetMapping
     public String feed(@RequestParam(defaultValue = "latest") String sort,
         @RequestParam(defaultValue = "0") int page,
@@ -49,11 +49,10 @@ public class PostController {
         model.addAttribute("posts", posts);
         model.addAttribute("sort", sort);
 
-        return "home"; // home.html
+        return "home";
     }
 
-
-      //게시글 상세 조회
+    // 게시글 상세 조회
     @GetMapping("/{postId}")
     public String detail(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
@@ -74,8 +73,28 @@ public class PostController {
         return "post/detail";
     }
 
+    // 게시글 컨텐츠 조회 (content.html)
+    @GetMapping("/{postId}/content")
+    public String content(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @PathVariable Long postId,
+        Model model) {
+        User currentUser = userDetails.getUser();
+        Post post = postService.getPostById(postId);
+        List<Comment> comments = commentService.getPostComments(post);
 
-      //게시글 작성 페이지
+        boolean isLiked = postLikeService.isLiked(post, currentUser);
+        boolean isAuthor = post.isAuthor(currentUser);
+
+        model.addAttribute("post", post);
+        model.addAttribute("comments", comments);
+        model.addAttribute("isLiked", isLiked);
+        model.addAttribute("isAuthor", isAuthor);
+        model.addAttribute("googleMapApiKey", googleMapApiKey);
+
+        return "post/content";
+    }
+
+    // 게시글 작성 페이지
     @GetMapping("/create")
     public String createPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         Model model) {
@@ -84,8 +103,7 @@ public class PostController {
         return "post/create";
     }
 
-
-     // 게시글 작성 처리 (Post.builder() 적용된 서비스 호출)
+    // 게시글 작성 처리
     @PostMapping("/create")
     public String create(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @RequestParam Long travelId,
@@ -97,14 +115,12 @@ public class PostController {
         return "redirect:/posts/upload/complete?postId=" + post.getPostId();
     }
 
-
-    //업로드 완료 페이지
+    // 업로드 완료 페이지
     @GetMapping("/upload/complete")
     public String uploadComplete(@RequestParam Long postId, Model model) {
         model.addAttribute("postId", postId);
         return "post/upload-complete";
     }
-
 
     // 게시글 수정 페이지
     @GetMapping("/{postId}/edit")
@@ -113,7 +129,6 @@ public class PostController {
         Model model) {
         Post post = postService.getPostById(postId);
 
-        // 작성자 본인이 아니면 상세 페이지로 리다이렉트
         if (!post.isAuthor(userDetails.getUser())) {
             return "redirect:/posts/" + postId;
         }
@@ -122,7 +137,6 @@ public class PostController {
         return "post/edit";
     }
 
-
     // 게시글 수정 처리
     @PostMapping("/{postId}/edit")
     public String edit(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
@@ -130,7 +144,6 @@ public class PostController {
         @RequestParam String title,
         @RequestParam String content) {
         try {
-            // 서비스 레이어에서 수정 및 권한 체크 처리
             postService.updatePost(postId, title, content, userDetails.getUser());
         } catch (RuntimeException e) {
             return "redirect:/posts/" + postId + "?error=unauthorized";
@@ -139,8 +152,7 @@ public class PostController {
         return "redirect:/posts/" + postId;
     }
 
-
-     //게시글 삭제
+    // 게시글 삭제
     @PostMapping("/{postId}/delete")
     public String delete(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId) {
@@ -153,8 +165,7 @@ public class PostController {
         return "redirect:/posts";
     }
 
-
-      //좋아요 처리
+    // 좋아요 처리
     @PostMapping("/{postId}/like")
     public String like(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId) {
@@ -166,8 +177,7 @@ public class PostController {
         return "redirect:/posts/" + postId;
     }
 
-
-     //좋아요 취소 처리
+    // 좋아요 취소 처리
     @PostMapping("/{postId}/unlike")
     public String unlike(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId) {
@@ -179,8 +189,7 @@ public class PostController {
         return "redirect:/posts/" + postId;
     }
 
-
-    //  댓글 작성
+    // 댓글 작성
     @PostMapping("/{postId}/comments")
     public String createComment(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
@@ -191,12 +200,11 @@ public class PostController {
         return "redirect:/posts/" + postId;
     }
 
-    //댓글 삭제
+    // 댓글 삭제
     @PostMapping("/comments/{commentId}/delete")
     public String deleteComment(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long commentId,
         @RequestParam Long postId) {
-        // CommentService에서 작성자 확인 후 삭제 로직 수행 권장
         commentService.deleteComment(commentId, userDetails.getUser());
         return "redirect:/posts/" + postId;
     }
