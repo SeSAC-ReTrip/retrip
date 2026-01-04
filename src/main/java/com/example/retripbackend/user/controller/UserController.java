@@ -131,7 +131,7 @@ public class UserController {
     }
 
     //좋아요 리스트
-    @GetMapping("/me/likes")
+    @GetMapping("/me/liked")
     public String myLikes(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         Model model) {
         User currentUser = userDetails.getUser();
