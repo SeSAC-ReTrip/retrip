@@ -65,18 +65,81 @@
             cursor: pointer; transition: all 0.2s;
             box-shadow: 0 4px 12px rgba(154, 225, 156, 0.3);
         }
-        .upload-btn:hover { background: #88D68A; transform: translateY(-2px); }
-        .upload-btn:disabled { background: #E8E5DC; color: #A0A99D; cursor: not-allowed; }
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: #FEFDFB; border-top: 1px solid #E8E5DC;
-            display: flex; justify-content: space-around; padding: 12px 0; z-index: 100;
+        .upload-btn:hover {
+            background: #88D68A;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(154, 225, 156, 0.4);
         }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: #A0A99D; text-decoration: none; flex: 1; }
-        .nav-item.active { color: #5A9F5C; }
-        .nav-icon { width: 24px; height: 24px; }
-        .nav-label { font-size: 11px; font-weight: 500; }
-        @media (max-width: 480px) { .main-content { padding: 20px 16px; } .card-meta { grid-template-columns: repeat(3, 1fr); gap: 8px; } }
+
+        .upload-btn:active {
+            transform: translateY(0);
+        }
+
+        .upload-btn:disabled {
+            background: #E8E5DC;
+            color: #A0A99D;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #FEFDFB;
+            border-top: 1px solid #E8E5DC;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            color: #A0A99D;
+            text-decoration: none;
+            flex: 1;
+            transition: color 0.2s;
+        }
+
+        .nav-item:hover {
+            color: #9AE19C;
+        }
+
+        .nav-item.active {
+            color: #5A9F5C;
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 20px 16px;
+            }
+
+            .upload-button-container {
+                padding: 0 16px;
+            }
+
+            .card-meta {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -126,22 +189,26 @@
 
 <div class="upload-button-container">
     <button class="upload-btn" id="uploadBtn" disabled onclick="uploadSelected()">
-        UPLOAD
+        가계부를 선택해주세요.
     </button>
 </div>
 
 <nav class="bottom-nav">
-    <a th:href="@{/posts}" class="nav-item">
-        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-        </svg>
+    <a th:href="@{/home}" class="nav-item">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
         <span class="nav-label">Home</span>
     </a>
-    <a href="#" class="nav-item active">
-        <svg class="nav-icon" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-        </svg>
+    <a th:href="@{/explore}" class="nav-item">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <span class="nav-label">Explore</span>
+    </a>
+    <a th:href="@{/posts/create}" class="nav-item active">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
         <span class="nav-label">Upload</span>
+    </a>
+    <a th:href="@{/users/me}" class="nav-item">
+        <svg class="nav-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <span class="nav-label">Profile</span>
     </a>
 </nav>
 
