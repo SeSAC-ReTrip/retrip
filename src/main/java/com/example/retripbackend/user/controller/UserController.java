@@ -148,6 +148,12 @@ public class UserController {
         return "profile-account/profile-account-select";
     }
 
+    // 가계부 상세 페이지
+    @GetMapping("/me/account/detail")
+    public String accountDetailPage() {
+        return "profile-account/profile-account-detail";
+    }
+
     //좋아요 리스트
     @GetMapping("/me/liked")
     public String myLikes(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,

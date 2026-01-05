@@ -549,22 +549,18 @@
             formData.append('file', selectedFiles[0].file);
 
             // 서버로 이미지 전송 및 Gemini 분석 요청
-            // TODO: 실제 API 엔드포인트로 변경 필요
-            // const response = await fetch('/receipt/analyze', {
-            //     method: 'POST',
-            //     body: formData
-            // });
-            // const result = await response.json();
+            const response = await fetch('/receipt/analyze', {
+                method: 'POST',
+                body: formData
+            });
 
-            // 시뮬레이션 (실제로는 위의 API 호출 사용)
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            if (!response.ok) {
+                throw new Error('영수증 분석에 실패했습니다.');
+            }
 
-            // 분석 완료 후 가계부 상세 페이지로 이동
-            /* 기존 코드: 여러 영수증 개수 표시
-            alert(`${selectedFiles.length}개의 영수증이 분석되었습니다!`);
-            */
-            alert('영수증이 분석되었습니다!');
-            window.location.href = '/account/lists/1'; // 생성된 가계부 ID로 이동
+            // 분석이 성공적으로 완료되면 가계부 상세 페이지로 이동
+            // Gemini가 분석을 완료하면 profile-account-detail.html로 이동하여 완성된 카드 형태를 확인
+            window.location.href = '/users/me/account/detail';
 
         } catch (error) {
             console.error('영수증 분석 오류:', error);
