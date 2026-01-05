@@ -14,16 +14,20 @@ import com.example.retripbackend.user.service.UserService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import java.time.LocalDate;
 
+@Slf4j
 @Controller
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -145,6 +149,58 @@ public class UserController {
         return "profile-account/profile-account-create";
     }
 
+    // 가계부 생성 처리
+    @PostMapping("/me/account/create")
+    public String createAccount(
+        @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @RequestParam String country,
+        @RequestParam String city,
+        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+        @RequestParam String title) {
+        
+        User user = userDetails.getUser();
+        
+        log.info("========== 가계부 생성 요청 ==========");
+        log.info("사용자 정보:");
+        log.info("  - user_id: {}", user.getUserId());
+        log.info("  - email: {}", user.getEmail());
+        log.info("  - name: {}", user.getName());
+        log.info("입력받은 데이터:");
+        log.info("  - country: [{}] (길이: {})", country, country != null ? country.length() : 0);
+        log.info("  - city: [{}] (길이: {})", city, city != null ? city.length() : 0);
+        log.info("  - startDate: {}", startDate);
+        log.info("  - endDate: {}", endDate);
+        log.info("  - title: {}", title);
+        
+        // Travel 생성
+        Travel travel = travelService.createTravel(
+            user,
+            country,
+            city,
+            title,
+            startDate,
+            endDate,
+            null  // memo는 null
+        );
+        
+        log.info("========== Travel 엔티티 저장 완료 ==========");
+        log.info("저장된 Travel 정보:");
+        log.info("  - travelId: {}", travel.getTravelId());
+        log.info("  - user_id: {}", travel.getUser().getUserId());
+        log.info("  - country: {}", travel.getCountry());
+        log.info("  - city: {}", travel.getCity());
+        log.info("  - title: {}", travel.getTitle());
+        log.info("  - startDate: {}", travel.getStartDate());
+        log.info("  - endDate: {}", travel.getEndDate());
+        log.info("  - createdAt: {}", travel.getCreatedAt());
+        log.info("  - updatedAt: {}", travel.getUpdatedAt());
+        log.info("===========================================");
+        
+        // 생성된 Travel ID를 파라미터로 전달하여 select 페이지로 이동
+        return "redirect:/users/me/account/select?travelId=" + travel.getTravelId();
+    }
+
     // 가계부 영수증 선택 페이지
     @GetMapping("/me/account/select")
     public String selectAccountPage() {
@@ -169,7 +225,8 @@ public class UserController {
             model.addAttribute("receipts", receipts);
             
             // 페이지 헤더 정보 설정
-            model.addAttribute("pageTitle", travel.getCity() + " 여행");
+            // 사용자가 입력한 가계부 제목을 그대로 사용
+            model.addAttribute("pageTitle", travel.getTitle());
             model.addAttribute("destination", travel.getCity() + ", " + travel.getCountry());
             model.addAttribute("totalAmount", travel.getTotalAmount());
         } else {
