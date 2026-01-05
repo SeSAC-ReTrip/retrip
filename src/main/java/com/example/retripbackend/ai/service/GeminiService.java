@@ -64,19 +64,24 @@ public class GeminiService {
                     }))
                 .block();
 
-            // 응답에서 텍스트 추출
+            // 응답에서 텍스트 추출 (null 체크 강화)
             if (response != null &&
                 response.getCandidates() != null &&
                 !response.getCandidates().isEmpty()) {
 
-                String result = response.getCandidates().get(0)
-                    .getContent()
-                    .getParts()
-                    .get(0)
-                    .getText();
-
-                log.debug("Gemini 응답 생성 완료");
-                return result;
+                GeminiResponse.Candidate candidate = response.getCandidates().get(0);
+                if (candidate != null && 
+                    candidate.getContent() != null &&
+                    candidate.getContent().getParts() != null &&
+                    !candidate.getContent().getParts().isEmpty()) {
+                    
+                    GeminiResponse.Part part = candidate.getContent().getParts().get(0);
+                    if (part != null && part.getText() != null) {
+                        String result = part.getText();
+                        log.debug("Gemini 응답 생성 완료");
+                        return result;
+                    }
+                }
             }
 
             return "응답을 받을 수 없습니다.";

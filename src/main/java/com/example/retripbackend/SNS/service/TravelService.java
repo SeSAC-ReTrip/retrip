@@ -32,12 +32,13 @@ public class TravelService {
 
       //여행 생성 (현재는 SNS에서 직접 생성, 추후 가계부 연동 시 수정 예정)
     @Transactional
-    public Travel createTravel(User user, String country, String city,
+    public Travel createTravel(User user, String country, String city, String title,
         LocalDate startDate, LocalDate endDate, String memo) {
         Travel travel = Travel.builder()
             .user(user)
             .country(country)
             .city(city)
+            .title(title)
             .startDate(startDate)
             .endDate(endDate)
             .memo(memo)
