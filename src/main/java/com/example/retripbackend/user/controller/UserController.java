@@ -136,6 +136,18 @@ public class UserController {
         return "profile-account/profile-account";
     }
 
+    // 가계부 생성 페이지
+    @GetMapping("/me/account/create")
+    public String createAccountPage() {
+        return "profile-account/profile-account-create";
+    }
+
+    // 가계부 영수증 선택 페이지
+    @GetMapping("/me/account/select")
+    public String selectAccountPage() {
+        return "profile-account/profile-account-select";
+    }
+
     //좋아요 리스트
     @GetMapping("/me/liked")
     public String myLikes(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
