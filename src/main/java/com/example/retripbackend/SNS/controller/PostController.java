@@ -38,6 +38,7 @@ public class PostController {
     @GetMapping("/home")
     public String feed(@RequestParam(defaultValue = "latest") String sort,
         @RequestParam(defaultValue = "0") int page,
+        @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         Model model) {
         Page<Post> posts = "recommend".equals(sort)
             ? postService.getRecommendedPosts(page, 10)
@@ -45,6 +46,13 @@ public class PostController {
 
         model.addAttribute("posts", posts);
         model.addAttribute("sort", sort);
+
+        // 좋아요 상태 확인을 위해 postLikeService를 모델에 전달 (HTML에서 사용)
+        if (userDetails != null) {
+            model.addAttribute("currentUser", userDetails.getUser());
+            model.addAttribute("postLikeService", postLikeService);
+        }
+
         return "home";
     }
 
@@ -56,7 +64,6 @@ public class PostController {
         return "post/create";
     }
 
-    // [추가] 가계부 선택 후 상세 편집 페이지로 이동
     @GetMapping("/posts/detail")
     public String detailPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @RequestParam Long travelId, Model model) {
@@ -64,14 +71,15 @@ public class PostController {
         Travel travel = travelService.getTravelById(travelId);
         model.addAttribute("travel", travel);
         model.addAttribute("googleMapApiKey", googleMapApiKey);
-        // 작성자 정보와 오늘 날짜 등을 모델에 추가
         model.addAttribute("username", userDetails.getUser().getName());
         return "post/detail";
     }
 
     @PostMapping("/posts/create")
     public String create(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
-        @RequestParam Long travelId, @RequestParam String title, @RequestParam String content) {
+        @RequestParam Long travelId,
+        @RequestParam String title,
+        @RequestParam String content) {
         Travel travel = travelService.getTravelById(travelId);
         Post post = postService.createPost(userDetails.getUser(), travel, title, content);
         return "redirect:/posts/upload/complete?postId=" + post.getPostId();
@@ -100,11 +108,32 @@ public class PostController {
     }
 
     @PostMapping("/posts/{postId}/delete")
-    public String delete(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails, @PathVariable Long postId) {
+    public String delete(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @PathVariable Long postId) {
         Post post = postService.getPostById(postId);
         if (post.isAuthor(userDetails.getUser())) {
             postService.deletePost(post);
         }
         return "redirect:/home";
+    }
+
+
+     // 좋아요 기능
+    @ResponseBody
+    @PostMapping("/posts/{postId}/like")
+    public String toggleLike(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @PathVariable Long postId) {
+        if (userDetails == null) return "fail";
+
+        User user = userDetails.getUser();
+        Post post = postService.getPostById(postId);
+
+        if (postLikeService.isLiked(post, user)) {
+            postLikeService.unlike(post, user);
+            return "unliked"; // 취소 성공 응답
+        } else {
+            postLikeService.like(post, user);
+            return "liked"; // 추가 성공 응답
+        }
     }
 }
