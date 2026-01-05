@@ -246,6 +246,18 @@ public class UserController {
             // 해당 Travel의 영수증 목록 조회
             List<Receipt> receipts = receiptService.getReceiptsByTravel(travel);
             
+            // 총 경비 계산: travelId가 동일한 receipt의 모든 amount 값 합산
+            int totalAmount = receipts.stream()
+                .mapToInt(Receipt::getAmount)
+                .sum();
+            
+            // 통화 결정: 가장 많이 사용된 currency 또는 첫 번째 Receipt의 currency
+            String currency = receipts.stream()
+                .filter(r -> r.getCurrency() != null && !r.getCurrency().isEmpty())
+                .map(Receipt::getCurrency)
+                .findFirst()
+                .orElse("-");  // 기본값은 "-"
+            
             model.addAttribute("travel", travel);
             model.addAttribute("receipts", receipts);
             
@@ -253,17 +265,19 @@ public class UserController {
             // 사용자가 입력한 가계부 제목을 그대로 사용
             model.addAttribute("pageTitle", travel.getTitle());
             model.addAttribute("destination", travel.getCity() + ", " + travel.getCountry());
-            model.addAttribute("totalAmount", travel.getTotalAmount());
+            model.addAttribute("totalAmount", totalAmount);
+            model.addAttribute("currency", currency);
             
-            log.info("가계부 상세 페이지 조회: travelId={}, title={}, city={}, country={}, startDate={}, endDate={}", 
+            log.info("가계부 상세 페이지 조회: travelId={}, title={}, city={}, country={}, startDate={}, endDate={}, totalAmount={}, currency={}", 
                 travel.getTravelId(), travel.getTitle(), travel.getCity(), travel.getCountry(), 
-                travel.getStartDate(), travel.getEndDate());
+                travel.getStartDate(), travel.getEndDate(), totalAmount, currency);
         } else {
             // Travel이 없으면 빈 리스트
             model.addAttribute("receipts", List.of());
             model.addAttribute("pageTitle", "가계부");
             model.addAttribute("destination", "여행지");
             model.addAttribute("totalAmount", 0);
+            model.addAttribute("currency", "-");
         }
         
         return "profile-account/profile-account-detail";
