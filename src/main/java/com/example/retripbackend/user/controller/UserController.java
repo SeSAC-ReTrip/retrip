@@ -156,40 +156,38 @@ public class UserController {
     public String accountDetailPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         Model model) {
         User user = userDetails.getUser();
-        
-        // 사용자의 최근 Travel 찾기
+
         List<Travel> userTravels = travelService.getUserTravels(user);
-        
+
         if (!userTravels.isEmpty()) {
             Travel travel = userTravels.get(0);
-            // 해당 Travel의 영수증 목록 조회
             List<Receipt> receipts = receiptService.getReceiptsByTravel(travel);
-            
+
             model.addAttribute("travel", travel);
             model.addAttribute("receipts", receipts);
-            
-            // 페이지 헤더 정보 설정
+
             model.addAttribute("pageTitle", travel.getCity() + " 여행");
             model.addAttribute("destination", travel.getCity() + ", " + travel.getCountry());
             model.addAttribute("totalAmount", travel.getTotalAmount());
         } else {
-            // Travel이 없으면 빈 리스트
             model.addAttribute("receipts", List.of());
             model.addAttribute("pageTitle", "가계부");
             model.addAttribute("destination", "여행지");
             model.addAttribute("totalAmount", 0);
         }
-        
+
         return "profile-account/profile-account-detail";
     }
 
-    //좋아요 리스트
+    // 좋아요 리스트 조회
     @GetMapping("/me/liked")
     public String myLikes(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         Model model) {
+        if (userDetails == null) return "redirect:/login";
         User currentUser = userDetails.getUser();
 
-        List<Post> likedPosts = postLikeRepository.findByUser(currentUser)
+        // fetch join 메서드를 사용하여 post.user 정보까지 한 번에 로딩
+        List<Post> likedPosts = postLikeRepository.findByUserWithPostAndUser(currentUser)
             .stream()
             .map(postLike -> postLike.getPost())
             .collect(Collectors.toList());
@@ -282,12 +280,3 @@ public class UserController {
         return "user/follow-list";
     }
 }
-
-
-
-
-
-
-
-
-
