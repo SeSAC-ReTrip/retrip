@@ -209,15 +209,40 @@ public class UserController {
 
     // 가계부 상세 페이지
     @GetMapping("/me/account/detail")
-    public String accountDetailPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+    public String accountDetailPage(
+        @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @RequestParam(required = false) Long travelId,
         Model model) {
         User user = userDetails.getUser();
         
-        // 사용자의 최근 Travel 찾기
-        List<Travel> userTravels = travelService.getUserTravels(user);
+        Travel travel;
         
-        if (!userTravels.isEmpty()) {
-            Travel travel = userTravels.get(0);
+        // travelId가 제공된 경우 해당 Travel 조회, 없으면 최근 Travel 사용
+        if (travelId != null) {
+            travel = travelService.getTravelById(travelId);
+            
+            // 권한 체크: 본인의 Travel인지 확인
+            if (!travel.isOwner(user)) {
+                log.warn("권한 없는 Travel 접근 시도: travelId={}, userId={}", travelId, user.getUserId());
+                // 권한이 없으면 최근 Travel 사용
+                List<Travel> userTravels = travelService.getUserTravels(user);
+                if (!userTravels.isEmpty()) {
+                    travel = userTravels.get(0);
+                } else {
+                    travel = null;
+                }
+            }
+        } else {
+            // travelId가 없으면 사용자의 최근 Travel 찾기
+            List<Travel> userTravels = travelService.getUserTravels(user);
+            if (!userTravels.isEmpty()) {
+                travel = userTravels.get(0);
+            } else {
+                travel = null;
+            }
+        }
+        
+        if (travel != null) {
             // 해당 Travel의 영수증 목록 조회
             List<Receipt> receipts = receiptService.getReceiptsByTravel(travel);
             
@@ -229,6 +254,10 @@ public class UserController {
             model.addAttribute("pageTitle", travel.getTitle());
             model.addAttribute("destination", travel.getCity() + ", " + travel.getCountry());
             model.addAttribute("totalAmount", travel.getTotalAmount());
+            
+            log.info("가계부 상세 페이지 조회: travelId={}, title={}, city={}, country={}, startDate={}, endDate={}", 
+                travel.getTravelId(), travel.getTitle(), travel.getCity(), travel.getCountry(), 
+                travel.getStartDate(), travel.getEndDate());
         } else {
             // Travel이 없으면 빈 리스트
             model.addAttribute("receipts", List.of());

@@ -582,9 +582,18 @@
                 localStorage.setItem('lastReceiptAnalysis', JSON.stringify(data.result));
             }
 
+            // URL에서 travelId 가져오기
+            const urlParams = new URLSearchParams(window.location.search);
+            const travelId = urlParams.get('travelId');
+
             // 분석이 성공적으로 완료되면 가계부 상세 페이지로 이동
             // Gemini가 분석을 완료하면 profile-account-detail.html로 이동하여 완성된 카드 형태를 확인
-            window.location.href = '/users/me/account/detail';
+            // 방금 생성한 가계부 정보를 보여주기 위해 travelId를 파라미터로 전달
+            if (travelId) {
+                window.location.href = '/users/me/account/detail?travelId=' + travelId;
+            } else {
+                window.location.href = '/users/me/account/detail';
+            }
 
         } catch (error) {
             console.error('영수증 분석 오류:', error);
