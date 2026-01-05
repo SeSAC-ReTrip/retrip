@@ -548,23 +548,43 @@
             const formData = new FormData();
             formData.append('file', selectedFiles[0].file);
 
-            // 서버로 이미지 전송 및 Gemini 분석 요청
-            // TODO: 실제 API 엔드포인트로 변경 필요
-            // const response = await fetch('/receipt/analyze', {
-            //     method: 'POST',
-            //     body: formData
-            // });
-            // const result = await response.json();
+            // 서버로 이미지 전송 및 Gemini 분석 요청 (REST API 엔드포인트 사용)
+            /* 기존 코드: HTML 뷰를 반환하는 엔드포인트 사용 (500 에러 발생)
+            const response = await fetch('/receipt/analyze', {
+                method: 'POST',
+                body: formData
+            });
 
-            // 시뮬레이션 (실제로는 위의 API 호출 사용)
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // 분석 완료 후 가계부 상세 페이지로 이동
-            /* 기존 코드: 여러 영수증 개수 표시
-            alert(`${selectedFiles.length}개의 영수증이 분석되었습니다!`);
+            if (!response.ok) {
+                throw new Error('영수증 분석에 실패했습니다.');
+            }
             */
-            alert('영수증이 분석되었습니다!');
-            window.location.href = '/account/lists/1'; // 생성된 가계부 ID로 이동
+
+            /* MVP 기준 변경: REST API 엔드포인트 사용
+             * 이유: 
+             * 1. JavaScript fetch 요청은 JSON 응답을 기대하므로 REST API 엔드포인트 필요
+             * 2. HTML 뷰를 반환하는 기존 엔드포인트는 fetch 요청에 적합하지 않음
+             * 3. JSON 응답으로 에러 처리와 성공 여부를 명확하게 확인 가능 */
+            const response = await fetch('/receipt/analyze/api', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || '영수증 분석에 실패했습니다.');
+            }
+
+            // 분석 결과를 localStorage에 저장하여 detail 페이지에서 사용
+            // MVP 기준: 프론트엔드에서 localStorage를 사용하여 간단하게 데이터 전달
+            if (data.result) {
+                localStorage.setItem('lastReceiptAnalysis', JSON.stringify(data.result));
+            }
+
+            // 분석이 성공적으로 완료되면 가계부 상세 페이지로 이동
+            // Gemini가 분석을 완료하면 profile-account-detail.html로 이동하여 완성된 카드 형태를 확인
+            window.location.href = '/users/me/account/detail';
 
         } catch (error) {
             console.error('영수증 분석 오류:', error);
