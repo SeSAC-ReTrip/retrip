@@ -130,6 +130,12 @@ public class UserController {
         return "user/travels";
     }
 
+    // 가계부 페이지
+    @GetMapping("/me/account")
+    public String myAccount() {
+        return "profile-account/profile-account";
+    }
+
     //좋아요 리스트
     @GetMapping("/me/liked")
     public String myLikes(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
