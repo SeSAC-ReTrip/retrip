@@ -56,6 +56,19 @@ public class PostController {
         return "post/create";
     }
 
+    // [추가] 가계부 선택 후 상세 편집 페이지로 이동
+    @GetMapping("/posts/detail")
+    public String detailPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @RequestParam Long travelId, Model model) {
+        if (userDetails == null) return "redirect:/login";
+        Travel travel = travelService.getTravelById(travelId);
+        model.addAttribute("travel", travel);
+        model.addAttribute("googleMapApiKey", googleMapApiKey);
+        // 작성자 정보와 오늘 날짜 등을 모델에 추가
+        model.addAttribute("username", userDetails.getUser().getName());
+        return "post/detail";
+    }
+
     @PostMapping("/posts/create")
     public String create(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @RequestParam Long travelId, @RequestParam String title, @RequestParam String content) {
@@ -92,6 +105,6 @@ public class PostController {
         if (post.isAuthor(userDetails.getUser())) {
             postService.deletePost(post);
         }
-        return "redirect:/home"; // [해결] 삭제 후 주소 에러 방지
+        return "redirect:/home";
     }
 }
