@@ -329,7 +329,7 @@
 
 <!-- Next Button -->
 <div class="next-btn-container">
-    <button class="next-btn" id="nextBtn" disabled onclick="processReceipts()">
+    <button class="next-btn" id="nextBtn" onclick="openFileDialog()">
         영수증 분석하기
     </button>
 </div>
@@ -343,10 +343,13 @@
 <script>
     let selectedFiles = [];
 
-    // 페이지 로드 시 파일 선택 대화상자 자동 실행
-    window.addEventListener('DOMContentLoaded', () => {
+    // 파일 선택 다이얼로그 열기
+    function openFileDialog() {
         document.getElementById('fileInput').click();
-    });
+    }
+
+    // 초기 버튼 상태 설정
+    updateNextButton();
 
     function handleFileSelect(event) {
         const files = Array.from(event.target.files);
@@ -414,9 +417,11 @@
         if (selectedFiles.length > 0) {
             nextBtn.disabled = false;
             nextBtn.textContent = `영수증 분석하기 (${selectedFiles.length})`;
+            nextBtn.onclick = processReceipts;
         } else {
-            nextBtn.disabled = true;
+            nextBtn.disabled = false;
             nextBtn.textContent = '영수증 분석하기';
+            nextBtn.onclick = openFileDialog;
         }
     }
 
