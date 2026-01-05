@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,22 +31,39 @@ public class Receipt extends BaseEntity {
     @JoinColumn(name = "travel_id", nullable = false)
     private Travel travel;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 200)
     private String storeName;  // 업소명
 
     @Column(nullable = false)
-    private int amount;  // 금액
+    private int amount;  // 결제 금액
 
     @Column(nullable = false)
-    private LocalDateTime paidAt;  // 결제일시
+    private LocalDateTime paidAt;  // 결제 일시
+
+    @Column(length = 50)
+    private String category;  // 카테고리 (식비, 교통비 등)
 
     @Column(columnDefinition = "TEXT")
-    private String description;  // SNS용 설명
+    private String description;  // SNS용 설명/일기
 
-    // TODO: 가계부 팀원이 추가 필드 구현
-    // - imageUrl (영수증 이미지)
-    // - category (카테고리)
-    // - OCR 데이터 등
+    @Column(length = 500)
+    private String imageUrl;  // 영수증 이미지 URL
+
+    @Builder
+    public Receipt(Travel travel, String storeName, int amount, LocalDateTime paidAt,
+        String category, String imageUrl) {
+        this.travel = travel;
+        this.storeName = storeName;
+        this.amount = amount;
+        this.paidAt = paidAt;
+        this.category = category;
+        this.imageUrl = imageUrl;
+    }
+
+    // 설명 추가/수정 (SNS에서만 사용)
+    public void updateDescription(String description) {
+        this.description = description;
+    }
 }
 
 

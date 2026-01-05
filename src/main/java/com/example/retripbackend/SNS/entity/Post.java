@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -48,60 +49,32 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private int viewCount = 0;
 
-    // 정적 팩토리 메서드
-    public static Post of(User author, Travel travel, String title, String content) {
-        Post post = new Post();
-        post.author = author;
-        post.travel = travel;
-        post.title = title;
-        post.content = content;
-        return post;
+    @Column(length = 500)
+    private String imageUrl;
+
+    // 빌더 패턴 적용 (기본값이 0인 필드들은 제외하고 생성자에 포함)
+    @Builder
+    public Post(User author, Travel travel, String title, String content, String imageUrl) {
+        this.author = author;
+        this.travel = travel;
+        this.title = title;
+        this.content = content;
+        this.imageUrl = imageUrl;
     }
 
     // 비즈니스 메서드
     public void update(String title, String content) {
-        if (title != null && !title.isBlank()) {
-            this.title = title;
-        }
-        if (content != null) {
-            this.content = content;
-        }
+        if (title != null && !title.isBlank()) this.title = title;
+        if (content != null) this.content = content;
     }
 
-    public void incrementLikeCount() {
-        this.likeCount++;
-    }
-
-    public void decrementLikeCount() {
-        if (this.likeCount > 0) {
-            this.likeCount--;
-        }
-    }
-
-    public void incrementCommentCount() {
-        this.commentCount++;
-    }
-
-    public void decrementCommentCount() {
-        if (this.commentCount > 0) {
-            this.commentCount--;
-        }
-    }
-
-    public void incrementViewCount() {
-        this.viewCount++;
-    }
+    public void incrementLikeCount() { this.likeCount++; }
+    public void decrementLikeCount() { if (this.likeCount > 0) this.likeCount--; }
+    public void incrementCommentCount() { this.commentCount++; }
+    public void decrementCommentCount() { if (this.commentCount > 0) this.commentCount--; }
+    public void incrementViewCount() { this.viewCount++; }
 
     public boolean isAuthor(User user) {
         return this.author.getUserId().equals(user.getUserId());
     }
 }
-
-
-
-
-
-
-
-
-

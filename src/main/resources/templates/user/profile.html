@@ -5,211 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>profile</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #fff;
-            padding-bottom: 70px;
-            min-height: 100vh;
+            background-color: #fff; padding-bottom: 70px; min-height: 100vh;
         }
-
-        .profile-header {
-            padding: 40px 20px;
-            text-align: center;
-            border-bottom: 8px solid #F5F3ED;
-        }
-
+        .profile-header { padding: 40px 20px; text-align: center; border-bottom: 8px solid #F5F3ED; }
         .profile-image-wrapper {
-            width: 100px;
-            height: 100px;
-            margin: 0 auto 16px;
-            border-radius: 50%;
-            background: #F5F3ED;
-            border: 3px solid #E8E5DC;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            overflow: hidden;
+            width: 100px; height: 100px; margin: 0 auto 16px; border-radius: 50%;
+            background: #F5F3ED; border: 3px solid #E8E5DC; display: flex;
+            align-items: center; justify-content: center; overflow: hidden;
         }
-
-        .profile-image-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .profile-image-wrapper:hover {
-            border-color: #9AE19C;
-        }
-
-        .profile-icon {
-            width: 50px;
-            height: 50px;
-            color: #C4C9C1;
-        }
-
-        .profile-name {
-            font-size: 20px;
-            font-weight: 600;
-            color: #3D4A3C;
-            margin-bottom: 12px;
-        }
-
+        .profile-image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-icon { width: 50px; height: 50px; color: #C4C9C1; }
+        .profile-name { font-size: 20px; font-weight: 600; color: #3D4A3C; margin-bottom: 12px; }
         .edit-profile-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 20px;
-            background: #F5F3ED;
-            border: 1px solid #E8E5DC;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #5A9F5C;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px;
+            background: #F5F3ED; border: 1px solid #E8E5DC; border-radius: 20px;
+            font-size: 14px; font-weight: 500; color: #5A9F5C; text-decoration: none;
         }
-
-        .edit-profile-btn:hover {
-            background: #E8F9E8;
-            border-color: #9AE19C;
-        }
-
-        .arrow-icon {
-            font-size: 12px;
-        }
-
-        .menu-list {
-            padding: 0 20px;
-        }
-
+        .menu-list { padding: 0 20px; }
         .menu-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 0;
-            border-bottom: 1px solid #F5F3ED;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 0; border-bottom: 1px solid #F5F3ED; text-decoration: none;
         }
-
-        .menu-item:hover {
-            background: #FEFDFB;
-            padding-left: 8px;
-            padding-right: 8px;
-            margin: 0 -8px;
-            border-radius: 8px;
-        }
-
-        .menu-item:hover .menu-text {
-            color: #5A9F5C;
-        }
-
-        .menu-text {
-            font-size: 16px;
-            font-weight: 500;
-            color: #3D4A3C;
-            transition: color 0.2s;
-        }
-
-        .menu-arrow {
-            font-size: 14px;
-            color: #C4C9C1;
-        }
-
-        .logout-section {
-            padding: 32px 20px;
-            display: flex;
-            justify-content: center;
-        }
-
+        .menu-text { font-size: 16px; font-weight: 500; color: #3D4A3C; }
+        .menu-arrow { font-size: 14px; color: #C4C9C1; }
+        .logout-section { padding: 32px 20px; display: flex; justify-content: center; }
         .logout-btn {
-            width: 100%;
-            max-width: 600px;
-            padding: 16px;
-            background: #9AE19C;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(61, 74, 60, 0.2);
+            width: 100%; max-width: 600px; padding: 16px; background: #9AE19C;
+            border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+            color: #fff; cursor: pointer; box-shadow: 0 4px 12px rgba(61, 74, 60, 0.2);
         }
-
-        .logout-btn:hover {
-            background: #88D68A;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(61, 74, 60, 0.3);
-        }
-
-        .logout-btn:active {
-            transform: translateY(0);
-        }
-
         .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #FEFDFB;
-            border-top: 1px solid #E8E5DC;
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 0;
-            z-index: 100;
+            position: fixed; bottom: 0; left: 0; right: 0; background: #FEFDFB;
+            border-top: 1px solid #E8E5DC; display: flex; justify-content: space-around;
+            padding: 12px 0; z-index: 100;
         }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-            color: #A0A99D;
-            text-decoration: none;
-            flex: 1;
-            transition: color 0.2s;
-        }
-
-        .nav-item:hover {
-            color: #9AE19C;
-        }
-
-        .nav-item.active {
-            color: #5A9F5C;
-        }
-
-        .nav-icon {
-            width: 24px;
-            height: 24px;
-        }
-
-        .nav-label {
-            font-size: 11px;
-            font-weight: 500;
-        }
-
-        @media (max-width: 480px) {
-            .profile-header {
-                padding: 32px 16px;
-            }
-            .menu-list {
-                padding: 0 16px;
-            }
-            .logout-section {
-                padding: 24px 16px;
-            }
-        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #A0A99D; flex: 1; }
+        .nav-item.active { color: #5A9F5C; }
+        .nav-icon { width: 24px; height: 24px; }
+        .nav-label { font-size: 11px; font-weight: 500; }
     </style>
 </head>
 <body>
@@ -233,7 +69,7 @@
         <span class="menu-text">내 게시물</span>
         <span class="menu-arrow">›</span>
     </a>
-    <a th:href="@{/users/me/account-books}" class="menu-item">
+    <a th:href="@{/users/me/account}" class="menu-item">
         <span class="menu-text">가계부</span>
         <span class="menu-arrow">›</span>
     </a>
@@ -251,27 +87,19 @@
 
 <nav class="bottom-nav">
     <a th:href="@{/home}" class="nav-item">
-        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-        </svg>
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
         <span class="nav-label">Home</span>
     </a>
     <a th:href="@{/posts}" class="nav-item">
-        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-        </svg>
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         <span class="nav-label">Explore</span>
     </a>
     <a th:href="@{/travels}" class="nav-item">
-        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-        </svg>
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
         <span class="nav-label">Travel</span>
     </a>
     <a th:href="@{/users/me}" class="nav-item active">
-        <svg class="nav-icon" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-        </svg>
+        <svg class="nav-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
         <span class="nav-label">Profile</span>
     </a>
 </nav>
