@@ -6,6 +6,8 @@ import com.example.retripbackend.SNS.repository.PostLikeRepository;
 import com.example.retripbackend.SNS.service.FollowService;
 import com.example.retripbackend.SNS.service.PostService;
 import com.example.retripbackend.SNS.service.TravelService;
+import com.example.retripbackend.receipt.entity.Receipt;
+import com.example.retripbackend.receipt.service.ReceiptService;
 import com.example.retripbackend.user.entity.User;
 import com.example.retripbackend.user.service.CustomUserDetailsService;
 import com.example.retripbackend.user.service.UserService;
@@ -32,6 +34,7 @@ public class UserController {
     private final TravelService travelService;
     private final FollowService followService;
     private final PostLikeRepository postLikeRepository;
+    private final ReceiptService receiptService;
 
     // 내 정보 조회
     @GetMapping("/me")
@@ -146,6 +149,38 @@ public class UserController {
     @GetMapping("/me/account/select")
     public String selectAccountPage() {
         return "profile-account/profile-account-select";
+    }
+
+    // 가계부 상세 페이지
+    @GetMapping("/me/account/detail")
+    public String accountDetailPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        Model model) {
+        User user = userDetails.getUser();
+        
+        // 사용자의 최근 Travel 찾기
+        List<Travel> userTravels = travelService.getUserTravels(user);
+        
+        if (!userTravels.isEmpty()) {
+            Travel travel = userTravels.get(0);
+            // 해당 Travel의 영수증 목록 조회
+            List<Receipt> receipts = receiptService.getReceiptsByTravel(travel);
+            
+            model.addAttribute("travel", travel);
+            model.addAttribute("receipts", receipts);
+            
+            // 페이지 헤더 정보 설정
+            model.addAttribute("pageTitle", travel.getCity() + " 여행");
+            model.addAttribute("destination", travel.getCity() + ", " + travel.getCountry());
+            model.addAttribute("totalAmount", travel.getTotalAmount());
+        } else {
+            // Travel이 없으면 빈 리스트
+            model.addAttribute("receipts", List.of());
+            model.addAttribute("pageTitle", "가계부");
+            model.addAttribute("destination", "여행지");
+            model.addAttribute("totalAmount", 0);
+        }
+        
+        return "profile-account/profile-account-detail";
     }
 
     //좋아요 리스트
