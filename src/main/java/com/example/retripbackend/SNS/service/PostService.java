@@ -55,16 +55,28 @@ public class PostService {
         return postRepository.findByTravelId(travelId);
     }
 
-    // 게시글 작성
+    // 게시글 작성 (빌더 패턴 적용)
     @Transactional
     public Post createPost(User author, Travel travel, String title, String content) {
-        Post post = Post.of(author, travel, title, content);
+        Post post = Post.builder()
+            .author(author)
+            .travel(travel)
+            .title(title)
+            .content(content)
+            .build();
         return postRepository.save(post);
     }
 
     // 게시글 수정
     @Transactional
-    public void updatePost(Post post, String title, String content) {
+    public void updatePost(Long postId, String title, String content, User currentUser) {
+        Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+
+        if (!post.isAuthor(currentUser)) {
+            throw new RuntimeException("수정 권한이 없습니다.");
+        }
+
         post.update(title, content);
     }
 
@@ -82,27 +94,16 @@ public class PostService {
 
     // ========== 검색 기능을 위한 새 메서드들 ==========
 
-    /**
-     * 도시명으로 게시물 검색 (부분 일치)
-     * SearchController의 검색 결과 표시에 사용
-     *
-     * @param cityKeyword 검색할 도시명 (부분 일치)
-     * @param page 페이지 번호
-     * @param size 페이지 크기
-     * @return 검색된 게시물 페이지
-     */
+
+    // 도시명으로 게시물 검색 (부분 일치)
+     //SearchController의 검색 결과 표시에 사용
     public Page<Post> searchPostsByCity(String cityKeyword, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return postRepository.findByTravel_CityContainingIgnoreCase(cityKeyword, pageable);
     }
 
-    /**
-     * 게시물이 많은 도시 상위 N개 조회
-     * SearchController의 인기 도시 태그 표시에 사용
-     *
-     * @param limit 조회할 도시 개수 (예: 16)
-     * @return 도시명 리스트 (게시물 많은 순)
-     */
+
+     // 게시물이 많은 도시 상위 N개 조회
     public List<String> getTopCitiesByPostCount(int limit) {
         Pageable pageable = PageRequest.of(0, limit);
         return postRepository.findTopCitiesByPostCount(pageable);

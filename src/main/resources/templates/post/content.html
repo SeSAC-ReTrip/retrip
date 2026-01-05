@@ -349,12 +349,13 @@
 
 <!-- Main Content -->
 <main class="main-content">
-    <!-- 샘플 콘텐츠 -->
     <div class="post-header">
         <div class="post-title-row">
-            <h1 class="post-title">제목</h1>
-            <!-- 수정 버튼 -->
-            <button class="edit-btn" th:if="${isOwner}" onclick="editPost()">
+            <h1 class="post-title" th:text="${post.title}">제목</h1>
+            <!-- 수정 버튼 (작성자만 표시) -->
+            <button class="edit-btn"
+                    th:if="${isAuthor}"
+                    th:onclick="'location.href=\'/posts/' + ${post.postId} + '/edit\''">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
@@ -364,15 +365,15 @@
         <div class="post-meta">
             <div class="meta-item">
                 <span class="meta-label">여행지</span>
-                <span class="meta-value">여행지</span>
+                <span class="meta-value" th:text="${post.travel.city + ', ' + post.travel.country}">여행지</span>
             </div>
             <div class="meta-item">
                 <span class="meta-label">여행기간</span>
-                <span class="meta-value">여행기간</span>
+                <span class="meta-value" th:text="${#temporals.format(post.travel.startDate, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(post.travel.endDate, 'yyyy.MM.dd')}">여행기간</span>
             </div>
             <div class="meta-item">
                 <span class="meta-label">총 경비</span>
-                <span class="meta-value">총 경비</span>
+                <span class="meta-value" th:text="${post.travel.totalAmount} + '원'">총 경비</span>
             </div>
             <div class="meta-item">
                 <span class="meta-label">작성자</span>
@@ -380,23 +381,23 @@
                     <svg class="author-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
-                    <span>작성자</span>
+                    <span th:text="${post.author.name}">작성자</span>
                 </span>
             </div>
             <div class="meta-item">
                 <span class="meta-label">작성일</span>
-                <span class="meta-value">작성일</span>
+                <span class="meta-value" th:text="${#temporals.format(post.createdAt, 'yyyy.MM.dd')}">작성일</span>
             </div>
         </div>
     </div>
 
-    <!-- 영수증 카드 1 -->
-    <div class="receipt-card">
+    <!-- 영수증 카드 1 (첫 번째 영수증) -->
+    <div class="receipt-card" th:if="${post.travel.receipts != null and post.travel.receipts.size() > 0}" th:with="receipt=${post.travel.receipts[0]}">
         <div class="receipt-header">영수증 내용</div>
         <div class="receipt-info">
-            <div class="receipt-row">장소</div>
-            <div class="receipt-row">결제일</div>
-            <div class="receipt-row">결제 금액</div>
+            <div class="receipt-row" th:text="'장소: ' + ${receipt.storeName}">장소</div>
+            <div class="receipt-row" th:text="'결제일: ' + ${#temporals.format(receipt.paidAt, 'yyyy.MM.dd HH:mm')}">결제일</div>
+            <div class="receipt-row" th:text="'결제 금액: ' + ${receipt.amount} + '원'">결제 금액</div>
         </div>
     </div>
 
@@ -410,12 +411,7 @@
 
     <div class="content-section">
         <h3 class="content-title">영수증, 사진 등 설명 및 일기</h3>
-        <p class="content-text">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        </p>
+        <p class="content-text" th:text="${post.content}">내용</p>
     </div>
 
     <div class="location-section">
@@ -423,20 +419,20 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
         </svg>
-        <span class="location-text">위치</span>
+        <span class="location-text" th:text="${post.travel.city}">위치</span>
     </div>
 
-    <!-- 영수증 카드 2 -->
-    <div class="receipt-card">
+    <!-- 영수증 카드 2 (두 번째 영수증, 있으면) -->
+    <div class="receipt-card" th:if="${post.travel.receipts != null and post.travel.receipts.size() > 1}" th:with="receipt=${post.travel.receipts[1]}">
         <div class="receipt-header">영수증 내용</div>
         <div class="receipt-info">
-            <div class="receipt-row">장소</div>
-            <div class="receipt-row">결제일</div>
-            <div class="receipt-row">결제 금액</div>
+            <div class="receipt-row" th:text="'장소: ' + ${receipt.storeName}">장소</div>
+            <div class="receipt-row" th:text="'결제일: ' + ${#temporals.format(receipt.paidAt, 'yyyy.MM.dd HH:mm')}">결제일</div>
+            <div class="receipt-row" th:text="'결제 금액: ' + ${receipt.amount} + '원'">결제 금액</div>
         </div>
     </div>
 
-    <div class="image-box">
+    <div class="image-box" th:if="${post.travel.receipts != null and post.travel.receipts.size() > 1}">
         <div class="image-placeholder">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -456,27 +452,24 @@
     <section class="comments-section">
         <h3 class="section-header">댓글</h3>
         <div class="comment-input-wrapper">
-            <textarea class="comment-input" placeholder="댓글을 입력하세요..."></textarea>
+            <form th:action="@{/posts/{id}/comments(id=${post.postId})}" method="post">
+                <textarea class="comment-input" name="content" placeholder="댓글을 입력하세요..." required></textarea>
+                <button type="submit" style="display:none;"></button>
+            </form>
         </div>
         <div class="comments-list">
-            <div class="comment-item">comment</div>
-            <div class="comment-item">comment</div>
-            <div class="comment-item">comment</div>
-            <div class="comment-item">comment</div>
-            <div class="comment-item">comment</div>
+            <div class="comment-item" th:each="comment : ${comments}" th:text="${comment.content}">comment</div>
+
+            <div th:if="${comments.empty}" style="text-align: center; padding: 20px; color: #A0A99D;">
+                첫 번째 댓글을 작성해보세요!
+            </div>
         </div>
     </section>
 </main>
 
 <!-- Google Maps API -->
 <script async defer th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}"></script>
-<script th:inline="javascript">
-    // 게시물 수정 페이지로 이동
-    function editPost() {
-        const postId = /*[[${post.id}]]*/ 1;
-        window.location.href = `/post/edit/${postId}`;
-    }
-
+<script>
     function initMap() {
         const center = { lat: 37.5665, lng: 126.9780 };
 

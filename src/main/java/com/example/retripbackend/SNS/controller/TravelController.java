@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -29,10 +30,9 @@ public class TravelController {
     // TODO: 가계부 팀원이 ReceiptService 구현하면 주입
     // private final ReceiptService receiptService;
 
-    /**
-     * 가계부에서 생성된 여행 목록 조회 (선택 화면)
-     * 가계부 시스템에서 이미 생성된 Travel 엔티티들을 조회만 함
-     */
+
+      //가계부에서 생성된 여행 목록 조회 (선택 화면)
+     //가계부 시스템에서 이미 생성된 Travel 엔티티들을 조회만 함
     @GetMapping
     public String list(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         Model model) {
@@ -45,10 +45,9 @@ public class TravelController {
         return "travel/list";  // 가계부 목록 (선택 화면)
     }
 
-    /**
-     * 선택한 여행의 영수증 목록 보기
-     * 와이어프레임: Profile - 가계부 - detail (재목 화면)
-     */
+
+     // 선택한 여행의 영수증 목록 보기
+     // 와이어프레임: Profile - 가계부 - detail (재목 화면)
     @GetMapping("/{travelId}")
     public String detail(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long travelId,
@@ -69,10 +68,8 @@ public class TravelController {
         return "travel/detail";  // 영수증 카드 목록
     }
 
-    /**
-     * 여행 수정 폼
-     * 가계부에서 이미 생성된 여행의 정보만 수정
-     */
+     //여행 수정 폼
+     // 가계부에서 이미 생성된 여행의 정보만 수정
     @GetMapping("/{travelId}/edit")
     public String editPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long travelId,
@@ -88,9 +85,8 @@ public class TravelController {
         return "travel/edit";
     }
 
-    /**
-     * 여행 정보 수정 처리
-     */
+
+    //여행 정보 수정 처리
     @PostMapping("/{travelId}/edit")
     public String edit(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long travelId,
@@ -109,9 +105,8 @@ public class TravelController {
         }
     }
 
-    /**
-     * 여행 삭제
-     */
+
+    //  여행 삭제
     @PostMapping("/{travelId}/delete")
     public String delete(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long travelId) {

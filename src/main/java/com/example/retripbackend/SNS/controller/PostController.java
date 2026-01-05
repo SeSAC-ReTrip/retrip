@@ -3,6 +3,7 @@ package com.example.retripbackend.SNS.controller;
 import com.example.retripbackend.SNS.entity.Comment;
 import com.example.retripbackend.SNS.entity.Post;
 import com.example.retripbackend.SNS.entity.Travel;
+import com.example.retripbackend.SNS.repository.PostLikeRepository;
 import com.example.retripbackend.SNS.service.CommentService;
 import com.example.retripbackend.SNS.service.PostLikeService;
 import com.example.retripbackend.SNS.service.PostService;
@@ -10,6 +11,7 @@ import com.example.retripbackend.SNS.service.TravelService;
 import com.example.retripbackend.user.entity.User;
 import com.example.retripbackend.user.service.CustomUserDetailsService;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -32,29 +34,25 @@ public class PostController {
     private final PostLikeService postLikeService;
     private final TravelService travelService;
 
-    // 게시글 피드 (홈)
+    @Value("${google.map.api.key:}")
+    private String googleMapApiKey;
+
+    // 홈 화면 (피드)
     @GetMapping
     public String feed(@RequestParam(defaultValue = "latest") String sort,
         @RequestParam(defaultValue = "0") int page,
         Model model) {
-        Page<Post> posts;
-
-        if ("recommend".equals(sort)) {
-            posts = postService.getRecommendedPosts(page, 10);
-        } else {
-            posts = postService.getLatestPosts(page, 10);
-        }
+        Page<Post> posts = "recommend".equals(sort)
+            ? postService.getRecommendedPosts(page, 10)
+            : postService.getLatestPosts(page, 10);
 
         model.addAttribute("posts", posts);
         model.addAttribute("sort", sort);
 
-        return "post/feed";
+        return "home";
     }
 
-    @Value("${google.map.api.key}")
-    private String googleMapApiKey;
-
-    // 게시글 상세
+    // 게시글 상세 조회
     @GetMapping("/{postId}")
     public String detail(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
@@ -62,6 +60,7 @@ public class PostController {
         User currentUser = userDetails.getUser();
         Post post = postService.getPostById(postId);
         List<Comment> comments = commentService.getPostComments(post);
+
         boolean isLiked = postLikeService.isLiked(post, currentUser);
         boolean isAuthor = post.isAuthor(currentUser);
 
@@ -69,22 +68,38 @@ public class PostController {
         model.addAttribute("comments", comments);
         model.addAttribute("isLiked", isLiked);
         model.addAttribute("isAuthor", isAuthor);
-
-        // Google Maps API 키 전달
         model.addAttribute("googleMapApiKey", googleMapApiKey);
 
         return "post/detail";
+    }
+
+    // 게시글 컨텐츠 조회 (content.html)
+    @GetMapping("/{postId}/content")
+    public String content(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @PathVariable Long postId,
+        Model model) {
+        User currentUser = userDetails.getUser();
+        Post post = postService.getPostById(postId);
+        List<Comment> comments = commentService.getPostComments(post);
+
+        boolean isLiked = postLikeService.isLiked(post, currentUser);
+        boolean isAuthor = post.isAuthor(currentUser);
+
+        model.addAttribute("post", post);
+        model.addAttribute("comments", comments);
+        model.addAttribute("isLiked", isLiked);
+        model.addAttribute("isAuthor", isAuthor);
+        model.addAttribute("googleMapApiKey", googleMapApiKey);
+
+        return "post/content";
     }
 
     // 게시글 작성 페이지
     @GetMapping("/create")
     public String createPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         Model model) {
-        User user = userDetails.getUser();
-        List<Travel> travels = travelService.getUserTravels(user);
-
+        List<Travel> travels = travelService.getUserTravels(userDetails.getUser());
         model.addAttribute("travels", travels);
-
         return "post/create";
     }
 
@@ -94,12 +109,17 @@ public class PostController {
         @RequestParam Long travelId,
         @RequestParam String title,
         @RequestParam String content) {
-        User author = userDetails.getUser();
         Travel travel = travelService.getTravelById(travelId);
+        Post post = postService.createPost(userDetails.getUser(), travel, title, content);
 
-        Post post = postService.createPost(author, travel, title, content);
+        return "redirect:/posts/upload/complete?postId=" + post.getPostId();
+    }
 
-        return "redirect:/posts/" + post.getPostId();
+    // 업로드 완료 페이지
+    @GetMapping("/upload/complete")
+    public String uploadComplete(@RequestParam Long postId, Model model) {
+        model.addAttribute("postId", postId);
+        return "post/upload-complete";
     }
 
     // 게시글 수정 페이지
@@ -107,15 +127,13 @@ public class PostController {
     public String editPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
         Model model) {
-        User currentUser = userDetails.getUser();
         Post post = postService.getPostById(postId);
 
-        if (!post.isAuthor(currentUser)) {
+        if (!post.isAuthor(userDetails.getUser())) {
             return "redirect:/posts/" + postId;
         }
 
         model.addAttribute("post", post);
-
         return "post/edit";
     }
 
@@ -125,14 +143,11 @@ public class PostController {
         @PathVariable Long postId,
         @RequestParam String title,
         @RequestParam String content) {
-        User currentUser = userDetails.getUser();
-        Post post = postService.getPostById(postId);
-
-        if (!post.isAuthor(currentUser)) {
-            return "redirect:/posts/" + postId;
+        try {
+            postService.updatePost(postId, title, content, userDetails.getUser());
+        } catch (RuntimeException e) {
+            return "redirect:/posts/" + postId + "?error=unauthorized";
         }
-
-        postService.updatePost(post, title, content);
 
         return "redirect:/posts/" + postId;
     }
@@ -141,46 +156,35 @@ public class PostController {
     @PostMapping("/{postId}/delete")
     public String delete(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId) {
-        User currentUser = userDetails.getUser();
         Post post = postService.getPostById(postId);
 
-        if (!post.isAuthor(currentUser)) {
-            return "redirect:/posts/" + postId;
+        if (post.isAuthor(userDetails.getUser())) {
+            postService.deletePost(post);
         }
-
-        postService.deletePost(post);
 
         return "redirect:/posts";
     }
 
-    // 좋아요
+    // 좋아요 처리
     @PostMapping("/{postId}/like")
     public String like(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId) {
-        User user = userDetails.getUser();
         Post post = postService.getPostById(postId);
-
         try {
-            postLikeService.like(post, user);
-        } catch (RuntimeException e) {
-            // 이미 좋아요한 경우 무시
-        }
+            postLikeService.like(post, userDetails.getUser());
+        } catch (RuntimeException ignored) { }
 
         return "redirect:/posts/" + postId;
     }
 
-    // 좋아요 취소
+    // 좋아요 취소 처리
     @PostMapping("/{postId}/unlike")
     public String unlike(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId) {
-        User user = userDetails.getUser();
         Post post = postService.getPostById(postId);
-
         try {
-            postLikeService.unlike(post, user);
-        } catch (RuntimeException e) {
-            // 좋아요 안 한 경우 무시
-        }
+            postLikeService.unlike(post, userDetails.getUser());
+        } catch (RuntimeException ignored) { }
 
         return "redirect:/posts/" + postId;
     }
@@ -190,10 +194,8 @@ public class PostController {
     public String createComment(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
         @RequestParam String content) {
-        User author = userDetails.getUser();
         Post post = postService.getPostById(postId);
-
-        commentService.createComment(post, author, content);
+        commentService.createComment(post, userDetails.getUser(), content);
 
         return "redirect:/posts/" + postId;
     }
@@ -203,16 +205,7 @@ public class PostController {
     public String deleteComment(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long commentId,
         @RequestParam Long postId) {
-        // 댓글 삭제 로직 (CommentRepository 필요)
+        commentService.deleteComment(commentId, userDetails.getUser());
         return "redirect:/posts/" + postId;
     }
 }
-
-
-
-
-
-
-
-
-
