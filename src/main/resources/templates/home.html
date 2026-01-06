@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -53,15 +53,40 @@
             cursor: pointer;
             border: none;
             transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .btn-logout {
             background: #9AE19C;
             color: #fff;
+            border: 1.5px solid #9AE19C;
         }
 
         .btn-logout:hover {
             background: #88D68A;
+            border-color: #88D68A;
+        }
+
+        .btn-login {
+            background: #fff;
+            color: #5A9F5C;
+            border: 1.5px solid #9AE19C;
+        }
+
+        .btn-login:hover {
+            background: #F5FDF5;
+        }
+
+        .btn-signup {
+            background: #9AE19C;
+            color: #fff;
+            border: 1.5px solid #9AE19C;
+        }
+
+        .btn-signup:hover {
+            background: #88D68A;
+            border-color: #88D68A;
         }
 
         /* Filter Section */
@@ -77,6 +102,9 @@
             border: 1.5px solid #C1EEC3;
             background: #fff;
             font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             cursor: pointer;
             transition: all 0.2s;
             color: #5A9F5C;
@@ -86,6 +114,12 @@
         .filter-btn:hover {
             background: #F5FDF5;
             border-color: #9AE19C;
+        }
+
+        .filter-btn::after {
+            content: '▼';
+            font-size: 10px;
+            color: #9AE19C;
         }
 
         .filter-btn.active {
@@ -230,24 +264,28 @@
 <body>
 <!-- Header -->
 <header class="header">
-    <div class="logo-section" onclick="location.href='/posts'">
+    <div class="logo-section" onclick="location.href='/home'">
         <h1 class="logo-text">ReTrip</h1>
     </div>
     <div class="auth-buttons">
-        <form action="/logout" method="post" style="margin: 0;">
+        <form th:action="@{/logout}" method="post" style="margin: 0;" sec:authorize="isAuthenticated()">
             <button type="submit" class="btn btn-logout">Log out</button>
         </form>
+        <div sec:authorize="isAnonymous()" style="display: flex; gap: 12px;">
+            <a th:href="@{/login}" class="btn btn-login">Login</a>
+            <a th:href="@{/signup}" class="btn btn-signup">Sign up</a>
+        </div>
     </div>
 </header>
 
 <!-- Filter Section -->
 <section class="filter-section">
-    <a th:href="@{/posts(sort='latest')}"
+    <a th:href="@{/home(sort='latest')}"
        class="filter-btn"
        th:classappend="${sort == 'latest' or sort == null} ? 'active' : ''">
         최신순
     </a>
-    <a th:href="@{/posts(sort='recommend')}"
+    <a th:href="@{/home(sort='recommend')}"
        class="filter-btn"
        th:classappend="${sort == 'recommend'} ? 'active' : ''">
         인기순

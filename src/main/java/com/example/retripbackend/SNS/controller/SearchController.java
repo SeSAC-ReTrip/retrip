@@ -16,12 +16,22 @@ public class SearchController {
 
     private final PostService postService;
 
-    //Explore 메인 화면
+    // Explore 메인 화면
     @GetMapping("/explore")
-    public String explorePage(Model model) {
-        // 예시: 최신 게시물 10개 조회 (기존 postService 활용)
-        Page<Post> allPosts = postService.searchPostsByCity("", 0, 10);
-        model.addAttribute("posts", allPosts);
+    public String explorePage(@RequestParam(defaultValue = "latest") String sort,
+        @RequestParam(defaultValue = "0") int page,
+        Model model) {
+        Page<Post> posts;
+
+        if ("recommend".equals(sort)) {
+            posts = postService.getRecommendedPosts(page, 10);
+        } else {
+            posts = postService.getLatestPosts(page, 10);
+        }
+
+        model.addAttribute("posts", posts);
+        model.addAttribute("sort", sort);
+
         return "search/explore";
     }
 
