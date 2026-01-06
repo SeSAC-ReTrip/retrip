@@ -113,6 +113,46 @@ public class PostController {
         return "redirect:/posts/" + postId + "/content";
     }
 
+    // 게시물 수정 페이지 (detail 페이지 재사용)
+    @GetMapping("/posts/{postId}/edit")
+    public String editPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @PathVariable Long postId,
+        Model model) {
+        if (userDetails == null) return "redirect:/login";
+
+        Post post = postService.getPostById(postId);
+
+        // 작성자만 수정 가능
+        if (!post.isAuthor(userDetails.getUser())) {
+            return "redirect:/posts/" + postId;
+        }
+
+        Travel travel = post.getTravel();
+
+        model.addAttribute("travel", travel);
+        model.addAttribute("post", post);
+        model.addAttribute("googleMapApiKey", googleMapApiKey);
+        model.addAttribute("username", userDetails.getUser().getName());
+        model.addAttribute("isEdit", true);  // 수정 모드 플래그
+
+        return "post/detail";
+    }
+
+    // 게시물 수정 처리
+    @PostMapping("/posts/{postId}/edit")
+    public String edit(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @PathVariable Long postId,
+        @RequestParam String title,
+        @RequestParam String content) {
+        try {
+            postService.updatePost(postId, title, content, userDetails.getUser());
+        } catch (RuntimeException e) {
+            return "redirect:/posts/" + postId + "?error=unauthorized";
+        }
+
+        return "redirect:/posts/" + postId;
+    }
+
     @PostMapping("/posts/{postId}/delete")
     public String delete(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId) {
@@ -124,7 +164,7 @@ public class PostController {
     }
 
 
-     // 좋아요 기능
+    // 좋아요 기능
     @ResponseBody
     @PostMapping("/posts/{postId}/like")
     public String toggleLike(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
