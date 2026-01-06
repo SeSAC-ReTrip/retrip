@@ -1,6 +1,11 @@
 package com.example.retripbackend.ai.controller;
 
 import com.example.retripbackend.ai.service.GeminiService;
+import com.example.retripbackend.receipt.entity.Receipt;
+import com.example.retripbackend.receipt.service.ReceiptService;
+import com.example.retripbackend.SNS.entity.Travel;
+import com.example.retripbackend.SNS.service.TravelService;
+import com.example.retripbackend.user.entity.User;
 import com.example.retripbackend.user.service.CustomUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +33,8 @@ import java.util.Map;
 public class ReceiptController {
 
     private final GeminiService geminiService;
+    private final ReceiptService receiptService;
+    private final TravelService travelService;
 
     /**
      * 영수증 분석 페이지
@@ -78,13 +85,17 @@ public class ReceiptController {
      * MVP 기준: 순차적 분석 방식(하나씩 분석)을 채택했기 때문에
      * 단일 파일만 처리하고 JSON 응답을 반환
      * 
-     * 변경 사항: Gemini가 반환한 JSON 문자열을 객체로 파싱하여 프론트엔드에 전달
+     * 변경 사항: 
+     * 1. Gemini가 반환한 JSON 문자열을 객체로 파싱하여 프론트엔드에 전달
+     * 2. 분석 결과를 Receipt 엔티티에 저장
      * 이유: 프론트엔드에서 바로 사용할 수 있도록 하여 에러 처리와 데이터 접근을 용이하게 함
+     * 그리고 분석 결과를 DB에 저장하여 영구 보관
      */
     @PostMapping("/analyze/api")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> analyzeReceiptApi(
         @RequestParam("file") MultipartFile file,
+        @RequestParam(required = false) Long travelId,
         @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails) {
         Map<String, Object> response = new HashMap<>();
         ObjectMapper objectMapper = new ObjectMapper();
@@ -126,8 +137,46 @@ public class ReceiptController {
                 resultMap = parsedMap;
                 log.debug("JSON 파싱 성공");
                 
+                // 분석 결과를 DB에 저장
+                User user = userDetails.getUser();
+                Travel travel;
+                
+                if (travelId != null) {
+                    // travelId가 제공된 경우 해당 Travel 조회
+                    travel = travelService.getTravelById(travelId);
+                    
+                    // 권한 체크: 본인의 Travel인지 확인
+                    if (!travel.isOwner(user)) {
+                        log.warn("권한 없는 Travel 접근 시도: travelId={}, userId={}", travelId, user.getUserId());
+                        throw new IllegalArgumentException("권한이 없는 여행입니다.");
+                    }
+                } else {
+                    // travelId가 없으면 사용자의 최근 Travel 찾기
+                    var userTravels = travelService.getUserTravels(user);
+                    if (userTravels.isEmpty()) {
+                        throw new IllegalArgumentException("여행 정보가 없습니다. 먼저 가계부를 생성해주세요.");
+                    }
+                    travel = userTravels.get(0);
+                }
+                
+                // Receipt 저장
+                Receipt savedReceipt = receiptService.saveReceiptFromAnalysis(
+                    travel,
+                    resultMap,
+                    null  // 이미지 URL은 추후 파일 저장 기능 구현 시 추가
+                );
+                
+                // 저장된 Receipt ID를 응답에 포함
+                response.put("receiptId", savedReceipt.getReceiptId());
+                log.info("영수증 DB 저장 완료: receiptId={}", savedReceipt.getReceiptId());
+                
+            } catch (IllegalArgumentException e) {
+                log.error("영수증 저장 실패 (비즈니스 로직 오류): {}", e.getMessage());
+                response.put("success", false);
+                response.put("error", e.getMessage());
+                return ResponseEntity.badRequest().body(response);
             } catch (Exception e) {
-                log.error("JSON 파싱 실패: {}", e.getMessage(), e);
+                log.error("JSON 파싱 또는 DB 저장 실패: {}", e.getMessage(), e);
                 // 파싱 실패 시 원본 문자열을 그대로 반환 (에러 메시지일 수 있음)
                 resultMap = new HashMap<>();
                 resultMap.put("raw", resultJsonString);
