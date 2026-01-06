@@ -367,6 +367,7 @@ public class UserController {
             
             model.addAttribute("travel", travel);
             model.addAttribute("receipts", receipts);
+            model.addAttribute("travelId", travel.getTravelId());  // travelId 추가
             
             // 페이지 헤더 정보 설정
             // 사용자가 입력한 가계부 제목을 그대로 사용
@@ -385,6 +386,9 @@ public class UserController {
             model.addAttribute("destination", "여행지");
             model.addAttribute("totalAmount", 0);
             model.addAttribute("currency", "-");
+            if (travelId != null) {
+                model.addAttribute("travelId", travelId);
+            }
         }
         
         return "profile-account/profile-account-detail";

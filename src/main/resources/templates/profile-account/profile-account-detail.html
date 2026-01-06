@@ -272,7 +272,7 @@
 <!-- Page Header -->
 <section class="page-header">
     <h1 class="page-title" th:text="${pageTitle}">제목</h1>
-    <div class="page-meta">
+    <div class="page-meta" th:if="${travelId != null}" th:attr="data-travel-id=${travelId}">
         <div class="meta-item">
             <span class="meta-label">여행지</span>
             <span class="meta-value" th:text="${destination}">여행지</span>
@@ -461,8 +461,26 @@
     }
 
     function continueEditing() {
-        // 영수증 업로드 페이지로 이동 (추가 업로드)
-        window.location.href = '/users/me/account/select';
+        // 현재 페이지의 travelId를 가져와서 영수증 업로드 페이지로 이동 (추가 업로드)
+        // URL 파라미터에서 travelId 가져오기
+        const urlParams = new URLSearchParams(window.location.search);
+        let travelId = urlParams.get('travelId');
+        
+        // URL에 없으면 Thymeleaf로 전달된 travelId 사용
+        if (!travelId) {
+            const travelIdElement = document.querySelector('[data-travel-id]');
+            if (travelIdElement) {
+                travelId = travelIdElement.getAttribute('data-travel-id');
+            }
+        }
+        
+        if (travelId) {
+            // 같은 travelId로 영수증 추가 업로드 페이지로 이동
+            window.location.href = '/users/me/account/select?travelId=' + travelId;
+        } else {
+            // travelId가 없으면 기본 선택 페이지로 이동
+            window.location.href = '/users/me/account/select';
+        }
     }
 
     function goHome() {
