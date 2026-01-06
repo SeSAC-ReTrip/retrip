@@ -272,24 +272,25 @@ public class UserController {
                 travel.getTravelId(), travel.getTitle(), travel.getCity(), travel.getCountry(), 
                 travel.getStartDate(), travel.getEndDate(), totalAmount, currency);
         } else {
-            // Travel이 없으면 빈 리스트
             model.addAttribute("receipts", List.of());
             model.addAttribute("pageTitle", "가계부");
             model.addAttribute("destination", "여행지");
             model.addAttribute("totalAmount", 0);
             model.addAttribute("currency", "-");
         }
-        
+
         return "profile-account/profile-account-detail";
     }
 
-    //좋아요 리스트
+    // 좋아요 리스트 조회
     @GetMapping("/me/liked")
     public String myLikes(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         Model model) {
+        if (userDetails == null) return "redirect:/login";
         User currentUser = userDetails.getUser();
 
-        List<Post> likedPosts = postLikeRepository.findByUser(currentUser)
+        // fetch join 메서드를 사용하여 post.user 정보까지 한 번에 로딩
+        List<Post> likedPosts = postLikeRepository.findByUserWithPostAndUser(currentUser)
             .stream()
             .map(postLike -> postLike.getPost())
             .collect(Collectors.toList());
@@ -382,12 +383,3 @@ public class UserController {
         return "user/follow-list";
     }
 }
-
-
-
-
-
-
-
-
-
