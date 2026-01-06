@@ -139,8 +139,53 @@ public class UserController {
 
     // 가계부 페이지
     @GetMapping("/me/account")
-    public String myAccount() {
+    public String myAccount(
+        @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        Model model) {
+        User user = userDetails.getUser();
+        
+        // 사용자의 모든 Travel 목록 조회
+        List<Travel> travels = travelService.getUserTravels(user);
+        
+        // 각 Travel의 총 경비 계산
+        List<TravelWithTotalAmount> travelsWithAmount = travels.stream()
+            .map(travel -> {
+                List<Receipt> receipts = receiptService.getReceiptsByTravel(travel);
+                int totalAmount = receipts.stream()
+                    .mapToInt(Receipt::getAmount)
+                    .sum();
+                
+                // 통화 결정
+                String currency = receipts.stream()
+                    .filter(r -> r.getCurrency() != null && !r.getCurrency().isEmpty())
+                    .map(Receipt::getCurrency)
+                    .findFirst()
+                    .orElse("-");
+                
+                return new TravelWithTotalAmount(travel, totalAmount, currency);
+            })
+            .collect(Collectors.toList());
+        
+        model.addAttribute("travels", travelsWithAmount);
+        
         return "profile-account/profile-account";
+    }
+    
+    // Travel과 총 경비를 함께 담는 내부 클래스
+    private static class TravelWithTotalAmount {
+        private final Travel travel;
+        private final int totalAmount;
+        private final String currency;
+        
+        public TravelWithTotalAmount(Travel travel, int totalAmount, String currency) {
+            this.travel = travel;
+            this.totalAmount = totalAmount;
+            this.currency = currency;
+        }
+        
+        public Travel getTravel() { return travel; }
+        public int getTotalAmount() { return totalAmount; }
+        public String getCurrency() { return currency; }
     }
 
     // 가계부 생성 페이지
