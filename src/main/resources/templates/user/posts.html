@@ -79,7 +79,6 @@
             border-color: #D4CFC0;
         }
 
-        /* 게시글 이미지 영역 (중앙 정렬 및 문제의 외곽선 원인 제거) */
         .post-image {
             width: 100%;
             aspect-ratio: 16/9;
@@ -91,8 +90,6 @@
             position: relative;
             overflow: hidden;
         }
-
-        /* 이미지 태그와 관련된 모든 스타일 삭제됨 */
 
         .image-placeholder {
             display: flex;
@@ -193,11 +190,23 @@
             color: #A0A99D;
         }
 
+        /* Responsive */
         @media (max-width: 480px) {
-            .page-title-section { padding: 20px 16px 12px; }
-            .page-title { font-size: 22px; }
-            .posts-container { padding: 0 16px 16px; }
-            .post-info { padding: 14px; }
+            .page-title-section {
+                padding: 20px 16px 12px;
+            }
+
+            .page-title {
+                font-size: 22px;
+            }
+
+            .posts-container {
+                padding: 0 16px 16px;
+            }
+
+            .post-info {
+                padding: 14px;
+            }
         }
     </style>
 </head>
@@ -215,7 +224,6 @@
 </section>
 
 <main class="posts-container">
-
     <div th:if="${posts != null and posts.hasContent()}">
         <article class="post-card" th:each="post : ${posts.content}" th:onclick="|location.href='/posts/${post.postId}'|">
             <div class="post-image">
@@ -228,7 +236,9 @@
             <div class="post-info">
                 <div class="post-header">
                     <h3 class="post-title" th:text="${post.title}">제목</h3>
-                    <button class="like-btn" th:onclick="|toggleLike(event, '${post.postId}')|">
+                    <button class="like-btn"
+                            th:classappend="${postLikeService != null && postLikeService.isLiked(post, user) ? 'liked' : ''}"
+                            th:onclick="|toggleLike(event, '${post.postId}')|">
                         <svg fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                         </svg>
@@ -241,21 +251,27 @@
             </div>
         </article>
     </div>
-
     <div th:if="${posts == null or !posts.hasContent()}" class="empty-state">
         <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
         </svg>
         <p class="empty-text">작성한 게시물이 없습니다.</p>
     </div>
-
 </main>
 
 <script>
     function toggleLike(event, postId) {
         event.stopPropagation();
         const likeBtn = event.currentTarget;
-        likeBtn.classList.toggle('liked');
+
+        fetch(`/posts/${postId}/like`, { method: 'POST' })
+        .then(res => res.text())
+        .then(status => {
+            if (status === 'liked') likeBtn.classList.add('liked');
+            else if (status === 'unliked') likeBtn.classList.remove('liked');
+            else if (status === 'fail') alert("로그인이 필요합니다.");
+        })
+        .catch(err => console.error(err));
     }
 </script>
 </body>
