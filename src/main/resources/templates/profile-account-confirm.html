@@ -15,7 +15,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color: #fff;
             min-height: 100vh;
-            padding-bottom: 100px;
+            padding-bottom: 180px;
         }
 
         /* Header */
@@ -131,41 +131,61 @@
             border-radius: 12px;
         }
 
-        /* Complete Button */
-        .complete-btn-container {
+        /* Action Buttons */
+        .action-buttons {
             position: fixed;
             bottom: 20px;
             left: 0;
             right: 0;
             padding: 0 20px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 640px;
+            margin: 0 auto;
             z-index: 100;
         }
 
-        .complete-btn {
+        .btn {
             width: 100%;
-            max-width: 600px;
             padding: 16px;
-            background: #9AE19C;
             border: none;
             border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
-            color: #fff;
             cursor: pointer;
             transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #9AE19C;
+            color: #fff;
             box-shadow: 0 4px 12px rgba(154, 225, 156, 0.3);
         }
 
-        .complete-btn:hover {
+        .btn-primary:hover {
             background: #88D68A;
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(154, 225, 156, 0.4);
         }
 
-        .complete-btn:active {
+        .btn-primary:active {
             transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #F5F3ED;
+            color: #5A9F5C;
+            border: 1px solid #E8E5DC;
+        }
+
+        .btn-secondary:hover {
+            background: #EAE7DC;
+            border-color: #D4CFC0;
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.98);
         }
 
         /* Edit Icon Button */
@@ -214,7 +234,7 @@
                 padding: 16px;
             }
 
-            .complete-btn-container {
+            .action-buttons {
                 padding: 0 16px;
             }
 
@@ -296,9 +316,10 @@
     </div>
 </main>
 
-<!-- Complete Button -->
-<div class="complete-btn-container">
-    <button class="complete-btn" onclick="completeAccountBook()">완료</button>
+<!-- Action Buttons -->
+<div class="action-buttons">
+    <button class="btn btn-primary" onclick="continueEditing()">영수증 추가 업로드 하기</button>
+    <button class="btn btn-secondary" onclick="completeAccountBook()">완료</button>
 </div>
 
 <script>
@@ -317,6 +338,21 @@
             editUrl += '&travelId=' + travelId;
         }
         window.location.href = editUrl;
+    }
+
+    function continueEditing() {
+        // 현재 페이지의 travelId를 가져와서 영수증 업로드 페이지로 이동 (추가 업로드)
+        // URL 파라미터에서 travelId 가져오기
+        const urlParams = new URLSearchParams(window.location.search);
+        let travelId = urlParams.get('travelId');
+        
+        if (travelId) {
+            // 같은 travelId로 영수증 추가 업로드 페이지로 이동
+            window.location.href = '/users/me/account/select?travelId=' + travelId;
+        } else {
+            // travelId가 없으면 기본 선택 페이지로 이동
+            window.location.href = '/users/me/account/select';
+        }
     }
 
     function completeAccountBook() {
