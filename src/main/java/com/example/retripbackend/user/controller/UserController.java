@@ -207,6 +207,113 @@ public class UserController {
         return "profile-account/profile-account-select";
     }
 
+    // 영수증 확인 페이지
+    @GetMapping("/me/account/confirm")
+    public String confirmReceiptPage(
+        @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @RequestParam Long receiptId,
+        @RequestParam(required = false) Long travelId,
+        Model model) {
+        User user = userDetails.getUser();
+        
+        // Receipt 조회
+        Receipt receipt = receiptService.findById(receiptId);
+        
+        // 권한 체크: 본인의 Receipt인지 확인
+        if (!receipt.getTravel().isOwner(user)) {
+            log.warn("권한 없는 Receipt 접근 시도: receiptId={}, userId={}", receiptId, user.getUserId());
+            return "redirect:/users/me/account";
+        }
+        
+        // Travel 정보도 함께 전달
+        Travel travel = receipt.getTravel();
+        
+        model.addAttribute("receipt", receipt);
+        model.addAttribute("travel", travel);
+        
+        return "profile-account-confirm";
+    }
+
+    // 영수증 수정 페이지
+    @GetMapping("/me/account/receipt/edit")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public String editReceiptPage(
+        @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @RequestParam Long receiptId,
+        @RequestParam(required = false) Long travelId,
+        Model model) {
+        User user = userDetails.getUser();
+        
+        try {
+            // Receipt 조회 (Travel과 Travel의 User 포함)
+            Receipt receipt = receiptService.findByIdWithTravel(receiptId);
+            
+            // 권한 체크: 본인의 Receipt인지 확인
+            // Travel의 User를 안전하게 접근
+            Travel travel = receipt.getTravel();
+            if (travel == null) {
+                log.error("Travel이 null입니다: receiptId={}", receiptId);
+                return "redirect:/users/me/account";
+            }
+            
+            // User ID 직접 비교로 권한 체크 (isOwner 메서드 대신)
+            if (!travel.getUser().getUserId().equals(user.getUserId())) {
+                log.warn("권한 없는 Receipt 수정 시도: receiptId={}, userId={}", receiptId, user.getUserId());
+                return "redirect:/users/me/account";
+            }
+            
+            model.addAttribute("receipt", receipt);
+            if (travelId != null) {
+                model.addAttribute("travelId", travelId);
+            }
+            
+            return "profile-account/receipt-edit";
+        } catch (Exception e) {
+            log.error("영수증 수정 페이지 로드 오류: receiptId={}, error={}", receiptId, e.getMessage(), e);
+            return "redirect:/users/me/account";
+        }
+    }
+
+    // 영수증 수정 처리
+    @PostMapping("/me/account/receipt/edit")
+    public String updateReceipt(
+        @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @RequestParam Long receiptId,
+        @RequestParam(required = false) String storeName,
+        @RequestParam(required = false) Integer amount,
+        @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm") java.time.LocalDateTime paidAt,
+        @RequestParam(required = false) String category,
+        @RequestParam(required = false) String address,
+        @RequestParam(required = false) String currency,
+        @RequestParam(required = false) Long travelId) {
+        User user = userDetails.getUser();
+        
+        try {
+            // Receipt 조회 (Travel과 Travel의 User 포함)
+            Receipt receipt = receiptService.findByIdWithTravel(receiptId);
+            
+            // 권한 체크: 본인의 Receipt인지 확인
+            Travel travel = receipt.getTravel();
+            if (travel == null || !travel.getUser().getUserId().equals(user.getUserId())) {
+                log.warn("권한 없는 Receipt 수정 시도: receiptId={}, userId={}", receiptId, user.getUserId());
+                return "redirect:/users/me/account";
+            }
+            
+            // Receipt 수정
+            receiptService.updateReceipt(receipt, storeName, amount, paidAt, category, address, currency);
+            
+            // 수정 후 확인 페이지로 리다이렉트
+            String redirectUrl = "/users/me/account/confirm?receiptId=" + receiptId;
+            if (travelId != null) {
+                redirectUrl += "&travelId=" + travelId;
+            }
+            return "redirect:" + redirectUrl;
+        } catch (Exception e) {
+            log.error("영수증 수정 처리 오류: receiptId={}, error={}", receiptId, e.getMessage(), e);
+            return "redirect:/users/me/account";
+        }
+    }
+
     // 가계부 상세 페이지
     @GetMapping("/me/account/detail")
     public String accountDetailPage(
