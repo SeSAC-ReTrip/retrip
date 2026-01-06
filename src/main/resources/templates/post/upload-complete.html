@@ -34,13 +34,6 @@
       animation: fadeInUp 0.6s ease-out;
     }
 
-    .success-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: #3D4A3C;
-      margin-bottom: 16px;
-    }
-
     .success-icon-wrapper {
       width: 80px;
       height: 80px;
@@ -49,7 +42,14 @@
       animation: scaleIn 0.5s ease-out;
     }
 
-    /* Buttons */
+    .success-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #3D4A3C;
+      margin-bottom: 16px;
+    }
+
+    /* Button Group */
     .button-group {
       display: flex;
       flex-direction: column;
@@ -108,19 +108,19 @@
     }
 
     @keyframes scaleIn {
-      0% { transform: scale(0); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-
-    @media (max-width: 480px) {
-      .success-title { font-size: 22px; }
-      .btn { padding: 14px; font-size: 15px; }
+      0% {
+        transform: scale(0);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+      100% {
+        transform: scale(1);
+      }
     }
   </style>
 </head>
 <body>
-
 <div class="main-container">
   <div class="success-message">
     <div class="success-icon-wrapper">
@@ -131,17 +131,10 @@
     </div>
     <h1 class="success-title">업로드가 완료되었습니다!</h1>
   </div>
-
   <div class="button-group">
     <a th:href="@{/posts}" class="btn btn-primary">홈으로</a>
-
-    <a th:if="${postId != null}"
-       th:href="@{/posts/{id}(id=${postId})}"
-       class="btn btn-secondary">
-      방금 쓴 게시물 보러가기
-    </a>
+    <a th:if="${postId != null}" th:href="@{/posts/{id}(id=${postId})}" class="btn btn-secondary">방금 쓴 게시물 보러가기</a>
   </div>
 </div>
-
 </body>
 </html>

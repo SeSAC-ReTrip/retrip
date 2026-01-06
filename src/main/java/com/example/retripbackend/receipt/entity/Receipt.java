@@ -49,15 +49,31 @@ public class Receipt extends BaseEntity {
     @Column(length = 500)
     private String imageUrl;  // 영수증 이미지 URL
 
+    @Column(columnDefinition = "TEXT")
+    private String address;  // 주소
+
+    @Column(length = 3)
+    private String currency;  // 통화 코드 (ISO 4217: USD, EUR, KRW 등)
+
+    @Column
+    private Double latitude;  // 위도
+
+    @Column
+    private Double longitude;  // 경도
+
     @Builder
     public Receipt(Travel travel, String storeName, int amount, LocalDateTime paidAt,
-        String category, String imageUrl) {
+        String category, String imageUrl, String address, String currency, Double latitude, Double longitude) {
         this.travel = travel;
         this.storeName = storeName;
         this.amount = amount;
         this.paidAt = paidAt;
         this.category = category;
         this.imageUrl = imageUrl;
+        this.address = address;
+        this.currency = currency;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     // 설명 추가/수정 (SNS에서만 사용)
