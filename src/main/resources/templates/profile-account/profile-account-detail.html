@@ -279,7 +279,10 @@
         </div>
         <div class="meta-item">
             <span class="meta-label">총 경비</span>
-            <span class="meta-value" th:text="${#numbers.formatInteger(totalAmount, 0, 'COMMA')} + '원'">총 경비</span>
+            <span class="meta-value" 
+                  th:data-currency="${currency != null ? currency : '-'}"
+                  th:data-amount="${totalAmount}"
+                  id="totalAmountDisplay">총 경비</span>
         </div>
     </div>
 </section>
@@ -318,7 +321,7 @@
                     <span class="info-value" 
                           th:id="'amount-' + ${receipt.receiptId}" 
                           th:data-amount="${receipt.amount}"
-                          th:text="${#numbers.formatInteger(receipt.amount, 0, 'COMMA')} + '원'">결제 금액</span>
+                          th:data-currency="${receipt.currency != null ? receipt.currency : '-'}">결제 금액</span>
                 </div>
                 <!-- 위치 정보 표시 (latitude, longitude가 있는 경우) -->
                 <div class="info-row" th:if="${receipt.description != null}">
@@ -359,10 +362,60 @@
      * 3. localStorage 대신 DB를 사용하여 데이터 영구 보관 및 일관성 유지
      * 4. description에 저장된 JSON(address, currency, latitude, longitude)을 파싱하여 카드에 표시 */
 
-    // 페이지 로드 시 description에서 JSON 파싱하여 카드 정보 업데이트
+    // 페이지 로드 시 description에서 JSON 파싱하여 카드 정보 업데이트 및 총 경비 표시
     window.addEventListener('DOMContentLoaded', () => {
         parseReceiptDescriptions();
+        updateTotalAmountDisplay();
+        updateReceiptAmounts();
     });
+
+    /**
+     * 총 경비 표시 업데이트 (통화 포함)
+     */
+    function updateTotalAmountDisplay() {
+        const totalAmountElement = document.getElementById('totalAmountDisplay');
+        if (!totalAmountElement) return;
+
+        const amount = parseInt(totalAmountElement.getAttribute('data-amount')) || 0;
+        const currency = totalAmountElement.getAttribute('data-currency') || '-';
+        
+        // 통화 표시 형식 결정
+        let currencyDisplay = '';
+        if (currency === '-' || !currency || currency.trim() === '') {
+            currencyDisplay = '';
+        } else if (currency === 'KRW') {
+            currencyDisplay = '원';
+        } else {
+            currencyDisplay = ' ' + currency;
+        }
+        
+        totalAmountElement.textContent = amount.toLocaleString('ko-KR') + currencyDisplay;
+    }
+
+    /**
+     * 각 영수증 카드의 결제 금액 표시 업데이트 (통화 포함)
+     */
+    function updateReceiptAmounts() {
+        // 모든 결제 금액 요소 찾기
+        const amountElements = document.querySelectorAll('[id^="amount-"]');
+        
+        amountElements.forEach(element => {
+            const amount = parseInt(element.getAttribute('data-amount')) || 0;
+            const currency = element.getAttribute('data-currency') || '-';
+            
+            // 통화 표시 형식 결정
+            let currencyDisplay = '';
+            if (currency === '-' || !currency || currency.trim() === '') {
+                currencyDisplay = '';
+            } else if (currency === 'KRW') {
+                currencyDisplay = '원';
+            } else {
+                currencyDisplay = ' ' + currency;
+            }
+            
+            element.textContent = amount.toLocaleString('ko-KR') + currencyDisplay;
+        });
+    }
 
     /**
      * Receipt의 description 필드에서 JSON을 파싱하여 카드 정보 업데이트
@@ -385,16 +438,6 @@
                     const addressElement = document.getElementById('address-' + receiptId);
                     if (addressElement) {
                         addressElement.textContent = data.address;
-                    }
-                }
-                
-                // currency 정보로 금액 표시 업데이트
-                if (data.currency) {
-                    const amountElement = document.getElementById('amount-' + receiptId);
-                    if (amountElement) {
-                        const amount = amountElement.getAttribute('data-amount') || amountElement.textContent.replace(/[^0-9]/g, '');
-                        const currencySymbol = data.currency === 'KRW' ? '원' : ' ' + data.currency;
-                        amountElement.textContent = parseInt(amount).toLocaleString('ko-KR') + currencySymbol;
                     }
                 }
                 
