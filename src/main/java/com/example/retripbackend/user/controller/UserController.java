@@ -228,8 +228,13 @@ public class UserController {
         // Travel 정보도 함께 전달
         Travel travel = receipt.getTravel();
         
-        model.addAttribute("receipt", receipt);
+        // 같은 travelId의 모든 영수증 조회 (detail 페이지처럼)
+        List<Receipt> receipts = receiptService.getReceiptsByTravel(travel);
+        
+        model.addAttribute("receipt", receipt);  // 현재 영수증 (하위 호환성)
+        model.addAttribute("receipts", receipts);  // 모든 영수증 목록
         model.addAttribute("travel", travel);
+        model.addAttribute("travelId", travel.getTravelId());
         
         return "profile-account-confirm";
     }

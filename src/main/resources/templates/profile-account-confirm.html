@@ -216,6 +216,30 @@
             height: 100%;
         }
 
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            color: #E8E5DC;
+        }
+
+        .empty-text {
+            font-size: 16px;
+            color: #A0A99D;
+            margin-bottom: 8px;
+        }
+
+        .empty-subtext {
+            font-size: 14px;
+            color: #C4C9C1;
+        }
+
         /* Responsive */
         @media (max-width: 480px) {
             .page-title-section {
@@ -291,28 +315,45 @@
 
 <!-- Receipt Cards Container -->
 <main class="receipts-container">
-    <div class="receipt-card" th:if="${receipt != null}">
-        <button type="button" class="edit-icon-btn" th:data-receipt-id="${receipt.receiptId}" onclick="editReceipt(this.dataset.receiptId)">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-            </svg>
-        </button>
-        <span class="receipt-number">1 / 1</span>
-        <div class="receipt-header" th:text="${receipt.storeName != null ? receipt.storeName : '영수증 내용'}">영수증 내용</div>
-        <div class="receipt-info">
-            <div class="info-row" th:if="${receipt.address != null && !#strings.isEmpty(receipt.address)}">
-                <span th:text="'장소: ' + ${receipt.address}">장소</span>
-            </div>
-            <div class="info-row" th:if="${receipt.paidAt != null}">
-                <span th:text="'결제일: ' + ${#temporals.format(receipt.paidAt, 'yyyy-MM-dd HH:mm')}">결제일</span>
-            </div>
-            <div class="info-row" th:if="${receipt.amount != null}">
-                <span th:text="'결제 금액: ' + ${#numbers.formatInteger(receipt.amount, 0, 'COMMA')} + ' ' + (${receipt.currency != null && !#strings.isEmpty(receipt.currency)} ? ${receipt.currency} : '원')">결제 금액</span>
-            </div>
-            <div class="info-row" th:if="${receipt.category != null && !#strings.isEmpty(receipt.category)}">
-                <span th:text="'카테고리: ' + ${receipt.category}">카테고리</span>
+    <!-- 같은 travelId의 모든 영수증 카드 표시 (detail 페이지처럼) -->
+    <div th:if="${receipts != null and !receipts.isEmpty()}">
+        <div class="receipt-card" 
+             th:each="receipt, stat : ${receipts}" 
+             th:attr="data-receipt-id=${receipt.receiptId}, data-description=${receipt.description}">
+            <button type="button" class="edit-icon-btn" th:data-receipt-id="${receipt.receiptId}" onclick="editReceipt(this.dataset.receiptId)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+            </button>
+            <span class="receipt-number" th:text="${stat.index + 1} + ' / ' + ${receipts.size()}">1 / N</span>
+            <div class="receipt-header" th:text="${receipt.storeName != null ? receipt.storeName : '영수증 내용'}">영수증 내용</div>
+            <div class="receipt-info">
+                <div class="info-row" th:if="${receipt.address != null && !#strings.isEmpty(receipt.address)}">
+                    <span th:text="'장소: ' + ${receipt.address}">장소</span>
+                </div>
+                <div class="info-row" th:if="${receipt.paidAt != null}">
+                    <span th:text="'결제일: ' + ${#temporals.format(receipt.paidAt, 'yyyy-MM-dd HH:mm')}">결제일</span>
+                </div>
+                <div class="info-row" th:if="${receipt.amount != null}">
+                    <span th:id="'amount-' + ${receipt.receiptId}"
+                          th:data-amount="${receipt.amount}"
+                          th:data-currency="${receipt.currency != null ? receipt.currency : '-'}"
+                          th:text="'결제 금액: ' + ${#numbers.formatInteger(receipt.amount, 0, 'COMMA')} + ' ' + (${receipt.currency != null && !#strings.isEmpty(receipt.currency)} ? ${receipt.currency} : '원')">결제 금액</span>
+                </div>
+                <div class="info-row" th:if="${receipt.category != null && !#strings.isEmpty(receipt.category)}">
+                    <span th:text="'카테고리: ' + ${receipt.category}">카테고리</span>
+                </div>
             </div>
         </div>
+    </div>
+
+    <!-- Empty State (영수증이 없을 때 표시) -->
+    <div class="empty-state" th:if="${receipts == null or receipts.isEmpty()}">
+        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <p class="empty-text">등록된 영수증이 없습니다.</p>
+        <p class="empty-subtext">영수증을 추가해보세요!</p>
     </div>
 </main>
 
@@ -353,6 +394,40 @@
             // travelId가 없으면 기본 선택 페이지로 이동
             window.location.href = '/users/me/account/select';
         }
+    }
+
+    // 페이지 로드 시 결제 금액 표시 업데이트 (통화 포함)
+    window.addEventListener('DOMContentLoaded', () => {
+        updateReceiptAmounts();
+    });
+
+    /**
+     * 각 영수증 카드의 결제 금액 표시 업데이트 (통화 포함)
+     */
+    function updateReceiptAmounts() {
+        // 모든 결제 금액 요소 찾기
+        const amountElements = document.querySelectorAll('[id^="amount-"]');
+        
+        amountElements.forEach(element => {
+            const amount = parseInt(element.getAttribute('data-amount')) || 0;
+            const currency = element.getAttribute('data-currency') || '-';
+            
+            // 통화 표시 형식 결정
+            let currencyDisplay = '';
+            if (currency === '-' || !currency || currency.trim() === '') {
+                currencyDisplay = '';
+            } else if (currency === 'KRW') {
+                currencyDisplay = '원';
+            } else {
+                currencyDisplay = ' ' + currency;
+            }
+            
+            // 기존 텍스트를 업데이트
+            const currentText = element.textContent;
+            if (currentText.includes('결제 금액:')) {
+                element.textContent = '결제 금액: ' + amount.toLocaleString('ko-KR') + currencyDisplay;
+            }
+        });
     }
 
     function completeAccountBook() {
