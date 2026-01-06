@@ -107,6 +107,12 @@ public class PostController {
         return "post/content";
     }
 
+    // 게시물 상세 페이지 - content로 리다이렉트
+    @GetMapping("/posts/{postId}")
+    public String detail(@PathVariable Long postId) {
+        return "redirect:/posts/" + postId + "/content";
+    }
+
     @PostMapping("/posts/{postId}/delete")
     public String delete(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId) {

@@ -18,8 +18,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                // [수정] /explore 경로를 추가하여 검색 버튼 클릭 시 로그인 튕김 방지
-                .requestMatchers("/", "/home", "/explore", "/login", "/signup", "/posts/*/content", "/css/**", "/js/**", "/images/**").permitAll()
+                // explore 경로를 추가하여 검색 버튼 클릭 시 로그인 튕김 방지
+                .requestMatchers("/", "/home", "/posts", "/posts/**", "/explore", "/explore-search", "/search", "/search/**", "/login", "/signup", "/css/**", "/js/**", "/images/**").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
