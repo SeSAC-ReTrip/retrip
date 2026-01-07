@@ -118,19 +118,19 @@
                     <span class="selected-badge">선택됨</span>
                 </div>
                 <div class="card-info">
-                    <h3 class="card-title" th:text="${travel.city}">도시 이름</h3>
+                    <h3 class="card-title" th:text="${travel.title}">제목</h3>
                     <div class="card-meta">
                         <div class="meta-item">
-                            <span class="meta-label">국가</span>
-                            <span class="meta-value" th:text="${travel.country}">국가</span>
+                            <span class="meta-label">여행지</span>
+                            <span class="meta-value" th:text="${travel.city} + ', ' + ${travel.country}">나라, 도시</span>
                         </div>
                         <div class="meta-item">
-                            <span class="meta-label">기간</span>
+                            <span class="meta-label">여행기간</span>
                             <span class="meta-value" th:text="${travel.startDate} + ' ~ ' + ${travel.endDate}">기간</span>
                         </div>
                         <div class="meta-item">
-                            <span class="meta-label">총 금액</span>
-                            <span class="meta-value" th:text="${#numbers.formatInteger(travel.totalAmount, 0, 'COMMA')} + '원'">금액</span>
+                            <span class="meta-label">총 경비</span>
+                            <span class="meta-value" th:text="${#numbers.formatInteger(travel.totalAmount, 0, 'COMMA')} + '원'">0</span>
                         </div>
                     </div>
                 </div>
