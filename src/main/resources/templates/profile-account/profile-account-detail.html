@@ -297,7 +297,7 @@
         </svg>
     </button>
     <div class="header-buttons">
-        <button class="header-btn">수정</button>
+        <button class="header-btn" onclick="editAccount()">수정</button>
         <button class="header-btn">삭제</button>
     </div>
 </header>
@@ -501,6 +501,43 @@
     function goHome() {
         // 홈 페이지로 이동
         window.location.href = '/';
+    }
+
+    function editAccount() {
+        // travelId 가져오기
+        const travelIdElement = document.querySelector('[data-travel-id]');
+        const travelId = travelIdElement ? travelIdElement.getAttribute('data-travel-id') : null;
+        
+        // URL 파라미터에서 travelId 가져오기 (대안)
+        if (!travelId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlTravelId = urlParams.get('travelId');
+            if (urlTravelId) {
+                // 첫 번째 영수증 ID 찾기
+                const firstReceiptCard = document.querySelector('.receipt-card[data-receipt-id]');
+                if (firstReceiptCard) {
+                    const receiptId = firstReceiptCard.getAttribute('data-receipt-id');
+                    window.location.href = '/users/me/account/confirm?receiptId=' + receiptId + '&travelId=' + urlTravelId;
+                } else {
+                    // 영수증이 없으면 select 페이지로 이동
+                    window.location.href = '/users/me/account/select?travelId=' + urlTravelId;
+                }
+                return;
+            }
+        }
+        
+        // 첫 번째 영수증 ID 찾기
+        const firstReceiptCard = document.querySelector('.receipt-card[data-receipt-id]');
+        if (firstReceiptCard && travelId) {
+            const receiptId = firstReceiptCard.getAttribute('data-receipt-id');
+            window.location.href = '/users/me/account/confirm?receiptId=' + receiptId + '&travelId=' + travelId;
+        } else if (travelId) {
+            // 영수증이 없으면 select 페이지로 이동
+            window.location.href = '/users/me/account/select?travelId=' + travelId;
+        } else {
+            // travelId가 없으면 기본 select 페이지로 이동
+            window.location.href = '/users/me/account/select';
+        }
     }
 </script>
 </body>
