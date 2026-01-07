@@ -161,14 +161,10 @@
             background: linear-gradient(135deg, #F5F3ED 0%, #EAE7DC 100%);
             border: 2px dashed #D4CFC0;
             border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             margin-bottom: 20px;
             overflow: hidden;
-            cursor: pointer;
-            transition: all 0.2s;
             position: relative;
+            transition: all 0.2s;
         }
 
         .image-box:hover {
@@ -176,28 +172,96 @@
             background: linear-gradient(135deg, #F5FDF5 0%, #E8F9E8 100%);
         }
 
-        .image-box.has-image {
+        .image-box.has-images {
             border-style: solid;
+            border-color: #9AE19C;
         }
 
-        .image-box img {
+        /* Image Preview Slider - inside image-box */
+        .image-preview-slider {
+            display: none;
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .image-preview-slider::-webkit-scrollbar {
             display: none;
         }
 
-        .image-box.has-image img {
+        .image-box.has-images .image-preview-slider {
+            display: flex;
+        }
+
+        .image-box.has-images .image-placeholder {
+            display: none;
+        }
+
+        .preview-item {
+            position: relative;
+            flex-shrink: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            cursor: grab;
+            scroll-snap-align: start;
+        }
+
+        .preview-item:active {
+            cursor: grabbing;
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             display: block;
+        }
+
+        .preview-item .remove-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .preview-item .remove-btn:hover {
+            background: rgba(255, 0, 0, 0.8);
+            transform: scale(1.1);
         }
 
         .image-placeholder {
             color: #D4E9D5;
             text-align: center;
-        }
-
-        .image-box.has-image .image-placeholder {
-            display: none;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
         }
 
         .image-placeholder svg {
@@ -357,7 +421,7 @@
 </header>
 
 <main class="main-content">
-    <form id="finalForm" th:action="@{/posts/create}" method="post">
+    <form id="finalForm" th:action="@{/posts/create}" method="post" enctype="multipart/form-data">
         <input type="hidden" name="travelId" th:value="${travel.travelId}">
 
         <div class="post-header">
@@ -395,16 +459,19 @@
             </div>
         </div>
 
-        <div class="image-box" onclick="document.getElementById('fileInput1').click()">
-            <div class="image-placeholder">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-                <p class="upload-text">커버 이미지를 선택하세요</p>
+        <!-- 이미지 업로드 영역 -->
+        <div id="imageUploadArea">
+            <div class="image-box" id="imageBox">
+                <div id="imagePreviewContainer" class="image-preview-slider"></div>
+                <div class="image-placeholder" id="imagePlaceholder" onclick="document.getElementById('fileInput').click()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <p class="upload-text">사진을 선택하세요 (여러 장 가능)</p>
+                </div>
             </div>
-            <img id="preview1" alt="preview">
+            <input type="file" id="fileInput" name="images" class="file-input" accept="image/*" multiple onchange="handleFileSelect(event)">
         </div>
-        <input type="file" id="fileInput1" class="file-input" accept="image/*" onchange="previewImage(this, 'preview1')">
 
         <div class="content-section">
             <h3 class="content-title">여행 설명 및 일기</h3>
@@ -434,19 +501,150 @@
 
 <script async defer th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}"></script>
 <script>
-    function previewImage(input, previewId) {
-        const preview = document.getElementById(previewId);
-        const box = preview.closest('.image-box');
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-                box.classList.add('has-image');
-            };
-            reader.readAsDataURL(input.files[0]);
+    let selectedFiles = [];
+    let isDragging = false;
+    let startX = 0;
+    let scrollLeft = 0;
+
+    function handleFileSelect(event) {
+        const files = Array.from(event.target.files);
+        const container = document.getElementById('imagePreviewContainer');
+        const imageBox = document.getElementById('imageBox');
+        const placeholder = document.getElementById('imagePlaceholder');
+
+        files.forEach(file => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'preview-item';
+                    previewItem.innerHTML = `
+                        <img src="${e.target.result}" alt="preview" draggable="false">
+                        <button type="button" class="remove-btn" onclick="removeImage(this)">×</button>
+                    `;
+                    container.appendChild(previewItem);
+
+                    const fileData = {
+                        file: file,
+                        previewElement: previewItem
+                    };
+                    selectedFiles.push(fileData);
+
+                    if (selectedFiles.length > 0) {
+                        imageBox.classList.add('has-images');
+                        placeholder.style.display = 'none';
+                    }
+
+                    setTimeout(() => {
+                        container.scrollLeft = container.scrollWidth;
+                        initSliderDrag();
+                    }, 100);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        event.target.value = '';
+    }
+
+    function removeImage(button) {
+        const previewItem = button.closest('.preview-item');
+        const container = document.getElementById('imagePreviewContainer');
+        const imageBox = document.getElementById('imageBox');
+        const placeholder = document.getElementById('imagePlaceholder');
+        const index = Array.from(container.children).indexOf(previewItem);
+        if (index !== -1) {
+            selectedFiles.splice(index, 1);
+        }
+        previewItem.remove();
+
+        if (selectedFiles.length === 0) {
+            imageBox.classList.remove('has-images');
+            placeholder.style.display = 'flex';
         }
     }
+
+    function initSliderDrag() {
+        const imageContainer = document.getElementById('imagePreviewContainer');
+
+        if (!imageContainer) return;
+
+        imageContainer.addEventListener('scroll', () => {
+            const scrollLeft = imageContainer.scrollLeft;
+            const itemWidth = imageContainer.offsetWidth;
+            const currentIndex = Math.round(scrollLeft / itemWidth);
+
+            imageContainer.scrollTo({
+                left: currentIndex * itemWidth,
+                behavior: 'smooth'
+            });
+        });
+
+        imageContainer.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.remove-btn')) {
+                return;
+            }
+            isDragging = true;
+            startX = e.pageX - imageContainer.offsetLeft;
+            scrollLeft = imageContainer.scrollLeft;
+            imageContainer.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        imageContainer.addEventListener('mouseleave', () => {
+            isDragging = false;
+            imageContainer.style.cursor = 'grab';
+        });
+
+        imageContainer.addEventListener('mouseup', () => {
+            isDragging = false;
+            imageContainer.style.cursor = 'grab';
+        });
+
+        imageContainer.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const x = e.pageX - imageContainer.offsetLeft;
+            const walk = (x - startX) * 2;
+            imageContainer.scrollLeft = scrollLeft - walk;
+        });
+
+        let touchStartX = 0;
+        let touchScrollLeft = 0;
+
+        imageContainer.addEventListener('touchstart', (e) => {
+            if (e.target.closest('.remove-btn')) {
+                return;
+            }
+            touchStartX = e.touches[0].pageX - imageContainer.offsetLeft;
+            touchScrollLeft = imageContainer.scrollLeft;
+        }, { passive: true });
+
+        imageContainer.addEventListener('touchmove', (e) => {
+            if (e.target.closest('.remove-btn')) {
+                return;
+            }
+            const x = e.touches[0].pageX - imageContainer.offsetLeft;
+            const walk = (x - touchStartX) * 2;
+            imageContainer.scrollLeft = touchScrollLeft - walk;
+        }, { passive: true });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSliderDrag);
+    } else {
+        initSliderDrag();
+    }
+
+    document.getElementById('finalForm').addEventListener('submit', function(e) {
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach(fileData => {
+            dataTransfer.items.add(fileData.file);
+        });
+
+        const fileInput = document.getElementById('fileInput');
+        fileInput.files = dataTransfer.files;
+    });
 
     function initMap() {
         const center = { lat: 37.5665, lng: 126.9780 };

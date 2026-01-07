@@ -1,9 +1,13 @@
 package com.example.retripbackend.SNS.service;
 
 import com.example.retripbackend.SNS.entity.Post;
+import com.example.retripbackend.SNS.entity.PostImage;
 import com.example.retripbackend.SNS.entity.Travel;
+import com.example.retripbackend.SNS.repository.PostImageRepository;
 import com.example.retripbackend.SNS.repository.PostRepository;
+import com.example.retripbackend.SNS.service.FileStorageService;
 import com.example.retripbackend.user.entity.User;
+import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -12,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final PostImageRepository postImageRepository;
+    private final FileStorageService fileStorageService;
 
     // 게시글 피드 조회 (최신순)
     public Page<Post> getLatestPosts(int page, int size) {
@@ -44,6 +51,11 @@ public class PostService {
         return post;
     }
 
+    // 게시글의 이미지 목록 조회
+    public List<PostImage> getPostImages(Post post) {
+        return postImageRepository.findByPostOrderByDisplayOrderAsc(post);
+    }
+
     // 특정 사용자의 게시글 목록
     public Page<Post> getUserPosts(User user, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -57,14 +69,39 @@ public class PostService {
 
     // 게시글 작성 (빌더 패턴 적용)
     @Transactional
-    public Post createPost(User author, Travel travel, String title, String content) {
+    public Post createPost(User author, Travel travel, String title, String content, MultipartFile[] images) throws IOException {
+        // 이미지 저장
+        List<String> imageUrls = null;
+        String thumbnailUrl = null;
+        
+        if (images != null && images.length > 0) {
+            imageUrls = fileStorageService.saveFiles(images);
+            thumbnailUrl = fileStorageService.getThumbnailUrl(imageUrls);
+        }
+        
         Post post = Post.builder()
             .author(author)
             .travel(travel)
             .title(title)
             .content(content)
+            .imageUrl(thumbnailUrl) // 첫 번째 이미지를 썸네일로
             .build();
-        return postRepository.save(post);
+        
+        post = postRepository.save(post);
+        
+        // PostImage 엔티티들 저장
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            for (int i = 0; i < imageUrls.size(); i++) {
+                PostImage postImage = PostImage.builder()
+                    .post(post)
+                    .imageUrl(imageUrls.get(i))
+                    .displayOrder(i)
+                    .build();
+                postImageRepository.save(postImage);
+            }
+        }
+        
+        return post;
     }
 
     // 게시글 수정
@@ -109,12 +146,3 @@ public class PostService {
         return postRepository.findTopCitiesByPostCount(pageable);
     }
 }
-
-
-
-
-
-
-
-
-

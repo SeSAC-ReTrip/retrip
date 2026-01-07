@@ -2,8 +2,10 @@ package com.example.retripbackend.SNS.controller;
 
 import com.example.retripbackend.SNS.entity.Comment;
 import com.example.retripbackend.SNS.entity.Post;
+import com.example.retripbackend.SNS.entity.PostImage;
 import com.example.retripbackend.SNS.entity.Travel;
 import com.example.retripbackend.SNS.service.CommentService;
+import com.example.retripbackend.SNS.service.FileStorageService;
 import com.example.retripbackend.SNS.service.PostLikeService;
 import com.example.retripbackend.SNS.service.PostService;
 import com.example.retripbackend.SNS.service.TravelService;
@@ -20,6 +22,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 @RequiredArgsConstructor
@@ -29,6 +32,7 @@ public class PostController {
     private final CommentService commentService;
     private final PostLikeService postLikeService;
     private final TravelService travelService;
+    private final FileStorageService fileStorageService;
     private final ReceiptService receiptService;
 
     @Value("${google.map.api.key:}")
@@ -99,10 +103,15 @@ public class PostController {
     public String create(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @RequestParam Long travelId,
         @RequestParam String title,
-        @RequestParam String content) {
-        Travel travel = travelService.getTravelById(travelId);
-        Post post = postService.createPost(userDetails.getUser(), travel, title, content);
-        return "redirect:/posts/upload/complete?postId=" + post.getPostId();
+        @RequestParam String content,
+        @RequestParam(value = "images", required = false) MultipartFile[] images) {
+        try {
+            Travel travel = travelService.getTravelById(travelId);
+            Post post = postService.createPost(userDetails.getUser(), travel, title, content, images);
+            return "redirect:/posts/upload/complete?postId=" + post.getPostId();
+        } catch (Exception e) {
+            return "redirect:/posts/detail?travelId=" + travelId + "&error=" + e.getMessage();
+        }
     }
 
     @GetMapping("/posts/upload/complete")
@@ -117,9 +126,11 @@ public class PostController {
         User currentUser = (userDetails != null) ? userDetails.getUser() : null;
         Post post = postService.getPostById(postId);
         List<Comment> comments = commentService.getPostComments(post);
+        List<com.example.retripbackend.SNS.entity.PostImage> images = postService.getPostImages(post);
 
         model.addAttribute("post", post);
         model.addAttribute("comments", comments);
+        model.addAttribute("images", images);
         model.addAttribute("isLiked", (currentUser != null) && postLikeService.isLiked(post, currentUser));
         model.addAttribute("isAuthor", (currentUser != null) && post.isAuthor(currentUser));
         model.addAttribute("googleMapApiKey", googleMapApiKey);
@@ -149,8 +160,12 @@ public class PostController {
 
         Travel travel = post.getTravel();
 
+        // 게시물의 이미지 목록 조회 추가
+        List<PostImage> images = postService.getPostImages(post);
+
         model.addAttribute("travel", travel);
         model.addAttribute("post", post);
+        model.addAttribute("images", images);  // 이미지 추가
         model.addAttribute("googleMapApiKey", googleMapApiKey);
         model.addAttribute("username", userDetails.getUser().getName());
         model.addAttribute("isEdit", true);  // 수정 모드 플래그
