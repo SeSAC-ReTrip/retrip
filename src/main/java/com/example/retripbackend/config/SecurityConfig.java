@@ -1,6 +1,5 @@
 package com.example.retripbackend.config;
 
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,28 +18,26 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                // 공개 페이지
-                .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**").permitAll()
-                // 나머지는 인증 필요
+                // explore 경로를 추가하여 검색 버튼 클릭 시 로그인 튕김 방지
+                .requestMatchers("/", "/home", "/posts", "/posts/**", "/explore", "/explore-search", "/search", "/search/**", "/login", "/signup", "/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
-                .loginPage("/login")  // 로그인 페이지 경로
-                .loginProcessingUrl("/login")  // 로그인 처리 URL
-                .usernameParameter("email")  // username 대신 email 사용
+                .loginPage("/login")
+                .loginProcessingUrl("/login")
+                .usernameParameter("email")
                 .passwordParameter("password")
-                .defaultSuccessUrl("/home", true)  // 로그인 성공 시 이동할 페이지
-                .failureUrl("/login?error=true")  // 로그인 실패 시
+                .defaultSuccessUrl("/home", true)
                 .permitAll()
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout=true")
-                .invalidateHttpSession(true)  // 세션 무효화
-                .deleteCookies("JSESSIONID")  // 쿠키 삭제
+                .logoutSuccessUrl("/home")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
                 .permitAll()
             )
-            .csrf(csrf -> csrf.disable());  // 개발 중에는 CSRF 비활성화 (프로덕션에서는 활성화!)
+            .csrf(csrf -> csrf.disable());
 
         return http.build();
     }
@@ -50,12 +47,3 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
-
-
-
-
-
-
-
-
-

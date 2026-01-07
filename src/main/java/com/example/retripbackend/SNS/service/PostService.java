@@ -1,16 +1,22 @@
 package com.example.retripbackend.SNS.service;
 
 import com.example.retripbackend.SNS.entity.Post;
+import com.example.retripbackend.SNS.entity.PostImage;
 import com.example.retripbackend.SNS.entity.Travel;
+import com.example.retripbackend.SNS.repository.PostImageRepository;
 import com.example.retripbackend.SNS.repository.PostRepository;
+import com.example.retripbackend.SNS.service.FileStorageService;
 import com.example.retripbackend.user.entity.User;
+import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final PostImageRepository postImageRepository;
+    private final FileStorageService fileStorageService;
 
     // 게시글 피드 조회 (최신순)
     public Page<Post> getLatestPosts(int page, int size) {
@@ -43,6 +51,11 @@ public class PostService {
         return post;
     }
 
+    // 게시글의 이미지 목록 조회
+    public List<PostImage> getPostImages(Post post) {
+        return postImageRepository.findByPostOrderByDisplayOrderAsc(post);
+    }
+
     // 특정 사용자의 게시글 목록
     public Page<Post> getUserPosts(User user, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -54,16 +67,53 @@ public class PostService {
         return postRepository.findByTravelId(travelId);
     }
 
-    // 게시글 작성
+    // 게시글 작성 (빌더 패턴 적용)
     @Transactional
-    public Post createPost(User author, Travel travel, String title, String content) {
-        Post post = Post.of(author, travel, title, content);
-        return postRepository.save(post);
+    public Post createPost(User author, Travel travel, String title, String content, MultipartFile[] images) throws IOException {
+        // 이미지 저장
+        List<String> imageUrls = null;
+        String thumbnailUrl = null;
+        
+        if (images != null && images.length > 0) {
+            imageUrls = fileStorageService.saveFiles(images);
+            thumbnailUrl = fileStorageService.getThumbnailUrl(imageUrls);
+        }
+        
+        Post post = Post.builder()
+            .author(author)
+            .travel(travel)
+            .title(title)
+            .content(content)
+            .imageUrl(thumbnailUrl) // 첫 번째 이미지를 썸네일로
+            .build();
+        
+        post = postRepository.save(post);
+        
+        // PostImage 엔티티들 저장
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            for (int i = 0; i < imageUrls.size(); i++) {
+                PostImage postImage = PostImage.builder()
+                    .post(post)
+                    .imageUrl(imageUrls.get(i))
+                    .displayOrder(i)
+                    .build();
+                postImageRepository.save(postImage);
+            }
+        }
+        
+        return post;
     }
 
     // 게시글 수정
     @Transactional
-    public void updatePost(Post post, String title, String content) {
+    public void updatePost(Long postId, String title, String content, User currentUser) {
+        Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+
+        if (!post.isAuthor(currentUser)) {
+            throw new RuntimeException("수정 권한이 없습니다.");
+        }
+
         post.update(title, content);
     }
 
@@ -78,13 +128,21 @@ public class PostService {
         Pageable pageable = PageRequest.of(page, size);
         return postRepository.findByCityOrderByCreatedAtDesc(city, pageable);
     }
+
+    // ========== 검색 기능을 위한 새 메서드들 ==========
+
+
+    // 도시명으로 게시물 검색 (부분 일치)
+     //SearchController의 검색 결과 표시에 사용
+    public Page<Post> searchPostsByCity(String cityKeyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return postRepository.findByTravel_CityContainingIgnoreCase(cityKeyword, pageable);
+    }
+
+
+     // 게시물이 많은 도시 상위 N개 조회
+    public List<String> getTopCitiesByPostCount(int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        return postRepository.findTopCitiesByPostCount(pageable);
+    }
 }
-
-
-
-
-
-
-
-
-

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReTrip - 영수증 확인</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #fff;
+            min-height: 100vh;
+            padding-bottom: 180px;
+        }
+
+        /* Header */
+        .header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #E8E5DC;
+            position: relative;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3D4A3C;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: #9AE19C;
+        }
+
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #F5F3ED;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #9AE19C;
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+
+        /* Page Title */
+        .page-title-section {
+            padding: 32px 20px 24px;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #3D4A3C;
+            line-height: 1.5;
+        }
+
+        /* Receipt Cards Container */
+        .receipts-container {
+            padding: 0 20px;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        /* Receipt Card */
+        .receipt-card {
+            background: #F5F3ED;
+            border: 1px solid #E8E5DC;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .receipt-card:hover {
+            background: #EAE7DC;
+            box-shadow: 0 2px 8px rgba(154, 225, 156, 0.1);
+        }
+
+        .receipt-header {
+            font-size: 15px;
+            font-weight: 600;
+            color: #3D4A3C;
+            margin-bottom: 12px;
+        }
+
+        .receipt-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .info-row {
+            font-size: 14px;
+            color: #5A6F57;
+            line-height: 1.6;
+        }
+
+        .receipt-number {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #9AE19C;
+            background: #fff;
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 640px;
+            margin: 0 auto;
+            z-index: 100;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #9AE19C;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(154, 225, 156, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #88D68A;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(154, 225, 156, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #F5F3ED;
+            color: #5A9F5C;
+            border: 1px solid #E8E5DC;
+        }
+
+        .btn-secondary:hover {
+            background: #EAE7DC;
+            border-color: #D4CFC0;
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.98);
+        }
+
+        /* Edit Icon Button */
+        .edit-icon-btn {
+            position: absolute;
+            top: 20px;
+            right: 80px;
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: none;
+            padding: 0;
+            color: #9AE19C;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-icon-btn:hover {
+            color: #7AC555;
+            transform: scale(1.1);
+        }
+
+        .edit-icon-btn svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            color: #E8E5DC;
+        }
+
+        .empty-text {
+            font-size: 16px;
+            color: #A0A99D;
+            margin-bottom: 8px;
+        }
+
+        .empty-subtext {
+            font-size: 14px;
+            color: #C4C9C1;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .page-title-section {
+                padding: 24px 16px 20px;
+            }
+
+            .page-title {
+                font-size: 18px;
+            }
+
+            .receipts-container {
+                padding: 0 16px;
+            }
+
+            .receipt-card {
+                padding: 16px;
+            }
+
+            .action-buttons {
+                padding: 0 16px;
+            }
+
+            .receipt-number {
+                right: 16px;
+            }
+
+            .edit-icon-btn {
+                right: 60px;
+                width: 24px;
+                height: 24px;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .receipt-card {
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .receipt-card:nth-child(1) { animation-delay: 0s; }
+        .receipt-card:nth-child(2) { animation-delay: 0.1s; }
+        .receipt-card:nth-child(3) { animation-delay: 0.2s; }
+        .receipt-card:nth-child(4) { animation-delay: 0.3s; }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header class="header">
+    <button class="back-btn" onclick="goBack()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </button>
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
+    </div>
+</header>
+
+<!-- Page Title -->
+<section class="page-title-section">
+    <h1 class="page-title">영수증 카드가 올바르게<br>작성되었는지 확인해주세요.</h1>
+</section>
+
+<!-- Receipt Cards Container -->
+<main class="receipts-container">
+    <!-- 같은 travelId의 모든 영수증 카드 표시 (detail 페이지처럼) -->
+    <div th:if="${receipts != null and !receipts.isEmpty()}">
+        <div class="receipt-card" 
+             th:each="receipt, stat : ${receipts}" 
+             th:attr="data-receipt-id=${receipt.receiptId}, data-description=${receipt.description}">
+            <button type="button" class="edit-icon-btn" th:data-receipt-id="${receipt.receiptId}" onclick="editReceipt(this.dataset.receiptId)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+            </button>
+            <span class="receipt-number" th:text="${stat.index + 1} + ' / ' + ${receipts.size()}">1 / N</span>
+            <div class="receipt-header" th:text="${receipt.storeName != null ? receipt.storeName : '영수증 내용'}">영수증 내용</div>
+            <div class="receipt-info">
+                <div class="info-row" th:if="${receipt.address != null && !#strings.isEmpty(receipt.address)}">
+                    <span th:text="'장소: ' + ${receipt.address}">장소</span>
+                </div>
+                <div class="info-row" th:if="${receipt.paidAt != null}">
+                    <span th:text="'결제일: ' + ${#temporals.format(receipt.paidAt, 'yyyy-MM-dd HH:mm')}">결제일</span>
+                </div>
+                <div class="info-row" th:if="${receipt.amount != null}">
+                    <span th:id="'amount-' + ${receipt.receiptId}"
+                          th:data-amount="${receipt.amount}"
+                          th:data-currency="${receipt.currency != null ? receipt.currency : '-'}"
+                          th:text="'결제 금액: ' + ${#numbers.formatInteger(receipt.amount, 0, 'COMMA')} + ' ' + (${receipt.currency != null && !#strings.isEmpty(receipt.currency)} ? ${receipt.currency} : '원')">결제 금액</span>
+                </div>
+                <div class="info-row" th:if="${receipt.category != null && !#strings.isEmpty(receipt.category)}">
+                    <span th:text="'카테고리: ' + ${receipt.category}">카테고리</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State (영수증이 없을 때 표시) -->
+    <div class="empty-state" th:if="${receipts == null or receipts.isEmpty()}">
+        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <p class="empty-text">등록된 영수증이 없습니다.</p>
+        <p class="empty-subtext">영수증을 추가해보세요!</p>
+    </div>
+</main>
+
+<!-- Action Buttons -->
+<div class="action-buttons">
+    <button class="btn btn-primary" onclick="continueEditing()">영수증 추가 업로드 하기</button>
+    <button class="btn btn-secondary" onclick="completeAccountBook()">완료</button>
+</div>
+
+<script>
+    function goBack() {
+        if (confirm('이전 단계로 돌아가시겠습니까? 현재까지의 작업이 취소됩니다.')) {
+            history.back();
+        }
+    }
+
+    function editReceipt(receiptId) {
+        // 영수증 수정을 위한 모달 또는 페이지로 이동
+        const urlParams = new URLSearchParams(window.location.search);
+        const travelId = urlParams.get('travelId');
+        let editUrl = '/users/me/account/receipt/edit?receiptId=' + receiptId;
+        if (travelId) {
+            editUrl += '&travelId=' + travelId;
+        }
+        window.location.href = editUrl;
+    }
+
+    function continueEditing() {
+        // 현재 페이지의 travelId를 가져와서 영수증 업로드 페이지로 이동 (추가 업로드)
+        // URL 파라미터에서 travelId 가져오기
+        const urlParams = new URLSearchParams(window.location.search);
+        let travelId = urlParams.get('travelId');
+        
+        if (travelId) {
+            // 같은 travelId로 영수증 추가 업로드 페이지로 이동
+            window.location.href = '/users/me/account/select?travelId=' + travelId;
+        } else {
+            // travelId가 없으면 기본 선택 페이지로 이동
+            window.location.href = '/users/me/account/select';
+        }
+    }
+
+    // 페이지 로드 시 결제 금액 표시 업데이트 (통화 포함)
+    window.addEventListener('DOMContentLoaded', () => {
+        updateReceiptAmounts();
+    });
+
+    /**
+     * 각 영수증 카드의 결제 금액 표시 업데이트 (통화 포함)
+     */
+    function updateReceiptAmounts() {
+        // 모든 결제 금액 요소 찾기
+        const amountElements = document.querySelectorAll('[id^="amount-"]');
+        
+        amountElements.forEach(element => {
+            const amount = parseInt(element.getAttribute('data-amount')) || 0;
+            const currency = element.getAttribute('data-currency') || '-';
+            
+            // 통화 표시 형식 결정
+            let currencyDisplay = '';
+            if (currency === '-' || !currency || currency.trim() === '') {
+                currencyDisplay = '';
+            } else if (currency === 'KRW') {
+                currencyDisplay = '원';
+            } else {
+                currencyDisplay = ' ' + currency;
+            }
+            
+            // 기존 텍스트를 업데이트
+            const currentText = element.textContent;
+            if (currentText.includes('결제 금액:')) {
+                element.textContent = '결제 금액: ' + amount.toLocaleString('ko-KR') + currencyDisplay;
+            }
+        });
+    }
+
+    function completeAccountBook() {
+        // 영수증 확인 완료 후 가계부 상세 페이지로 이동
+        const urlParams = new URLSearchParams(window.location.search);
+        const travelId = urlParams.get('travelId');
+        if (travelId) {
+            window.location.href = '/users/me/account/detail?travelId=' + travelId;
+        } else {
+            window.location.href = '/users/me/account/detail';
+        }
+    }
+</script>
+</body>
+</html>

@@ -91,10 +91,22 @@
         }
 
         .receipts-grid {
-            display: grid;
+            /* 기존 코드: 여러 영수증을 3열 그리드로 표시 */
+            /* display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
+            margin-bottom: 24px; */
+            
+            /* MVP 기준 변경: 영수증 하나만 업로드하므로 단일 열 중앙 정렬로 변경
+             * 이유: 순차적 분석 방식(하나씩 분석)을 채택했기 때문에
+             * 사용자가 한 번에 하나씩만 업로드하고 분석하는 것이 더 명확하고 안정적 */
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
             margin-bottom: 24px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         /* Receipt Card */
@@ -123,6 +135,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            object-position: center;
             display: none;
         }
 
@@ -200,12 +213,13 @@
             padding: 0 20px;
             display: flex;
             justify-content: center;
+            gap: 12px;
             z-index: 100;
         }
 
         .next-btn {
-            width: 100%;
-            max-width: 600px;
+            flex: 1;
+            max-width: 300px;
             padding: 16px;
             background: #9AE19C;
             border: none;
@@ -233,6 +247,21 @@
             color: #A0A99D;
             cursor: not-allowed;
             box-shadow: none;
+        }
+
+        .analyze-btn {
+            background: #F5F3ED;
+            color: #5A9F5C;
+            border: 1px solid #E8E5DC;
+        }
+
+        .analyze-btn:hover:not(:disabled) {
+            background: #EAE7DC;
+            color: #4A8F4C;
+        }
+
+        .analyze-btn.hidden {
+            display: none;
         }
 
         /* Loading Overlay */
@@ -294,6 +323,13 @@
 
             .next-btn-container {
                 padding: 0 16px;
+                gap: 8px;
+            }
+
+            .next-btn {
+                padding: 14px 12px;
+                font-size: 15px;
+                max-width: none;
             }
         }
     </style>
@@ -325,12 +361,21 @@
 </main>
 
 <!-- File Input -->
-<input type="file" id="fileInput" class="file-input" accept="image/*" multiple onchange="handleFileSelect(event)">
+<!-- 기존 코드: 여러 파일 선택 가능 (multiple 속성) -->
+<!-- <input type="file" id="fileInput" class="file-input" accept="image/*" multiple onchange="handleFileSelect(event)"> -->
+
+<!-- MVP 기준 변경: 영수증 하나만 선택 가능하도록 변경
+     이유: 순차적 분석 방식(하나씩 분석)을 채택했기 때문에
+     사용자가 한 번에 하나씩만 업로드하고 분석하는 것이 더 명확하고 안정적 -->
+<input type="file" id="fileInput" class="file-input" accept="image/*" onchange="handleFileSelect(event)">
 
 <!-- Next Button -->
 <div class="next-btn-container">
-    <button class="next-btn" id="nextBtn" disabled onclick="processReceipts()">
-        영수증 분석하기
+    <button class="next-btn" id="nextBtn" onclick="openFileDialog()">
+        영수증 업로드
+    </button>
+    <button class="next-btn analyze-btn hidden" id="analyzeBtn" onclick="processReceipts()">
+        영수증 분석
     </button>
 </div>
 
@@ -343,12 +388,16 @@
 <script>
     let selectedFiles = [];
 
-    // 페이지 로드 시 파일 선택 대화상자 자동 실행
-    window.addEventListener('DOMContentLoaded', () => {
+    // 파일 선택 다이얼로그 열기
+    function openFileDialog() {
         document.getElementById('fileInput').click();
-    });
+    }
+
+    // 초기 버튼 상태 설정
+    updateNextButton();
 
     function handleFileSelect(event) {
+        /* 기존 코드: 여러 파일을 배열로 받아서 forEach로 처리
         const files = Array.from(event.target.files);
         const grid = document.getElementById('receiptsGrid');
 
@@ -364,9 +413,44 @@
             reader.onload = function(e) {
                 const card = createReceiptCard(e.target.result, file, index);
                 grid.appendChild(card);
+                // 파일 선택 시 자동으로 선택된 상태로 만들기
+                card.classList.add('selected');
+                selectedFiles.push({ file, index });
+                updateNextButton();
             };
             reader.readAsDataURL(file);
         });
+        */
+
+        /* MVP 기준 변경: 단일 파일만 처리하도록 변경
+         * 이유: 
+         * 1. 순차적 분석 방식(하나씩 분석)을 채택했기 때문에
+         * 2. 사용자가 한 번에 하나씩만 업로드하고 분석하는 것이 더 명확하고 안정적
+         * 3. 에러 처리와 진행 상황 표시가 더 쉬움
+         * 4. Gemini API 호출을 하나씩 처리하여 Rate Limit 대응이 용이 */
+        const files = Array.from(event.target.files);
+        const grid = document.getElementById('receiptsGrid');
+
+        if (files.length === 0) return;
+
+        // 첫 번째 파일만 사용 (단일 파일 처리)
+        const file = files[0];
+
+        // 기존 카드 제거
+        grid.innerHTML = '';
+        selectedFiles = [];
+
+        // 이미지 미리보기 생성
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const card = createReceiptCard(e.target.result, file, 0);
+            grid.appendChild(card);
+            // 파일 선택 시 자동으로 선택된 상태로 만들기
+            card.classList.add('selected');
+            selectedFiles.push({ file, index: 0 });
+            updateNextButton();
+        };
+        reader.readAsDataURL(file);
     }
 
     function createReceiptCard(imageSrc, file, index) {
@@ -410,13 +494,24 @@
 
     function updateNextButton() {
         const nextBtn = document.getElementById('nextBtn');
+        const analyzeBtn = document.getElementById('analyzeBtn');
 
         if (selectedFiles.length > 0) {
             nextBtn.disabled = false;
-            nextBtn.textContent = `영수증 분석하기 (${selectedFiles.length})`;
+            nextBtn.textContent = '영수증 업로드';
+            nextBtn.onclick = openFileDialog;
+            analyzeBtn.classList.remove('hidden');
+            /* 기존 코드: 선택된 파일 개수 표시
+            analyzeBtn.textContent = `영수증 분석 (${selectedFiles.length})`;
+            */
+            /* MVP 기준 변경: 개수 표시 제거
+             * 이유: 영수증을 하나만 업로드하므로 개수 표시가 불필요 */
+            analyzeBtn.textContent = '영수증 분석';
         } else {
-            nextBtn.disabled = true;
-            nextBtn.textContent = '영수증 분석하기';
+            nextBtn.disabled = false;
+            nextBtn.textContent = '영수증 업로드';
+            nextBtn.onclick = openFileDialog;
+            analyzeBtn.classList.add('hidden');
         }
     }
 
@@ -427,6 +522,7 @@
         document.getElementById('loadingOverlay').classList.add('active');
 
         try {
+            /* 기존 코드: 여러 파일을 FormData에 추가하여 한 번에 전송
             // FormData 생성
             const formData = new FormData();
             selectedFiles.forEach(({ file }) => {
@@ -439,13 +535,78 @@
             //     body: formData
             // });
             // const result = await response.json();
+            */
 
-            // 시뮬레이션 (실제로는 위의 API 호출 사용)
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            /* MVP 기준 변경: 단일 파일만 처리하도록 변경
+             * 이유: 
+             * 1. 순차적 분석 방식(하나씩 분석)을 채택했기 때문에
+             * 2. 하나씩 분석하면 에러 처리와 진행 상황 표시가 더 쉬움
+             * 3. Gemini API 호출을 하나씩 처리하여 Rate Limit 대응이 용이
+             * 4. 하나 실패해도 나머지에 영향을 주지 않음 */
+            
+            // FormData 생성 (단일 파일)
+            const formData = new FormData();
+            formData.append('file', selectedFiles[0].file);
 
-            // 분석 완료 후 가계부 상세 페이지로 이동
-            alert(`${selectedFiles.length}개의 영수증이 분석되었습니다!`);
-            window.location.href = '/account/lists/1'; // 생성된 가계부 ID로 이동
+            // URL에서 travelId 가져와서 FormData에 추가
+            const urlParams = new URLSearchParams(window.location.search);
+            const travelId = urlParams.get('travelId');
+            if (travelId) {
+                formData.append('travelId', travelId);
+            }
+
+            // 서버로 이미지 전송 및 Gemini 분석 요청 (REST API 엔드포인트 사용)
+            /* 기존 코드: HTML 뷰를 반환하는 엔드포인트 사용 (500 에러 발생)
+            const response = await fetch('/receipt/analyze', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('영수증 분석에 실패했습니다.');
+            }
+            */
+
+            /* MVP 기준 변경: REST API 엔드포인트 사용
+             * 이유: 
+             * 1. JavaScript fetch 요청은 JSON 응답을 기대하므로 REST API 엔드포인트 필요
+             * 2. HTML 뷰를 반환하는 기존 엔드포인트는 fetch 요청에 적합하지 않음
+             * 3. JSON 응답으로 에러 처리와 성공 여부를 명확하게 확인 가능
+             * 4. travelId를 함께 전송하여 해당 Travel에 Receipt 저장 */
+            const response = await fetch('/receipt/analyze/api', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || '영수증 분석에 실패했습니다.');
+            }
+
+            // 분석 결과를 localStorage에 저장하여 detail 페이지에서 사용
+            // MVP 기준: 프론트엔드에서 localStorage를 사용하여 간단하게 데이터 전달
+            if (data.result) {
+                localStorage.setItem('lastReceiptAnalysis', JSON.stringify(data.result));
+            }
+
+            // 분석이 성공적으로 완료되면 영수증 확인 페이지로 이동
+            // Gemini가 분석을 완료하면 profile-account-confirm.html로 이동하여 분석 결과를 확인하고 수정할 수 있음
+            // 분석된 영수증의 receiptId를 파라미터로 전달
+            if (data.receiptId) {
+                let confirmUrl = '/users/me/account/confirm?receiptId=' + data.receiptId;
+                if (travelId) {
+                    confirmUrl += '&travelId=' + travelId;
+                }
+                window.location.href = confirmUrl;
+            } else {
+                // receiptId가 없는 경우 (이전 버전 호환성)
+                if (travelId) {
+                    window.location.href = '/users/me/account/detail?travelId=' + travelId;
+                } else {
+                    window.location.href = '/users/me/account/detail';
+                }
+            }
 
         } catch (error) {
             console.error('영수증 분석 오류:', error);

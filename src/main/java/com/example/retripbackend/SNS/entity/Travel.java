@@ -1,7 +1,9 @@
 package com.example.retripbackend.SNS.entity;
 
 import com.example.retripbackend.baseEntity.BaseEntity;
+import com.example.retripbackend.receipt.entity.Receipt;
 import com.example.retripbackend.user.entity.User;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -10,8 +12,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -37,6 +42,9 @@ public class Travel extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String city;
 
+    @Column(nullable = false, length = 200)
+    private String title;  // 여행 제목
+
     @Column(nullable = false)
     private LocalDate startDate;
 
@@ -49,11 +57,16 @@ public class Travel extends BaseEntity {
     @Column(nullable = false)
     private int totalAmount = 0;
 
+    // Receipt와의 관계 추가
+    @OneToMany(mappedBy = "travel", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Receipt> receipts = new ArrayList<>();
+
     @Builder
-    public Travel(User user, String country, String city, LocalDate startDate, LocalDate endDate, String memo) {
+    public Travel(User user, String country, String city, String title, LocalDate startDate, LocalDate endDate, String memo) {
         this.user = user;
         this.country = country;
         this.city = city;
+        this.title = title;
         this.startDate = startDate;
         this.endDate = endDate;
         this.memo = memo;
