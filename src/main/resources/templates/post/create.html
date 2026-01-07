@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>upload</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #fff;
+            padding-bottom: 70px;
+        }
+        .main-content { max-width: 640px; margin: 0 auto; padding: 24px 20px; }
+        .page-header { text-align: center; margin-bottom: 32px; }
+        .page-title { font-size: 18px; font-weight: 600; color: #3D4A3C; }
+        .account-book-list { display: flex; flex-direction: column; gap: 16px; }
+        .account-book-card {
+            background: #FEFDFB;
+            border: 2px solid #E8E5DC;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .account-book-card:hover {
+            border-color: #9AE19C;
+            box-shadow: 0 4px 12px rgba(154, 225, 156, 0.15);
+            transform: translateY(-2px);
+        }
+        .account-book-card.selected {
+            border-color: #9AE19C;
+            border-width: 3px;
+            background: #F5FDF5;
+        }
+        .card-image {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, #F5F3ED 0%, #EAE7DC 100%);
+            display: flex; align-items: center; justify-content: center;
+            color: #D4E9D5; position: relative;
+        }
+        .card-image img { width: 100%; height: 100%; object-fit: cover; }
+        .image-placeholder svg { width: 48px; height: 48px; }
+        .selected-badge {
+            position: absolute; top: 12px; right: 12px;
+            background: #9AE19C; color: #fff; padding: 6px 12px;
+            border-radius: 20px; font-size: 12px; font-weight: 600; display: none;
+        }
+        .account-book-card.selected .selected-badge { display: block; }
+        .card-info { padding: 16px; }
+        .card-title { font-size: 16px; font-weight: 600; color: #3D4A3C; margin-bottom: 12px; }
+        .card-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .meta-item { display: flex; flex-direction: column; gap: 4px; }
+        .meta-label { font-size: 11px; color: #A0A99D; font-weight: 500; }
+        .meta-value { font-size: 13px; color: #5A9F5C; font-weight: 500; }
+        .upload-button-container {
+            position: fixed; bottom: 80px; left: 0; right: 0;
+            padding: 0 20px; display: flex; justify-content: center;
+        }
+        .upload-btn {
+            max-width: 600px; width: 100%; padding: 16px;
+            background: #9AE19C; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: 600; color: #fff;
+            cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(154, 225, 156, 0.3);
+        }
+        .upload-btn:hover {
+            background: #88D68A;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(154, 225, 156, 0.4);
+        }
+        .upload-btn:active { transform: translateY(0); }
+        .upload-btn:disabled {
+            background: #E8E5DC;
+            color: #A0A99D;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #FEFDFB; border-top: 1px solid #E8E5DC;
+            display: flex; justify-content: space-around; padding: 12px 0; z-index: 100;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            cursor: pointer; color: #A0A99D; text-decoration: none; flex: 1; transition: color 0.2s;
+        }
+        .nav-item:hover { color: #9AE19C; }
+        .nav-item.active { color: #5A9F5C; }
+        .nav-icon { width: 24px; height: 24px; }
+        .nav-label { font-size: 11px; font-weight: 500; }
+        @media (max-width: 480px) {
+            .main-content { padding: 20px 16px; }
+            .upload-button-container { padding: 0 16px; }
+            .card-meta { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+<main class="main-content">
+    <div class="page-header">
+        <h1 class="page-title">일정에 업로드 할 가계부를 선택해주세요.</h1>
+    </div>
+
+    <form id="createForm" th:action="@{/posts/detail}" method="get">
+        <input type="hidden" name="travelId" id="selectedTravelId">
+        <div class="account-book-list">
+            <div th:each="travel : ${travels}"
+                 class="account-book-card"
+                 th:onclick="'toggleSelection(this, ' + ${travel.travel.travelId} + ')'">
+                <div class="card-image">
+                    <div class="image-placeholder">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <span class="selected-badge">선택됨</span>
+                </div>
+                <div class="card-info">
+                    <h3 class="card-title" th:text="${travel.travel.title}">제목</h3>
+                    <div class="card-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">여행지</span>
+                            <span class="meta-value" th:text="${travel.travel.city} + ', ' + ${travel.travel.country}">나라, 도시</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">여행기간</span>
+                            <span class="meta-value" th:text="${travel.travel.startDate} + ' ~ ' + ${travel.travel.endDate}">기간</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">총 경비</span>
+                            <span class="meta-value">
+                                <span th:text="${#numbers.formatInteger(travel.travel.totalAmount, 0, 'COMMA')}">0</span>
+                                <span th:text="${travel.currency == 'KRW' ? '원' : ' ' + travel.currency}"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</main>
+
+<div class="upload-button-container">
+    <button class="upload-btn" id="uploadBtn" disabled onclick="uploadSelected()">
+        가계부를 선택해주세요.
+    </button>
+</div>
+
+<nav class="bottom-nav">
+    <a th:href="@{/home}" class="nav-item">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Home</span>
+    </a>
+    <a th:href="@{/explore}" class="nav-item">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <span class="nav-label">Explore</span>
+    </a>
+    <a th:href="@{/posts/create}" class="nav-item active">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        <span class="nav-label">Upload</span>
+    </a>
+    <a th:href="@{/users/me}" class="nav-item">
+        <svg class="nav-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <span class="nav-label">Profile</span>
+    </a>
+</nav>
+
+<script>
+    function toggleSelection(card, travelId) {
+        document.querySelectorAll('.account-book-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        document.getElementById('selectedTravelId').value = travelId;
+        updateUploadButton();
+    }
+    function updateUploadButton() {
+        const uploadBtn = document.getElementById('uploadBtn');
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = '다음 단계로';
+    }
+    function uploadSelected() {
+        document.getElementById('createForm').submit();
+    }
+</script>
+</body>
+</html>

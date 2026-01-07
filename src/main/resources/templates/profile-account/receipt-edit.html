@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReTrip - 영수증 수정</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #fff;
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+
+        /* Header */
+        .header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #E8E5DC;
+            position: relative;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3D4A3C;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: #9AE19C;
+        }
+
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Page Title */
+        .page-title-section {
+            padding: 32px 20px 24px;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #3D4A3C;
+            line-height: 1.5;
+        }
+
+        /* Form Container */
+        .form-container {
+            padding: 0 20px;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #3D4A3C;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #E8E5DC;
+            border-radius: 8px;
+            font-size: 15px;
+            color: #3D4A3C;
+            background: #FEFDFB;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #9AE19C;
+            box-shadow: 0 0 0 3px rgba(154, 225, 156, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #A0A99D;
+        }
+
+        /* Button Container */
+        .button-container {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 20px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .btn {
+            flex: 1;
+            max-width: 300px;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #9AE19C;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(154, 225, 156, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #88D68A;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(154, 225, 156, 0.4);
+        }
+
+        .btn-secondary {
+            background: #F5F3ED;
+            color: #5A6F57;
+            border: 1px solid #E8E5DC;
+        }
+
+        .btn-secondary:hover {
+            background: #EAE7DC;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .page-title-section {
+                padding: 24px 16px 20px;
+            }
+
+            .page-title {
+                font-size: 18px;
+            }
+
+            .form-container {
+                padding: 0 16px;
+            }
+
+            .button-container {
+                padding: 0 16px;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header class="header">
+    <button class="back-btn" onclick="goBack()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </button>
+</header>
+
+<!-- Page Title -->
+<section class="page-title-section">
+    <h1 class="page-title">영수증 수정</h1>
+</section>
+
+<!-- Form Container -->
+<main class="form-container">
+    <form id="receiptForm" th:action="@{/users/me/account/receipt/edit}" method="post">
+        <input type="hidden" name="receiptId" th:value="${receipt.receiptId}">
+        <input type="hidden" name="travelId" th:value="${travelId}" th:if="${travelId != null}">
+
+        <div class="form-group">
+            <label class="form-label" for="storeName">업소명</label>
+            <input type="text" id="storeName" name="storeName" class="form-input" 
+                   th:value="${receipt.storeName}" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="address">장소 (주소)</label>
+            <input type="text" id="address" name="address" class="form-input" 
+                   th:value="${receipt.address}">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="amount">결제 금액</label>
+            <input type="number" id="amount" name="amount" class="form-input" 
+                   th:value="${receipt.amount}" min="0" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="currency">통화</label>
+            <input type="text" id="currency" name="currency" class="form-input" 
+                   th:value="${receipt.currency}" placeholder="KRW, USD, EUR 등" maxlength="3">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="paidAt">결제일</label>
+            <input type="datetime-local" id="paidAt" name="paidAt" class="form-input"
+                   th:value="${receipt.paidAt != null ? (#temporals.format(receipt.paidAt, 'yyyy-MM-dd') + 'T' + #temporals.format(receipt.paidAt, 'HH:mm')) : ''}" required>
+<!--                   th:value="${receipt.paidAt != null ? #temporals.format(receipt.paidAt, 'yyyy-MM-dd\'T\'HH:mm') : ''}" required>-->
+        </div>
+
+<!--        <div class="form-group">-->
+<!--            <label class="form-label" for="category">카테고리</label>-->
+<!--            <input type="text" id="category" name="category" class="form-input" -->
+<!--                   th:value="${receipt.category}" placeholder="식비, 교통비, 숙박비 등">-->
+<!--        </div>-->
+    </form>
+</main>
+
+<!-- Button Container -->
+<div class="button-container">
+    <button type="button" class="btn btn-secondary" onclick="goBack()">취소</button>
+    <button type="submit" form="receiptForm" class="btn btn-primary">저장</button>
+</div>
+
+<script>
+    function goBack() {
+        if (confirm('수정을 취소하시겠습니까?')) {
+            history.back();
+        }
+    }
+</script>
+</body>
+</html>
+
