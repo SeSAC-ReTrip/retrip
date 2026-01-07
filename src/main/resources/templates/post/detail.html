@@ -18,7 +18,6 @@
             padding-bottom: 100px;
         }
 
-        /* Header */
         .header {
             padding: 16px 20px;
             border-bottom: 1px solid #E8E5DC;
@@ -46,14 +45,12 @@
             height: 24px;
         }
 
-        /* Main Content */
         .main-content {
             max-width: 640px;
             margin: 0 auto;
             padding: 24px 20px;
         }
 
-        /* Post Header */
         .post-header {
             margin-bottom: 24px;
         }
@@ -94,16 +91,6 @@
             font-weight: 500;
         }
 
-        .meta-input {
-            font-size: 14px;
-            color: #3D4A3C;
-            font-weight: 500;
-            border: none;
-            background: none;
-            padding: 4px 0;
-            outline: none;
-        }
-
         .meta-value {
             font-size: 14px;
             color: #3D4A3C;
@@ -119,7 +106,6 @@
             color: #9AE19C;
         }
 
-        /* Receipt Card */
         .receipt-card {
             background: #F5F3ED;
             border: 1px solid #E8E5DC;
@@ -154,7 +140,6 @@
             outline: none;
         }
 
-        /* Image Box */
         .image-box {
             width: 100%;
             aspect-ratio: 4/3;
@@ -177,7 +162,6 @@
             border-color: #9AE19C;
         }
 
-        /* Image Preview Slider - inside image-box */
         .image-preview-slider {
             display: none;
             width: 100%;
@@ -279,7 +263,6 @@
             display: none;
         }
 
-        /* Content Section */
         .content-section {
             margin-bottom: 24px;
         }
@@ -311,7 +294,6 @@
             background: #fff;
         }
 
-        /* Location Section */
         .location-section {
             display: flex;
             align-items: center;
@@ -341,7 +323,6 @@
             outline: none;
         }
 
-        /* Map Section */
         .map-section {
             margin-top: 40px;
             padding-top: 32px;
@@ -370,7 +351,6 @@
             height: 100%;
         }
 
-        /* Upload Button */
         .upload-button-container {
             position: fixed;
             bottom: 20px;
@@ -403,7 +383,6 @@
             box-shadow: 0 6px 16px rgba(61, 74, 60, 0.4);
         }
 
-        /* Responsive */
         @media (max-width: 480px) {
             .post-meta {
                 grid-template-columns: 1fr;
@@ -421,11 +400,15 @@
 </header>
 
 <main class="main-content">
-    <form id="finalForm" th:action="@{/posts/create}" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="travelId" th:value="${travel.travelId}">
+    <form id="finalForm" th:action="${(isEdit != null and isEdit) ? '/posts/' + post.postId + '/edit' : '/posts/create'}" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="travelId" th:value="${travel.travelId}" th:if="${isEdit == null or !isEdit}">
+
+        <div id="removedImagesContainer"></div>
 
         <div class="post-header">
-            <input type="text" name="title" class="post-title-input" th:value="${travel.city + ' 여행 가계부'}" placeholder="제목">
+            <input type="text" name="title" class="post-title-input"
+                   th:value="${(isEdit != null and isEdit) ? post.title : travel.city + ' 여행 가계부'}"
+                   placeholder="제목">
             <div class="post-meta">
                 <div class="meta-item">
                     <span class="meta-label">여행지</span>
@@ -459,23 +442,28 @@
             </div>
         </div>
 
-        <!-- 이미지 업로드 영역 -->
         <div id="imageUploadArea">
             <div class="image-box" id="imageBox">
                 <div id="imagePreviewContainer" class="image-preview-slider"></div>
-                <div class="image-placeholder" id="imagePlaceholder" onclick="document.getElementById('fileInput').click()">
+                <div class="image-placeholder" id="imagePlaceholder">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                     <p class="upload-text">사진을 선택하세요 (여러 장 가능)</p>
                 </div>
             </div>
-            <input type="file" id="fileInput" name="images" class="file-input" accept="image/*" multiple onchange="handleFileSelect(event)">
+            <input type="file" id="fileInput" name="images" class="file-input" accept="image/*" multiple>
+        </div>
+
+        <div id="existingImagesData" style="display:none;">
+            <div th:each="image : ${images}" th:attr="data-image-url=${image.imageUrl}"></div>
         </div>
 
         <div class="content-section">
             <h3 class="content-title">여행 설명 및 일기</h3>
-            <textarea name="content" class="content-textarea" placeholder="여행의 추억을 기록해보세요..."></textarea>
+            <textarea name="content" class="content-textarea"
+                      th:text="${(isEdit != null and isEdit and post != null) ? post.content : ''}"
+                      placeholder="여행의 추억을 기록해보세요..."></textarea>
         </div>
 
         <div class="location-section">
@@ -494,157 +482,137 @@
         </section>
 
         <div class="upload-button-container">
-            <button type="submit" class="upload-btn">업로드 하기</button>
+            <button type="submit" class="upload-btn" th:text="${(isEdit != null and isEdit) ? '수정하기' : '업로드 하기'}">업로드 하기</button>
         </div>
     </form>
 </main>
 
 <script async defer th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}"></script>
-<script>
+<script th:inline="javascript">
     let selectedFiles = [];
     let isDragging = false;
     let startX = 0;
     let scrollLeft = 0;
 
-    function handleFileSelect(event) {
-        const files = Array.from(event.target.files);
-        const container = document.getElementById('imagePreviewContainer');
-        const imageBox = document.getElementById('imageBox');
-        const placeholder = document.getElementById('imagePlaceholder');
+    const isEditMode = /*[[${isEdit != null ? isEdit : false}]]*/ false;
+    const container = document.getElementById('imagePreviewContainer');
+    const imageBox = document.getElementById('imageBox');
+    const placeholder = document.getElementById('imagePlaceholder');
+    const removedImagesContainer = document.getElementById('removedImagesContainer');
 
+    document.addEventListener('DOMContentLoaded', function() {
+        const existingData = document.getElementById('existingImagesData');
+        if (existingData) {
+            const divs = existingData.querySelectorAll('[data-image-url]');
+            divs.forEach(div => {
+                const url = div.getAttribute('data-image-url');
+                addPreview(url, true);
+            });
+        }
+    });
+
+    function addPreview(source, isExisting) {
+        const previewItem = document.createElement('div');
+        previewItem.className = 'preview-item';
+        previewItem.innerHTML = `
+            <img src="${source}" alt="preview" draggable="false">
+            <button type="button" class="remove-btn">×</button>
+        `;
+
+        container.appendChild(previewItem);
+        imageBox.classList.add('has-images');
+        placeholder.style.display = 'none';
+
+        previewItem.querySelector('.remove-btn').onclick = function() {
+            if (isExisting) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'removedImages';
+                input.value = source;
+                removedImagesContainer.appendChild(input);
+            } else {
+                selectedFiles = selectedFiles.filter(f => f.previewUrl !== source);
+            }
+
+            previewItem.remove();
+            if (container.children.length === 0) {
+                imageBox.classList.remove('has-images');
+                placeholder.style.display = 'flex';
+            }
+        };
+
+        initSliderDrag();
+    }
+
+    document.getElementById('imagePlaceholder').onclick = () => document.getElementById('fileInput').click();
+
+    document.getElementById('fileInput').onchange = function(e) {
+        const files = Array.from(e.target.files);
         files.forEach(file => {
             if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'preview-item';
-                    previewItem.innerHTML = `
-                        <img src="${e.target.result}" alt="preview" draggable="false">
-                        <button type="button" class="remove-btn" onclick="removeImage(this)">×</button>
-                    `;
-                    container.appendChild(previewItem);
-
-                    const fileData = {
-                        file: file,
-                        previewElement: previewItem
-                    };
-                    selectedFiles.push(fileData);
-
-                    if (selectedFiles.length > 0) {
-                        imageBox.classList.add('has-images');
-                        placeholder.style.display = 'none';
-                    }
-
-                    setTimeout(() => {
-                        container.scrollLeft = container.scrollWidth;
-                        initSliderDrag();
-                    }, 100);
+                reader.onload = function(ev) {
+                    const previewUrl = ev.target.result;
+                    file.previewUrl = previewUrl;
+                    selectedFiles.push(file);
+                    addPreview(previewUrl, false);
                 };
                 reader.readAsDataURL(file);
             }
         });
+        this.value = '';
+    };
 
-        event.target.value = '';
-    }
-
-    function removeImage(button) {
-        const previewItem = button.closest('.preview-item');
-        const container = document.getElementById('imagePreviewContainer');
-        const imageBox = document.getElementById('imageBox');
-        const placeholder = document.getElementById('imagePlaceholder');
-        const index = Array.from(container.children).indexOf(previewItem);
-        if (index !== -1) {
-            selectedFiles.splice(index, 1);
-        }
-        previewItem.remove();
-
-        if (selectedFiles.length === 0) {
-            imageBox.classList.remove('has-images');
-            placeholder.style.display = 'flex';
-        }
-    }
+    document.getElementById('finalForm').onsubmit = function() {
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach(file => dataTransfer.items.add(file));
+        document.getElementById('fileInput').files = dataTransfer.files;
+    };
 
     function initSliderDrag() {
-        const imageContainer = document.getElementById('imagePreviewContainer');
-
-        if (!imageContainer) return;
-
-        imageContainer.addEventListener('scroll', () => {
-            const scrollLeft = imageContainer.scrollLeft;
-            const itemWidth = imageContainer.offsetWidth;
-            const currentIndex = Math.round(scrollLeft / itemWidth);
-
-            imageContainer.scrollTo({
-                left: currentIndex * itemWidth,
-                behavior: 'smooth'
-            });
-        });
-
-        imageContainer.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.remove-btn')) {
-                return;
-            }
+        container.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.remove-btn')) return;
             isDragging = true;
-            startX = e.pageX - imageContainer.offsetLeft;
-            scrollLeft = imageContainer.scrollLeft;
-            imageContainer.style.cursor = 'grabbing';
-            e.preventDefault();
+            startX = e.pageX - container.offsetLeft;
+            scrollLeft = container.scrollLeft;
+            container.style.cursor = 'grabbing';
         });
 
-        imageContainer.addEventListener('mouseleave', () => {
+        container.addEventListener('mouseleave', () => {
             isDragging = false;
-            imageContainer.style.cursor = 'grab';
+            container.style.cursor = 'grab';
         });
 
-        imageContainer.addEventListener('mouseup', () => {
+        container.addEventListener('mouseup', () => {
             isDragging = false;
-            imageContainer.style.cursor = 'grab';
+            container.style.cursor = 'grab';
         });
 
-        imageContainer.addEventListener('mousemove', (e) => {
+        container.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
             e.preventDefault();
-            const x = e.pageX - imageContainer.offsetLeft;
+            const x = e.pageX - container.offsetLeft;
             const walk = (x - startX) * 2;
-            imageContainer.scrollLeft = scrollLeft - walk;
+            container.scrollLeft = scrollLeft - walk;
         });
 
+        // Touch events
         let touchStartX = 0;
         let touchScrollLeft = 0;
 
-        imageContainer.addEventListener('touchstart', (e) => {
-            if (e.target.closest('.remove-btn')) {
-                return;
-            }
-            touchStartX = e.touches[0].pageX - imageContainer.offsetLeft;
-            touchScrollLeft = imageContainer.scrollLeft;
+        container.addEventListener('touchstart', (e) => {
+            if (e.target.closest('.remove-btn')) return;
+            touchStartX = e.touches[0].pageX - container.offsetLeft;
+            touchScrollLeft = container.scrollLeft;
         }, { passive: true });
 
-        imageContainer.addEventListener('touchmove', (e) => {
-            if (e.target.closest('.remove-btn')) {
-                return;
-            }
-            const x = e.touches[0].pageX - imageContainer.offsetLeft;
+        container.addEventListener('touchmove', (e) => {
+            if (e.target.closest('.remove-btn')) return;
+            const x = e.touches[0].pageX - container.offsetLeft;
             const walk = (x - touchStartX) * 2;
-            imageContainer.scrollLeft = touchScrollLeft - walk;
+            container.scrollLeft = touchScrollLeft - walk;
         }, { passive: true });
     }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initSliderDrag);
-    } else {
-        initSliderDrag();
-    }
-
-    document.getElementById('finalForm').addEventListener('submit', function(e) {
-        const dataTransfer = new DataTransfer();
-        selectedFiles.forEach(fileData => {
-            dataTransfer.items.add(fileData.file);
-        });
-
-        const fileInput = document.getElementById('fileInput');
-        fileInput.files = dataTransfer.files;
-    });
 
     function initMap() {
         const center = { lat: 37.5665, lng: 126.9780 };

@@ -158,11 +158,18 @@ public class PostController {
     public String edit(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
         @RequestParam String title,
-        @RequestParam String content) {
+        @RequestParam String content,
+        // [추가] 새로 업로드한 이미지들 (multiple)
+        @RequestParam(value = "images", required = false) MultipartFile[] images,
+        // [추가] HTML에서 삭제 버튼을 눌러 생성된 기존 이미지 URL 리스트
+        @RequestParam(value = "removedImages", required = false) List<String> removedImages) {
+
         try {
-            postService.updatePost(postId, title, content, userDetails.getUser());
-        } catch (RuntimeException e) {
-            return "redirect:/posts/" + postId + "?error=unauthorized";
+            // [수정] 서비스 호출 시 이미지 관련 파라미터들을 함께 전달
+            postService.updatePost(postId, title, content, images, removedImages, userDetails.getUser());
+        } catch (Exception e) {
+            // 에러 발생 시 원래 수정 페이지로 돌아가며 에러 메시지 전달
+            return "redirect:/posts/" + postId + "/edit?error=" + e.getMessage();
         }
 
         return "redirect:/posts/" + postId;
