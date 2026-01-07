@@ -26,5 +26,9 @@ public interface ReceiptRepository extends JpaRepository<Receipt, Long> {
     // JPQL을 사용한 명시적 조인 쿼리 (더 안전한 방법)
     @Query("SELECT r FROM Receipt r JOIN FETCH r.travel t JOIN FETCH t.user WHERE r.receiptId = :receiptId")
     Optional<Receipt> findByIdWithTravelAndUser(@Param("receiptId") Long receiptId);
+    
+    // 특정 여행의 영수증 amount 합계 조회
+    @Query("SELECT COALESCE(SUM(r.amount), 0) FROM Receipt r WHERE r.travel.travelId = :travelId")
+    int sumAmountByTravelId(@Param("travelId") Long travelId);
 }
 

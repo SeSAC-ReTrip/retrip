@@ -3,6 +3,7 @@ package com.example.retripbackend.receipt.service;
 import com.example.retripbackend.receipt.entity.Receipt;
 import com.example.retripbackend.receipt.repository.ReceiptRepository;
 import com.example.retripbackend.SNS.entity.Travel;
+import com.example.retripbackend.SNS.repository.TravelRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReceiptService {
 
     private final ReceiptRepository receiptRepository;
+    private final TravelRepository travelRepository;
 
     /**
      * 특정 여행의 영수증 목록 조회
@@ -68,6 +70,9 @@ public class ReceiptService {
         receiptRepository.save(receipt);
         log.info("영수증 수정 완료: receiptId={}, storeName={}, amount={}", 
             receipt.getReceiptId(), receipt.getStoreName(), receipt.getAmount());
+        
+        // Travel의 totalAmount 업데이트
+        updateTravelTotalAmount(receipt.getTravel().getTravelId());
     }
 
     /**
@@ -153,7 +158,23 @@ public class ReceiptService {
         log.info("영수증 저장 완료: receiptId={}, storeName={}, amount={}, currency={}, address={}", 
             savedReceipt.getReceiptId(), storeName, amount, currency, address);
         
+        // Travel의 totalAmount 업데이트
+        updateTravelTotalAmount(travel.getTravelId());
+        
         return savedReceipt;
+    }
+    
+    /**
+     * Travel의 totalAmount를 해당 여행의 모든 영수증 amount 합계로 업데이트
+     */
+    @Transactional
+    public void updateTravelTotalAmount(Long travelId) {
+        int totalAmount = receiptRepository.sumAmountByTravelId(travelId);
+        Travel travel = travelRepository.findById(travelId)
+            .orElseThrow(() -> new IllegalArgumentException("여행을 찾을 수 없습니다: travelId=" + travelId));
+        travel.updateTotalAmount(totalAmount);
+        travelRepository.save(travel);
+        log.info("Travel totalAmount 업데이트: travelId={}, totalAmount={}", travelId, totalAmount);
     }
 
     /**
