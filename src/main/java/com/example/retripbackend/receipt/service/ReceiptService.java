@@ -37,6 +37,40 @@ public class ReceiptService {
     }
 
     /**
+     * ID로 영수증 조회
+     */
+    public Receipt findById(Long receiptId) {
+        return receiptRepository.findById(receiptId)
+            .orElseThrow(() -> new IllegalArgumentException("영수증을 찾을 수 없습니다: receiptId=" + receiptId));
+    }
+
+    /**
+     * ID로 영수증 조회 (Travel 포함)
+     * LAZY 로딩 문제를 해결하기 위해 Travel을 함께 조회
+     */
+    public Receipt findByIdWithTravel(Long receiptId) {
+        // 먼저 JPQL 쿼리 시도
+        return receiptRepository.findByIdWithTravelAndUser(receiptId)
+            .orElseGet(() -> {
+                // 실패 시 EntityGraph 사용
+                return receiptRepository.findWithTravelByReceiptId(receiptId)
+                    .orElseThrow(() -> new IllegalArgumentException("영수증을 찾을 수 없습니다: receiptId=" + receiptId));
+            });
+    }
+
+    /**
+     * 영수증 정보 수정
+     */
+    @Transactional
+    public void updateReceipt(Receipt receipt, String storeName, Integer amount, LocalDateTime paidAt,
+        String category, String address, String currency) {
+        receipt.updateReceiptInfo(storeName, amount, paidAt, category, address, currency);
+        receiptRepository.save(receipt);
+        log.info("영수증 수정 완료: receiptId={}, storeName={}, amount={}", 
+            receipt.getReceiptId(), receipt.getStoreName(), receipt.getAmount());
+    }
+
+    /**
      * Gemini 분석 결과를 기반으로 Receipt 저장
      * 
      * @param travel Travel 엔티티

@@ -590,14 +590,22 @@
                 localStorage.setItem('lastReceiptAnalysis', JSON.stringify(data.result));
             }
 
-            // 분석이 성공적으로 완료되면 가계부 상세 페이지로 이동
-            // Gemini가 분석을 완료하면 profile-account-detail.html로 이동하여 완성된 카드 형태를 확인
-            // 방금 생성한 가계부 정보를 보여주기 위해 travelId를 파라미터로 전달
-            // travelId는 이미 위에서 가져왔으므로 재사용
-            if (travelId) {
-                window.location.href = '/users/me/account/detail?travelId=' + travelId;
+            // 분석이 성공적으로 완료되면 영수증 확인 페이지로 이동
+            // Gemini가 분석을 완료하면 profile-account-confirm.html로 이동하여 분석 결과를 확인하고 수정할 수 있음
+            // 분석된 영수증의 receiptId를 파라미터로 전달
+            if (data.receiptId) {
+                let confirmUrl = '/users/me/account/confirm?receiptId=' + data.receiptId;
+                if (travelId) {
+                    confirmUrl += '&travelId=' + travelId;
+                }
+                window.location.href = confirmUrl;
             } else {
-                window.location.href = '/users/me/account/detail';
+                // receiptId가 없는 경우 (이전 버전 호환성)
+                if (travelId) {
+                    window.location.href = '/users/me/account/detail?travelId=' + travelId;
+                } else {
+                    window.location.href = '/users/me/account/detail';
+                }
             }
 
         } catch (error) {
