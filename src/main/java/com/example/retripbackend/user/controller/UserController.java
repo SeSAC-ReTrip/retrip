@@ -248,7 +248,12 @@ public class UserController {
 
     // 가계부 영수증 선택 페이지
     @GetMapping("/me/account/select")
-    public String selectAccountPage() {
+    public String selectAccountPage(
+            @RequestParam Long travelId,
+            Model model
+    ) {
+        Travel travel = travelService.findById(travelId);
+        model.addAttribute("travel", travel);
         return "profile-account/profile-account-select";
     }
 
