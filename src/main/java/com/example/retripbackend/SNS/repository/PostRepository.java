@@ -19,8 +19,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     // 추천순 (좋아요 많은 순)
     Page<Post> findAllByOrderByLikeCountDescCreatedAtDesc(Pageable pageable);
 
-    // 특정 사용자의 게시글
-    Page<Post> findByAuthorOrderByCreatedAtDesc(User author, Pageable pageable);
+    // 특정 사용자의 게시글 (UserController에서 호출하는 메서드)
+    Page<Post> findByAuthor(User author, Pageable pageable);
 
     // 특정 여행의 게시글
     @Query("SELECT p FROM Post p WHERE p.travel.travelId = :travelId ORDER BY p.createdAt DESC")
@@ -33,34 +33,17 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     // 게시글 수 조회
     long countByAuthor(User author);
 
-    // ========== 검색 기능을 위한 새 메서드들 ==========
+    // ========== 검색 기능을 위한 메서드들 ==========
 
-    /**
-     * 도시명으로 게시물 검색 (대소문자 무시, 부분 일치)
-     * SearchController에서 사용
-     * 예: "파리" 검색 시 "파리", "파리지앵" 등 포함
-     */
+
+    // 도시명으로 게시물 검색 (대소문자 무시, 부분 일치)
     Page<Post> findByTravel_CityContainingIgnoreCase(String cityKeyword, Pageable pageable);
 
-    /**
-     * 게시물이 많은 도시 상위 N개 조회
-     * SearchController의 인기 도시 태그 표시에 사용
-     *
-     * @param pageable 페이지 정보 (limit 포함)
-     * @return 도시명 리스트 (게시물 많은 순)
-     */
+
+    // 게시물이 많은 도시 상위 N개 조회
     @Query("SELECT t.city FROM Post p " +
         "JOIN p.travel t " +
         "GROUP BY t.city " +
         "ORDER BY COUNT(p) DESC")
     List<String> findTopCitiesByPostCount(Pageable pageable);
 }
-
-
-
-
-
-
-
-
-
