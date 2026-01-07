@@ -33,6 +33,7 @@ ReTrip은 여행 중 발생한 **영수증을 기반으로 여행 일정과 경�
 - Spring Security
 - Spring Data JPA
 - Gradle
+- GEMINI API
 
 ---
 
