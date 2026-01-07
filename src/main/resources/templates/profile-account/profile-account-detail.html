@@ -298,7 +298,7 @@
     </button>
     <div class="header-buttons">
         <button class="header-btn" onclick="editAccount()">수정</button>
-        <button class="header-btn">삭제</button>
+        <button class="header-btn" onclick="deleteAccount()">삭제</button>
     </div>
 </header>
 
@@ -537,6 +537,44 @@
         } else {
             // travelId가 없으면 기본 select 페이지로 이동
             window.location.href = '/users/me/account/select';
+        }
+    }
+
+    function deleteAccount() {
+        // travelId 가져오기
+        const travelIdElement = document.querySelector('[data-travel-id]');
+        let travelId = travelIdElement ? travelIdElement.getAttribute('data-travel-id') : null;
+        
+        // URL 파라미터에서 travelId 가져오기 (대안)
+        if (!travelId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            travelId = urlParams.get('travelId');
+        }
+        
+        if (!travelId) {
+            alert('가계부 정보를 찾을 수 없습니다.');
+            return;
+        }
+        
+        // 페이지 제목 가져오기
+        const pageTitleElement = document.querySelector('.page-title');
+        const title = pageTitleElement ? pageTitleElement.textContent.trim() : '가계부';
+        
+        // 확인 팝업
+        if (confirm(title + ' 가계부를 삭제하시겠습니까?')) {
+            // 삭제 폼 생성 및 제출
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/users/me/account/delete';
+            
+            const travelIdInput = document.createElement('input');
+            travelIdInput.type = 'hidden';
+            travelIdInput.name = 'travelId';
+            travelIdInput.value = travelId;
+            
+            form.appendChild(travelIdInput);
+            document.body.appendChild(form);
+            form.submit();
         }
     }
 </script>
