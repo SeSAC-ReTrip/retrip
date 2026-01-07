@@ -9,9 +9,12 @@ import com.example.retripbackend.SNS.service.FileStorageService;
 import com.example.retripbackend.SNS.service.PostLikeService;
 import com.example.retripbackend.SNS.service.PostService;
 import com.example.retripbackend.SNS.service.TravelService;
+import com.example.retripbackend.receipt.entity.Receipt;
+import com.example.retripbackend.receipt.service.ReceiptService;
 import com.example.retripbackend.user.entity.User;
 import com.example.retripbackend.user.service.CustomUserDetailsService;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -30,6 +33,7 @@ public class PostController {
     private final PostLikeService postLikeService;
     private final TravelService travelService;
     private final FileStorageService fileStorageService;
+    private final ReceiptService receiptService;
 
     @Value("${google.map.api.key:}")
     private String googleMapApiKey;
@@ -64,7 +68,23 @@ public class PostController {
     public String createPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails, Model model) {
         if (userDetails == null) return "redirect:/login";
         List<Travel> travels = travelService.getUserTravels(userDetails.getUser());
-        model.addAttribute("travels", travels);
+        
+        // Travel과 통화 정보를 함께 담는 리스트 생성
+        List<TravelWithCurrency> travelsWithCurrency = travels.stream()
+            .map(travel -> {
+                // 해당 travel의 첫 번째 receipt의 통화 가져오기
+                List<Receipt> receipts = receiptService.getReceiptsByTravel(travel);
+                String currency = receipts.stream()
+                    .filter(r -> r.getCurrency() != null && !r.getCurrency().isEmpty())
+                    .map(Receipt::getCurrency)
+                    .findFirst()
+                    .orElse("KRW"); // 기본값
+                
+                return new TravelWithCurrency(travel, currency);
+            })
+            .collect(Collectors.toList());
+        
+        model.addAttribute("travels", travelsWithCurrency);
         return "post/create";
     }
 
@@ -203,5 +223,19 @@ public class PostController {
             postLikeService.like(post, user);
             return "liked"; // 추가 성공 응답
         }
+    }
+    
+    // Travel과 통화 정보를 함께 담는 내부 클래스
+    public static class TravelWithCurrency {
+        private final Travel travel;
+        private final String currency;
+        
+        public TravelWithCurrency(Travel travel, String currency) {
+            this.travel = travel;
+            this.currency = currency;
+        }
+        
+        public Travel getTravel() { return travel; }
+        public String getCurrency() { return currency; }
     }
 }
