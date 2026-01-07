@@ -215,15 +215,16 @@
 
         <div class="form-group">
             <label class="form-label" for="paidAt">결제일</label>
-            <input type="datetime-local" id="paidAt" name="paidAt" class="form-input" 
-                   th:value="${receipt.paidAt != null ? #temporals.format(receipt.paidAt, 'yyyy-MM-dd\'T\'HH:mm') : ''}" required>
+            <input type="datetime-local" id="paidAt" name="paidAt" class="form-input"
+                   th:value="${receipt.paidAt != null ? (#temporals.format(receipt.paidAt, 'yyyy-MM-dd') + 'T' + #temporals.format(receipt.paidAt, 'HH:mm')) : ''}" required>
+<!--                   th:value="${receipt.paidAt != null ? #temporals.format(receipt.paidAt, 'yyyy-MM-dd\'T\'HH:mm') : ''}" required>-->
         </div>
 
-        <div class="form-group">
-            <label class="form-label" for="category">카테고리</label>
-            <input type="text" id="category" name="category" class="form-input" 
-                   th:value="${receipt.category}" placeholder="식비, 교통비, 숙박비 등">
-        </div>
+<!--        <div class="form-group">-->
+<!--            <label class="form-label" for="category">카테고리</label>-->
+<!--            <input type="text" id="category" name="category" class="form-input" -->
+<!--                   th:value="${receipt.category}" placeholder="식비, 교통비, 숙박비 등">-->
+<!--        </div>-->
     </form>
 </main>
 
