@@ -506,7 +506,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
         </svg>
-        <span class="location-text" th:text="${post.travel.city}">위치</span>
+        <span class="location-text"
+              th:text="${post.travel.receipts != null and post.travel.receipts.size() > 0
+               ? post.travel.receipts[0].storeName
+               : post.travel.city}">위치</span>
     </div>
 
     <!-- 영수증 카드 2 (두 번째 영수증, 있으면) -->
