@@ -13,7 +13,10 @@ import com.example.retripbackend.receipt.entity.Receipt;
 import com.example.retripbackend.receipt.service.ReceiptService;
 import com.example.retripbackend.user.entity.User;
 import com.example.retripbackend.user.service.CustomUserDetailsService;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -93,7 +96,25 @@ public class PostController {
         @RequestParam Long travelId, Model model) {
         if (userDetails == null) return "redirect:/login";
         Travel travel = travelService.getTravelById(travelId);
+
+        // 1. 해당 여행의 영수증 조회
+        List<Receipt> receipts = receiptService.getReceiptsByTravel(travel);
+
+        // 2. 지도에 사용할 좌표 데이터 생성
+        List<Map<String, Object>> locations = receipts.stream()
+                .filter(r -> r.getLatitude() != null && r.getLongitude() != null)
+                .map(r -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("lat", r.getLatitude());
+                    map.put("lng", r.getLongitude());
+                    map.put("title", r.getStoreName());
+                    return map;
+                })
+                .collect(Collectors.toList());
+
+        // 3. model에 추가
         model.addAttribute("travel", travel);
+        model.addAttribute("locations", locations);
         model.addAttribute("googleMapApiKey", googleMapApiKey);
         model.addAttribute("username", userDetails.getUser().getName());
         return "post/detail";
