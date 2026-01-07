@@ -500,11 +500,48 @@
 </main>
 
 <script async defer th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}"></script>
-<script>
+<script th:inline="javascript">
     let selectedFiles = [];
     let isDragging = false;
     let startX = 0;
     let scrollLeft = 0;
+
+    function initMap() {
+        const locations = [[${locations}]];
+
+        if (!locations || locations.length === 0) {
+        console.warn("영수증 위치 데이터가 없습니다.");
+        return;
+        }
+
+        const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 13,
+        center: {
+        lat: locations[0].lat,
+        lng: locations[0].lng
+        },
+
+        mapTypeControl: false,
+        streetViewControl: false
+        });
+
+        locations.forEach(loc => {
+        const marker = new google.maps.Marker({
+        position: { lat: loc.lat, lng: loc.lng },
+        map: map,
+        title: loc.title,
+        animation: google.maps.Animation.DROP
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+        content: `<div style="padding:6px;font-weight:500;">${loc.title}</div>`
+        });
+
+        marker.addListener("click", () => {
+        infoWindow.open(map, marker);
+        });
+        });
+    }
 
     function handleFileSelect(event) {
         const files = Array.from(event.target.files);
@@ -645,16 +682,6 @@
         const fileInput = document.getElementById('fileInput');
         fileInput.files = dataTransfer.files;
     });
-
-    function initMap() {
-        const center = { lat: 37.5665, lng: 126.9780 };
-        const map = new google.maps.Map(document.getElementById('map'), {
-            zoom: 13,
-            center: center,
-            mapTypeControl: false,
-            streetViewControl: false
-        });
-    }
 </script>
 </body>
 </html>
