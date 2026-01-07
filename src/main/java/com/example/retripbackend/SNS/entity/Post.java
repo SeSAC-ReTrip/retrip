@@ -2,16 +2,7 @@ package com.example.retripbackend.SNS.entity;
 
 import com.example.retripbackend.baseEntity.BaseEntity;
 import com.example.retripbackend.user.entity.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -55,10 +46,9 @@ public class Post extends BaseEntity {
     @Column(length = 500)
     private String imageUrl; // 썸네일 (첫 번째 이미지)
 
-    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostImage> images = new ArrayList<>();
 
-    // 빌더 패턴 적용 (기본값이 0인 필드들은 제외하고 생성자에 포함)
     @Builder
     public Post(User author, Travel travel, String title, String content, String imageUrl) {
         this.author = author;
@@ -68,10 +58,14 @@ public class Post extends BaseEntity {
         this.imageUrl = imageUrl;
     }
 
-    // 비즈니스 메서드
     public void update(String title, String content) {
         if (title != null && !title.isBlank()) this.title = title;
         if (content != null) this.content = content;
+    }
+
+    // 썸네일 갱신을 위한 메서드 추가
+    public void updateThumbnail(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public void incrementLikeCount() { this.likeCount++; }

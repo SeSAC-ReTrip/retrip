@@ -374,10 +374,37 @@
             background: #fff;
         }
 
+        /* 등록 버튼 스타일 추가 */
+        .comment-submit-btn {
+            margin-top: 12px;
+            padding: 10px 20px;
+            background-color: #9AE19C;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            float: right;
+        }
+
+        .comment-submit-btn:hover {
+            background-color: #7bc97d;
+        }
+
+        /* float 해제 */
+        .comment-input-wrapper::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
         .comments-list {
             display: flex;
             flex-direction: column;
             gap: 12px;
+            margin-top: 20px;
         }
 
         .comment-item {
@@ -415,7 +442,6 @@
     </style>
 </head>
 <body>
-<!-- Header -->
 <header class="header">
     <button class="back-btn" onclick="history.back()">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -424,12 +450,10 @@
     </button>
 </header>
 
-<!-- Main Content -->
 <main class="main-content">
     <div class="post-header">
         <div class="post-title-row">
             <h1 class="post-title" th:text="${post.title}">제목</h1>
-            <!-- 수정 버튼 (작성자만 표시) -->
             <button class="edit-btn"
                     th:if="${isAuthor}"
                     th:onclick="'location.href=\'/posts/' + ${post.postId} + '/edit\''">
@@ -468,7 +492,6 @@
         </div>
     </div>
 
-    <!-- 영수증 카드 1 (첫 번째 영수증) -->
     <div class="receipt-card" th:if="${post.travel.receipts != null and post.travel.receipts.size() > 0}" th:with="receipt=${post.travel.receipts[0]}">
         <div class="receipt-header">영수증 내용</div>
         <div class="receipt-info">
@@ -478,7 +501,6 @@
         </div>
     </div>
 
-    <!-- 이미지 표시 영역 (슬라이더) -->
     <div th:if="${images != null and !images.empty}" class="image-slider-container" style="margin-bottom: 20px;">
         <button class="slider-nav prev" onclick="slideImage(-1)">‹</button>
         <div class="image-slider" id="contentImageSlider">
@@ -512,7 +534,6 @@
                : post.travel.city}">위치</span>
     </div>
 
-    <!-- 영수증 카드 2 (두 번째 영수증, 있으면) -->
     <div class="receipt-card" th:if="${post.travel.receipts != null and post.travel.receipts.size() > 1}" th:with="receipt=${post.travel.receipts[1]}">
         <div class="receipt-header">영수증 내용</div>
         <div class="receipt-info">
@@ -530,7 +551,6 @@
         </div>
     </div>
 
-    <!-- 지도 섹션 -->
     <section class="map-section">
         <h3 class="section-header">지도</h3>
         <div class="map-container">
@@ -538,13 +558,12 @@
         </div>
     </section>
 
-    <!-- 댓글 섹션 -->
     <section class="comments-section">
         <h3 class="section-header">댓글</h3>
         <div class="comment-input-wrapper">
             <form th:action="@{/posts/{id}/comments(id=${post.postId})}" method="post">
                 <textarea class="comment-input" name="content" placeholder="댓글을 입력하세요..." required></textarea>
-                <button type="submit" style="display:none;"></button>
+                <button type="submit" class="comment-submit-btn">등록</button>
             </form>
         </div>
         <div class="comments-list">
@@ -557,7 +576,6 @@
     </section>
 </main>
 
-<!-- Google Maps API -->
 <script async defer th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}"></script>
 <script th:inline="javascript">
     /* initMap을 전역에 명시적으로 등록 */
@@ -628,37 +646,37 @@
         });
     }
 
-        // 이미지 슬라이더 네비게이션
-        function slideImage(direction) {
-            const slider = document.getElementById('contentImageSlider');
-            if (!slider) return;
-            
-            const slideWidth = slider.offsetWidth;
-            const currentScroll = slider.scrollLeft;
-            const targetScroll = currentScroll + (slideWidth * direction);
-            
-            slider.scrollTo({
-                left: targetScroll,
-                behavior: 'smooth'
-            });
+    // 이미지 슬라이더 네비게이션
+    function slideImage(direction) {
+        const slider = document.getElementById('contentImageSlider');
+        if (!slider) return;
+
+        const slideWidth = slider.offsetWidth;
+        const currentScroll = slider.scrollLeft;
+        const targetScroll = currentScroll + (slideWidth * direction);
+
+        slider.scrollTo({
+            left: targetScroll,
+            behavior: 'smooth'
+        });
+    }
+
+    // 슬라이더 스크롤 이벤트로 버튼 상태 업데이트
+    const slider = document.getElementById('contentImageSlider');
+    if (slider) {
+        const prevBtn = document.querySelector('.slider-nav.prev');
+        const nextBtn = document.querySelector('.slider-nav.next');
+
+        function updateNavButtons() {
+            if (prevBtn && nextBtn) {
+                prevBtn.disabled = slider.scrollLeft <= 0;
+                nextBtn.disabled = slider.scrollLeft >= slider.scrollWidth - slider.offsetWidth - 10;
+            }
         }
 
-        // 슬라이더 스크롤 이벤트로 버튼 상태 업데이트
-        const slider = document.getElementById('contentImageSlider');
-        if (slider) {
-            const prevBtn = document.querySelector('.slider-nav.prev');
-            const nextBtn = document.querySelector('.slider-nav.next');
-            
-            function updateNavButtons() {
-                if (prevBtn && nextBtn) {
-                    prevBtn.disabled = slider.scrollLeft <= 0;
-                    nextBtn.disabled = slider.scrollLeft >= slider.scrollWidth - slider.offsetWidth - 10;
-                }
-            }
-            
-            slider.addEventListener('scroll', updateNavButtons);
-            updateNavButtons(); // 초기 상태 설정
-        }
-    </script>
+        slider.addEventListener('scroll', updateNavButtons);
+        updateNavButtons(); // 초기 상태 설정
+    }
+</script>
 </body>
 </html>

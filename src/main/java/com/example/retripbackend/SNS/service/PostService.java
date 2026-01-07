@@ -5,7 +5,6 @@ import com.example.retripbackend.SNS.entity.PostImage;
 import com.example.retripbackend.SNS.entity.Travel;
 import com.example.retripbackend.SNS.repository.PostImageRepository;
 import com.example.retripbackend.SNS.repository.PostRepository;
-import com.example.retripbackend.SNS.service.FileStorageService;
 import com.example.retripbackend.user.entity.User;
 import java.io.IOException;
 import java.util.List;
@@ -27,86 +26,70 @@ public class PostService {
     private final PostImageRepository postImageRepository;
     private final FileStorageService fileStorageService;
 
-    // 게시글 피드 조회 (최신순)
+    /**
+     * [에러 해결] UserController에서 호출하는 사용자 게시글 목록 조회
+     */
+    public Page<Post> getUserPosts(User user, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return postRepository.findByAuthor(user, pageable);
+    }
+
     public Page<Post> getLatestPosts(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return postRepository.findAllByOrderByCreatedAtDesc(pageable);
     }
 
-    // 게시글 피드 조회 (추천순)
     public Page<Post> getRecommendedPosts(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return postRepository.findAllByOrderByLikeCountDescCreatedAtDesc(pageable);
     }
 
-    // 게시글 상세 조회
     @Transactional
     public Post getPostById(Long postId) {
         Post post = postRepository.findById(postId)
             .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
-
-        // 조회수 증가
         post.incrementViewCount();
-
         return post;
     }
 
-    // 게시글의 이미지 목록 조회
     public List<PostImage> getPostImages(Post post) {
         return postImageRepository.findByPostOrderByDisplayOrderAsc(post);
     }
 
-    // 특정 사용자의 게시글 목록
-    public Page<Post> getUserPosts(User user, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return postRepository.findByAuthorOrderByCreatedAtDesc(user, pageable);
-    }
-
-    // 특정 여행의 게시글 목록
-    public List<Post> getTravelPosts(Long travelId) {
-        return postRepository.findByTravelId(travelId);
-    }
-
-    // 게시글 작성 (빌더 패턴 적용)
     @Transactional
     public Post createPost(User author, Travel travel, String title, String content, MultipartFile[] images) throws IOException {
-        // 이미지 저장
         List<String> imageUrls = null;
         String thumbnailUrl = null;
-        
-        if (images != null && images.length > 0) {
+
+        if (images != null && images.length > 0 && !images[0].isEmpty()) {
             imageUrls = fileStorageService.saveFiles(images);
             thumbnailUrl = fileStorageService.getThumbnailUrl(imageUrls);
         }
-        
+
         Post post = Post.builder()
             .author(author)
             .travel(travel)
             .title(title)
             .content(content)
-            .imageUrl(thumbnailUrl) // 첫 번째 이미지를 썸네일로
+            .imageUrl(thumbnailUrl)
             .build();
-        
+
         post = postRepository.save(post);
-        
-        // PostImage 엔티티들 저장
-        if (imageUrls != null && !imageUrls.isEmpty()) {
+
+        if (imageUrls != null) {
             for (int i = 0; i < imageUrls.size(); i++) {
-                PostImage postImage = PostImage.builder()
+                postImageRepository.save(PostImage.builder()
                     .post(post)
                     .imageUrl(imageUrls.get(i))
                     .displayOrder(i)
-                    .build();
-                postImageRepository.save(postImage);
+                    .build());
             }
         }
-        
         return post;
     }
 
-    // 게시글 수정
     @Transactional
-    public void updatePost(Long postId, String title, String content, User currentUser) {
+    public void updatePost(Long postId, String title, String content, MultipartFile[] newImages, List<String> removedImageUrls, User currentUser) throws IOException {
         Post post = postRepository.findById(postId)
             .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
 
@@ -114,33 +97,58 @@ public class PostService {
             throw new RuntimeException("수정 권한이 없습니다.");
         }
 
+        // 1. 기존 이미지 중 삭제된 것 처리
+        if (removedImageUrls != null && !removedImageUrls.isEmpty()) {
+            for (String url : removedImageUrls) {
+                postImageRepository.deleteByImageUrlAndPost(url, post);
+                fileStorageService.deleteFile(url);
+            }
+        }
+
+        // 2. 새로운 이미지 추가 저장
+        if (newImages != null && newImages.length > 0 && !newImages[0].isEmpty()) {
+            List<String> newUrls = fileStorageService.saveFiles(newImages);
+            int lastOrder = postImageRepository.findMaxDisplayOrderByPost(post).orElse(-1);
+            for (int i = 0; i < newUrls.size(); i++) {
+                postImageRepository.save(PostImage.builder()
+                    .post(post)
+                    .imageUrl(newUrls.get(i))
+                    .displayOrder(lastOrder + 1 + i)
+                    .build());
+            }
+        }
+
+        // 3. 텍스트 정보 업데이트
         post.update(title, content);
+
+        // 4. 썸네일 재설정
+        List<PostImage> remainingImages = postImageRepository.findByPostOrderByDisplayOrderAsc(post);
+        if (!remainingImages.isEmpty()) {
+            post.updateThumbnail(remainingImages.get(0).getImageUrl());
+        } else {
+            post.updateThumbnail(null);
+        }
     }
 
-    // 게시글 삭제
     @Transactional
     public void deletePost(Post post) {
+        List<PostImage> images = postImageRepository.findByPostOrderByDisplayOrderAsc(post);
+        for (PostImage img : images) {
+            fileStorageService.deleteFile(img.getImageUrl());
+        }
         postRepository.delete(post);
     }
 
-    // 도시별 게시글 조회
     public Page<Post> getPostsByCity(String city, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return postRepository.findByCityOrderByCreatedAtDesc(city, pageable);
     }
 
-    // ========== 검색 기능을 위한 새 메서드들 ==========
-
-
-    // 도시명으로 게시물 검색 (부분 일치)
-     //SearchController의 검색 결과 표시에 사용
     public Page<Post> searchPostsByCity(String cityKeyword, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return postRepository.findByTravel_CityContainingIgnoreCase(cityKeyword, pageable);
     }
 
-
-     // 게시물이 많은 도시 상위 N개 조회
     public List<String> getTopCitiesByPostCount(int limit) {
         Pageable pageable = PageRequest.of(0, limit);
         return postRepository.findTopCitiesByPostCount(pageable);
