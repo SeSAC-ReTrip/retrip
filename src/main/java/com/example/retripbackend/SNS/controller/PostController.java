@@ -68,7 +68,7 @@ public class PostController {
     public String createPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails, Model model) {
         if (userDetails == null) return "redirect:/login";
         List<Travel> travels = travelService.getUserTravels(userDetails.getUser());
-        
+
         // Travel과 통화 정보를 함께 담는 리스트 생성
         List<TravelWithCurrency> travelsWithCurrency = travels.stream()
             .map(travel -> {
@@ -79,11 +79,11 @@ public class PostController {
                     .map(Receipt::getCurrency)
                     .findFirst()
                     .orElse("KRW"); // 기본값
-                
+
                 return new TravelWithCurrency(travel, currency);
             })
             .collect(Collectors.toList());
-        
+
         model.addAttribute("travels", travelsWithCurrency);
         return "post/create";
     }
@@ -205,7 +205,6 @@ public class PostController {
         return "redirect:/home";
     }
 
-
     // 좋아요 기능
     @ResponseBody
     @PostMapping("/posts/{postId}/like")
@@ -224,17 +223,31 @@ public class PostController {
             return "liked"; // 추가 성공 응답
         }
     }
-    
+
+    // [추가] 상세 페이지 내 댓글 등록 처리
+    @PostMapping("/posts/{postId}/comments")
+    public String addComment(@PathVariable Long postId,
+        @RequestParam String content,
+        @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails) {
+        if (userDetails == null) return "redirect:/login";
+
+        Post post = postService.getPostById(postId);
+        commentService.createComment(post, userDetails.getUser(), content);
+
+        // 등록 후 상세 페이지로 리다이렉트 (404 방지)
+        return "redirect:/posts/" + postId;
+    }
+
     // Travel과 통화 정보를 함께 담는 내부 클래스
     public static class TravelWithCurrency {
         private final Travel travel;
         private final String currency;
-        
+
         public TravelWithCurrency(Travel travel, String currency) {
             this.travel = travel;
             this.currency = currency;
         }
-        
+
         public Travel getTravel() { return travel; }
         public String getCurrency() { return currency; }
     }
