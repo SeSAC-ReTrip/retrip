@@ -560,20 +560,21 @@
 <!-- Google Maps API -->
 <script async defer th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}"></script>
 <script th:inline="javascript">
-    /* initMap을 전역에 명시적으로 등록 */
     window.initMap = function () {
 
         let center = { lat: 37.5665, lng: 126.9780 };
-        const locations = [];
+        let locations = [];
 
         /*[# th:each="receipt : ${post.travel.receipts}"]*/
-        /*[# th:if="${receipt.latitude != null and receipt.longitude != null}"]*/
-        locations.push({
-            lat: [[${receipt.latitude}]],
-            lng: [[${receipt.longitude}]],
-            title: '[[${receipt.storeName}]]'
-        });
-        /*[/]*/
+        if (/*[[${receipt.latitude}]]*/ null !== null &&
+            /*[[${receipt.longitude}]]*/ null !== null) {
+
+            locations.push({
+                lat: /*[[${receipt.latitude}]]*/ 0,
+                lng: /*[[${receipt.longitude}]]*/ 0,
+                title: /*[[${#strings.escapeJavaScript(receipt.storeName)}]]*/ ""
+            });
+        }
         /*[/]*/
 
         if (locations.length > 0) {
@@ -585,48 +586,19 @@
 
         const map = new google.maps.Map(document.getElementById("map"), {
             zoom: 13,
-            center: center,
-            mapTypeControl: false,
-            streetViewControl: false,
-            styles: [
-                {
-                    featureType: "all",
-                    elementType: "geometry",
-                    stylers: [{ saturation: -20 }]
-                }
-            ]
+            center: center
         });
 
         locations.forEach(location => {
-            const marker = new google.maps.Marker({
+            new google.maps.Marker({
                 position: { lat: location.lat, lng: location.lng },
                 map: map,
-                title: location.title,
-                icon: {
-                    path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
-                    fillColor: "#E74C3C",
-                    fillOpacity: 1,
-                    strokeColor: "#fff",
-                    strokeWeight: 2,
-                    scale: 1.5,
-                    anchor: new google.maps.Point(12, 24)
-                },
-                animation: google.maps.Animation.DROP
-            });
-
-            const infoWindow = new google.maps.InfoWindow({
-                content: `
-                    <div style="padding:8px;color:#3D4A3C;font-weight:500;">
-                        ${location.title}
-                    </div>
-                `
-            });
-
-            marker.addListener("click", () => {
-                infoWindow.open(map, marker);
+                title: location.title
             });
         });
     }
+
+
 
         // 이미지 슬라이더 네비게이션
         function slideImage(direction) {
