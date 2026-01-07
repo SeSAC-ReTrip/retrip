@@ -3,6 +3,7 @@ package com.example.retripbackend.receipt.service;
 import com.example.retripbackend.receipt.entity.Receipt;
 import com.example.retripbackend.receipt.repository.ReceiptRepository;
 import com.example.retripbackend.SNS.entity.Travel;
+import com.example.retripbackend.SNS.repository.TravelRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReceiptService {
 
     private final ReceiptRepository receiptRepository;
+    private final TravelRepository travelRepository;
 
     /**
      * 특정 여행의 영수증 목록 조회
@@ -34,6 +36,43 @@ public class ReceiptService {
      */
     public List<Receipt> getReceiptsByTravel(Travel travel) {
         return receiptRepository.findByTravelOrderByPaidAtDesc(travel);
+    }
+
+    /**
+     * ID로 영수증 조회
+     */
+    public Receipt findById(Long receiptId) {
+        return receiptRepository.findById(receiptId)
+            .orElseThrow(() -> new IllegalArgumentException("영수증을 찾을 수 없습니다: receiptId=" + receiptId));
+    }
+
+    /**
+     * ID로 영수증 조회 (Travel 포함)
+     * LAZY 로딩 문제를 해결하기 위해 Travel을 함께 조회
+     */
+    public Receipt findByIdWithTravel(Long receiptId) {
+        // 먼저 JPQL 쿼리 시도
+        return receiptRepository.findByIdWithTravelAndUser(receiptId)
+            .orElseGet(() -> {
+                // 실패 시 EntityGraph 사용
+                return receiptRepository.findWithTravelByReceiptId(receiptId)
+                    .orElseThrow(() -> new IllegalArgumentException("영수증을 찾을 수 없습니다: receiptId=" + receiptId));
+            });
+    }
+
+    /**
+     * 영수증 정보 수정
+     */
+    @Transactional
+    public void updateReceipt(Receipt receipt, String storeName, Integer amount, LocalDateTime paidAt,
+        String category, String address, String currency) {
+        receipt.updateReceiptInfo(storeName, amount, paidAt, category, address, currency);
+        receiptRepository.save(receipt);
+        log.info("영수증 수정 완료: receiptId={}, storeName={}, amount={}", 
+            receipt.getReceiptId(), receipt.getStoreName(), receipt.getAmount());
+        
+        // Travel의 totalAmount 업데이트
+        updateTravelTotalAmount(receipt.getTravel().getTravelId());
     }
 
     /**
@@ -119,7 +158,23 @@ public class ReceiptService {
         log.info("영수증 저장 완료: receiptId={}, storeName={}, amount={}, currency={}, address={}", 
             savedReceipt.getReceiptId(), storeName, amount, currency, address);
         
+        // Travel의 totalAmount 업데이트
+        updateTravelTotalAmount(travel.getTravelId());
+        
         return savedReceipt;
+    }
+    
+    /**
+     * Travel의 totalAmount를 해당 여행의 모든 영수증 amount 합계로 업데이트
+     */
+    @Transactional
+    public void updateTravelTotalAmount(Long travelId) {
+        int totalAmount = receiptRepository.sumAmountByTravelId(travelId);
+        Travel travel = travelRepository.findById(travelId)
+            .orElseThrow(() -> new IllegalArgumentException("여행을 찾을 수 없습니다: travelId=" + travelId));
+        travel.updateTotalAmount(totalAmount);
+        travelRepository.save(travel);
+        log.info("Travel totalAmount 업데이트: travelId={}, totalAmount={}", travelId, totalAmount);
     }
 
     /**

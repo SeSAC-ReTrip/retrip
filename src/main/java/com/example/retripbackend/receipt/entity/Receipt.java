@@ -80,6 +80,29 @@ public class Receipt extends BaseEntity {
     public void updateDescription(String description) {
         this.description = description;
     }
+
+    // 영수증 정보 수정
+    public void updateReceiptInfo(String storeName, Integer amount, LocalDateTime paidAt,
+        String category, String address, String currency) {
+        if (storeName != null && !storeName.trim().isEmpty()) {
+            this.storeName = storeName;
+        }
+        if (amount != null) {
+            this.amount = amount;
+        }
+        if (paidAt != null) {
+            this.paidAt = paidAt;
+        }
+        if (category != null) {
+            this.category = category;
+        }
+        if (address != null) {
+            this.address = address;
+        }
+        if (currency != null) {
+            this.currency = currency;
+        }
+    }
 }
 
 

@@ -139,8 +139,53 @@ public class UserController {
 
     // 가계부 페이지
     @GetMapping("/me/account")
-    public String myAccount() {
+    public String myAccount(
+        @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        Model model) {
+        User user = userDetails.getUser();
+        
+        // 사용자의 모든 Travel 목록 조회
+        List<Travel> travels = travelService.getUserTravels(user);
+        
+        // 각 Travel의 총 경비 계산
+        List<TravelWithTotalAmount> travelsWithAmount = travels.stream()
+            .map(travel -> {
+                List<Receipt> receipts = receiptService.getReceiptsByTravel(travel);
+                int totalAmount = receipts.stream()
+                    .mapToInt(Receipt::getAmount)
+                    .sum();
+                
+                // 통화 결정
+                String currency = receipts.stream()
+                    .filter(r -> r.getCurrency() != null && !r.getCurrency().isEmpty())
+                    .map(Receipt::getCurrency)
+                    .findFirst()
+                    .orElse("-");
+                
+                return new TravelWithTotalAmount(travel, totalAmount, currency);
+            })
+            .collect(Collectors.toList());
+        
+        model.addAttribute("travels", travelsWithAmount);
+        
         return "profile-account/profile-account";
+    }
+    
+    // Travel과 총 경비를 함께 담는 내부 클래스
+    private static class TravelWithTotalAmount {
+        private final Travel travel;
+        private final int totalAmount;
+        private final String currency;
+        
+        public TravelWithTotalAmount(Travel travel, int totalAmount, String currency) {
+            this.travel = travel;
+            this.totalAmount = totalAmount;
+            this.currency = currency;
+        }
+        
+        public Travel getTravel() { return travel; }
+        public int getTotalAmount() { return totalAmount; }
+        public String getCurrency() { return currency; }
     }
 
     // 가계부 생성 페이지
@@ -207,6 +252,118 @@ public class UserController {
         return "profile-account/profile-account-select";
     }
 
+    // 영수증 확인 페이지
+    @GetMapping("/me/account/confirm")
+    public String confirmReceiptPage(
+        @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @RequestParam Long receiptId,
+        @RequestParam(required = false) Long travelId,
+        Model model) {
+        User user = userDetails.getUser();
+        
+        // Receipt 조회
+        Receipt receipt = receiptService.findById(receiptId);
+        
+        // 권한 체크: 본인의 Receipt인지 확인
+        if (!receipt.getTravel().isOwner(user)) {
+            log.warn("권한 없는 Receipt 접근 시도: receiptId={}, userId={}", receiptId, user.getUserId());
+            return "redirect:/users/me/account";
+        }
+        
+        // Travel 정보도 함께 전달
+        Travel travel = receipt.getTravel();
+        
+        // 같은 travelId의 모든 영수증 조회 (detail 페이지처럼)
+        List<Receipt> receipts = receiptService.getReceiptsByTravel(travel);
+        
+        model.addAttribute("receipt", receipt);  // 현재 영수증 (하위 호환성)
+        model.addAttribute("receipts", receipts);  // 모든 영수증 목록
+        model.addAttribute("travel", travel);
+        model.addAttribute("travelId", travel.getTravelId());
+        
+        return "profile-account-confirm";
+    }
+
+    // 영수증 수정 페이지
+    @GetMapping("/me/account/receipt/edit")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public String editReceiptPage(
+        @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @RequestParam Long receiptId,
+        @RequestParam(required = false) Long travelId,
+        Model model) {
+        User user = userDetails.getUser();
+        
+        try {
+            // Receipt 조회 (Travel과 Travel의 User 포함)
+            Receipt receipt = receiptService.findByIdWithTravel(receiptId);
+            
+            // 권한 체크: 본인의 Receipt인지 확인
+            // Travel의 User를 안전하게 접근
+            Travel travel = receipt.getTravel();
+            if (travel == null) {
+                log.error("Travel이 null입니다: receiptId={}", receiptId);
+                return "redirect:/users/me/account";
+            }
+            
+            // User ID 직접 비교로 권한 체크 (isOwner 메서드 대신)
+            if (!travel.getUser().getUserId().equals(user.getUserId())) {
+                log.warn("권한 없는 Receipt 수정 시도: receiptId={}, userId={}", receiptId, user.getUserId());
+                return "redirect:/users/me/account";
+            }
+            
+            model.addAttribute("receipt", receipt);
+            if (travelId != null) {
+                model.addAttribute("travelId", travelId);
+            }
+            
+            return "profile-account/receipt-edit";
+        } catch (Exception e) {
+            log.error("영수증 수정 페이지 로드 오류: receiptId={}, error={}", receiptId, e.getMessage(), e);
+            return "redirect:/users/me/account";
+        }
+    }
+
+    // 영수증 수정 처리
+    @PostMapping("/me/account/receipt/edit")
+    public String updateReceipt(
+        @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @RequestParam Long receiptId,
+        @RequestParam(required = false) String storeName,
+        @RequestParam(required = false) Integer amount,
+        @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm") java.time.LocalDateTime paidAt,
+        @RequestParam(required = false) String category,
+        @RequestParam(required = false) String address,
+        @RequestParam(required = false) String currency,
+        @RequestParam(required = false) Long travelId) {
+        User user = userDetails.getUser();
+        
+        try {
+            // Receipt 조회 (Travel과 Travel의 User 포함)
+            Receipt receipt = receiptService.findByIdWithTravel(receiptId);
+            
+            // 권한 체크: 본인의 Receipt인지 확인
+            Travel travel = receipt.getTravel();
+            if (travel == null || !travel.getUser().getUserId().equals(user.getUserId())) {
+                log.warn("권한 없는 Receipt 수정 시도: receiptId={}, userId={}", receiptId, user.getUserId());
+                return "redirect:/users/me/account";
+            }
+            
+            // Receipt 수정
+            receiptService.updateReceipt(receipt, storeName, amount, paidAt, category, address, currency);
+            
+            // 수정 후 확인 페이지로 리다이렉트
+            String redirectUrl = "/users/me/account/confirm?receiptId=" + receiptId;
+            if (travelId != null) {
+                redirectUrl += "&travelId=" + travelId;
+            }
+            return "redirect:" + redirectUrl;
+        } catch (Exception e) {
+            log.error("영수증 수정 처리 오류: receiptId={}, error={}", receiptId, e.getMessage(), e);
+            return "redirect:/users/me/account";
+        }
+    }
+
     // 가계부 상세 페이지
     @GetMapping("/me/account/detail")
     public String accountDetailPage(
@@ -260,6 +417,7 @@ public class UserController {
             
             model.addAttribute("travel", travel);
             model.addAttribute("receipts", receipts);
+            model.addAttribute("travelId", travel.getTravelId());  // travelId 추가
             
             // 페이지 헤더 정보 설정
             // 사용자가 입력한 가계부 제목을 그대로 사용
@@ -277,6 +435,9 @@ public class UserController {
             model.addAttribute("destination", "여행지");
             model.addAttribute("totalAmount", 0);
             model.addAttribute("currency", "-");
+            if (travelId != null) {
+                model.addAttribute("travelId", travelId);
+            }
         }
 
         return "profile-account/profile-account-detail";

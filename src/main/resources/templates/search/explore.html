@@ -74,6 +74,17 @@
             cursor: pointer;
             transition: all 0.2s;
             color: #5A9F5C;
+            text-decoration: none;
+        }
+
+        .filter-btn:hover {
+            background: #F5FDF5;
+            border-color: #9AE19C;
+        }
+
+        .filter-btn.active {
+            background: #E8F9E8;
+            border-color: #9AE19C;
         }
 
         .filter-btn::after {
@@ -218,8 +229,8 @@
 </section>
 
 <section class="filter-section">
-    <button class="filter-btn">최신순</button>
-    <button class="filter-btn">인기순</button>
+    <a th:href="@{/explore(sort='latest')}" class="filter-btn" th:classappend="${sort == 'latest' or sort == null} ? 'active' : ''">최신순</a>
+    <a th:href="@{/explore(sort='recommend')}" class="filter-btn" th:classappend="${sort == 'recommend'} ? 'active' : ''">인기순</a>
 </section>
 
 <main class="feed-container">
