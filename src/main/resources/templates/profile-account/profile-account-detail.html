@@ -22,6 +22,9 @@
         .header {
             padding: 16px 20px;
             border-bottom: 1px solid #E8E5DC;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .back-btn {
@@ -44,6 +47,32 @@
         .back-btn svg {
             width: 24px;
             height: 24px;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #E8E5DC;
+            background: #FEFDFB;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3D4A3C;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .header-btn:hover {
+            background: #F5F3ED;
+            border-color: #D4CFC0;
         }
 
         /* Page Header */
@@ -267,6 +296,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
     </button>
+    <div class="header-buttons">
+        <button class="header-btn">수정</button>
+        <button class="header-btn">삭제</button>
+    </div>
 </header>
 
 <!-- Page Header -->
