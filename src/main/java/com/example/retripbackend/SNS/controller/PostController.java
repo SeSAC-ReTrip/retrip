@@ -224,7 +224,9 @@ public class    PostController {
     @PostMapping("/posts/{postId}/delete")
     public String delete(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId) {
+        if (userDetails == null) return "redirect:/login";
         Post post = postService.getPostById(postId);
+        // 작성자만 삭제 가능
         if (post.isAuthor(userDetails.getUser())) {
             postService.deletePost(post);
         }
