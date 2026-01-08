@@ -480,13 +480,11 @@
 
     <!-- 이미지 표시 영역 (슬라이더) -->
     <div th:if="${images != null and !images.empty}" class="image-slider-container" style="margin-bottom: 20px;">
-        <button class="slider-nav prev" onclick="slideImage(-1)">‹</button>
         <div class="image-slider" id="contentImageSlider">
             <div class="image-slide" th:each="image : ${images}">
                 <img th:src="@{${image.imageUrl}}" alt="게시물 이미지" onerror="this.style.display='none'">
             </div>
         </div>
-        <button class="slider-nav next" onclick="slideImage(1)">›</button>
     </div>
     <div th:if="${images == null or images.empty}" class="image-box">
         <div class="image-placeholder">
