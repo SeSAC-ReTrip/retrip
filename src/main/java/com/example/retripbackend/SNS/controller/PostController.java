@@ -15,6 +15,7 @@ import com.example.retripbackend.user.entity.User;
 import com.example.retripbackend.user.service.CustomUserDetailsService;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,6 @@ public class PostController {
         model.addAttribute("posts", posts);
         model.addAttribute("sort", sort);
 
-        // 좋아요 상태 확인을 위해 postLikeService를 모델에 전달 (HTML에서 사용)
         if (userDetails != null) {
             model.addAttribute("currentUser", userDetails.getUser());
             model.addAttribute("postLikeService", postLikeService);
@@ -72,22 +72,20 @@ public class PostController {
     public String createPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails, Model model) {
         if (userDetails == null) return "redirect:/login";
         List<Travel> travels = travelService.getUserTravels(userDetails.getUser());
-        
-        // Travel과 통화 정보를 함께 담는 리스트 생성
+
         List<TravelWithCurrency> travelsWithCurrency = travels.stream()
             .map(travel -> {
-                // 해당 travel의 첫 번째 receipt의 통화 가져오기
                 List<Receipt> receipts = receiptService.getReceiptsByTravel(travel);
                 String currency = receipts.stream()
                     .filter(r -> r.getCurrency() != null && !r.getCurrency().isEmpty())
                     .map(Receipt::getCurrency)
                     .findFirst()
-                    .orElse("KRW"); // 기본값
-                
+                    .orElse("KRW");
+
                 return new TravelWithCurrency(travel, currency);
             })
             .collect(Collectors.toList());
-        
+
         model.addAttribute("travels", travelsWithCurrency);
         return "post/create";
     }
@@ -98,22 +96,19 @@ public class PostController {
         if (userDetails == null) return "redirect:/login";
         Travel travel = travelService.getTravelById(travelId);
 
-        // 1. 해당 여행의 영수증 조회
         List<Receipt> receipts = receiptService.getReceiptsByTravel(travel);
 
-        // 2. 지도에 사용할 좌표 데이터 생성
         List<Map<String, Object>> locations = receipts.stream()
-                .filter(r -> r.getLatitude() != null && r.getLongitude() != null)
-                .map(r -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("lat", r.getLatitude());
-                    map.put("lng", r.getLongitude());
-                    map.put("title", r.getStoreName());
-                    return map;
-                })
-                .collect(Collectors.toList());
+            .filter(r -> r.getLatitude() != null && r.getLongitude() != null)
+            .map(r -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("lat", r.getLatitude());
+                map.put("lng", r.getLongitude());
+                map.put("title", r.getStoreName());
+                return map;
+            })
+            .collect(Collectors.toList());
 
-        // 3. model에 추가
         model.addAttribute("travel", travel);
         model.addAttribute("locations", locations);
         model.addAttribute("googleMapApiKey", googleMapApiKey);
@@ -125,13 +120,28 @@ public class PostController {
     public String create(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @RequestParam Long travelId,
         @RequestParam String title,
-        @RequestParam String content,
-        @RequestParam(value = "images", required = false) MultipartFile[] images) {
+        @RequestParam(required = false) List<Long> receiptIds,
+        @RequestParam(required = false) List<String> receiptContents,
+        @RequestParam(value = "receiptImages[0]", required = false) MultipartFile[] receiptImages0,
+        @RequestParam(value = "receiptImages[1]", required = false) MultipartFile[] receiptImages1,
+        @RequestParam(value = "receiptImages[2]", required = false) MultipartFile[] receiptImages2,
+        @RequestParam(value = "receiptImages[3]", required = false) MultipartFile[] receiptImages3,
+        @RequestParam(value = "receiptImages[4]", required = false) MultipartFile[] receiptImages4) {
         try {
             Travel travel = travelService.getTravelById(travelId);
-            Post post = postService.createPost(userDetails.getUser(), travel, title, content, images);
+
+            List<MultipartFile[]> receiptImagesList = new ArrayList<>();
+            if (receiptImages0 != null) receiptImagesList.add(receiptImages0);
+            if (receiptImages1 != null) receiptImagesList.add(receiptImages1);
+            if (receiptImages2 != null) receiptImagesList.add(receiptImages2);
+            if (receiptImages3 != null) receiptImagesList.add(receiptImages3);
+            if (receiptImages4 != null) receiptImagesList.add(receiptImages4);
+
+            Post post = postService.createPostWithReceipts(userDetails.getUser(), travel, title,
+                receiptIds, receiptContents, receiptImagesList);
             return "redirect:/posts/upload/complete?postId=" + post.getPostId();
         } catch (Exception e) {
+            e.printStackTrace();
             return "redirect:/posts/detail?travelId=" + travelId + "&error=" + e.getMessage();
         }
     }
@@ -148,11 +158,20 @@ public class PostController {
         User currentUser = (userDetails != null) ? userDetails.getUser() : null;
         Post post = postService.getPostById(postId);
         List<Comment> comments = commentService.getPostComments(post);
-        List<com.example.retripbackend.SNS.entity.PostImage> images = postService.getPostImages(post);
+        List<PostImage> images = postService.getPostImages(post);
+
+        Map<Integer, List<PostImage>> imagesByReceipt = new HashMap<>();
+        for (PostImage image : images) {
+            Integer receiptIndex = image.getReceiptIndex();
+            if (receiptIndex != null) {
+                imagesByReceipt.computeIfAbsent(receiptIndex, k -> new ArrayList<>()).add(image);
+            }
+        }
 
         model.addAttribute("post", post);
         model.addAttribute("comments", comments);
         model.addAttribute("images", images);
+        model.addAttribute("imagesByReceipt", imagesByReceipt);
         model.addAttribute("isLiked", (currentUser != null) && postLikeService.isLiked(post, currentUser));
         model.addAttribute("isAuthor", (currentUser != null) && post.isAuthor(currentUser));
         model.addAttribute("googleMapApiKey", googleMapApiKey);
@@ -160,13 +179,11 @@ public class PostController {
         return "post/content";
     }
 
-    // 게시물 상세 페이지 - content로 리다이렉트
     @GetMapping("/posts/{postId}")
     public String detail(@PathVariable Long postId) {
         return "redirect:/posts/" + postId + "/content";
     }
 
-    // 게시물 수정 페이지 (detail 페이지 재사용)
     @GetMapping("/posts/{postId}/edit")
     public String editPage(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
@@ -175,22 +192,32 @@ public class PostController {
 
         Post post = postService.getPostById(postId);
 
-        // 작성자만 수정 가능
         if (!post.isAuthor(userDetails.getUser())) {
             return "redirect:/posts/" + postId;
         }
 
         Travel travel = post.getTravel();
-
-        // 게시물의 이미지 목록 조회 추가
         List<PostImage> images = postService.getPostImages(post);
+        List<Receipt> receipts = receiptService.getReceiptsByTravel(travel);
+
+        List<Map<String, Object>> locations = receipts.stream()
+            .filter(r -> r.getLatitude() != null && r.getLongitude() != null)
+            .map(r -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("lat", r.getLatitude());
+                map.put("lng", r.getLongitude());
+                map.put("title", r.getStoreName());
+                return map;
+            })
+            .collect(Collectors.toList());
 
         model.addAttribute("travel", travel);
         model.addAttribute("post", post);
-        model.addAttribute("images", images);  // 이미지 추가
+        model.addAttribute("images", images);
+        model.addAttribute("locations", locations);
         model.addAttribute("googleMapApiKey", googleMapApiKey);
         model.addAttribute("username", userDetails.getUser().getName());
-        model.addAttribute("isEdit", true);  // 수정 모드 플래그
+        model.addAttribute("isEdit", true);
 
         return "post/detail";
     }
@@ -199,10 +226,23 @@ public class PostController {
     public String edit(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
         @RequestParam String title,
-        @RequestParam String content,
-        @RequestParam(value = "images", required = false) MultipartFile[] images) {  // 이미지 파라미터 추가
+        @RequestParam(required = false) List<Long> receiptIds,
+        @RequestParam(required = false) List<String> receiptContents,
+        @RequestParam(value = "receiptImages[0]", required = false) MultipartFile[] receiptImages0,
+        @RequestParam(value = "receiptImages[1]", required = false) MultipartFile[] receiptImages1,
+        @RequestParam(value = "receiptImages[2]", required = false) MultipartFile[] receiptImages2,
+        @RequestParam(value = "receiptImages[3]", required = false) MultipartFile[] receiptImages3,
+        @RequestParam(value = "receiptImages[4]", required = false) MultipartFile[] receiptImages4) {
         try {
-            postService.updatePost(postId, title, content, userDetails.getUser(), images);  // images 전달
+            List<MultipartFile[]> receiptImagesList = new ArrayList<>();
+            if (receiptImages0 != null) receiptImagesList.add(receiptImages0);
+            if (receiptImages1 != null) receiptImagesList.add(receiptImages1);
+            if (receiptImages2 != null) receiptImagesList.add(receiptImages2);
+            if (receiptImages3 != null) receiptImagesList.add(receiptImages3);
+            if (receiptImages4 != null) receiptImagesList.add(receiptImages4);
+
+            postService.updatePostWithReceipts(postId, title, userDetails.getUser(),
+                receiptIds, receiptContents, receiptImagesList);
         } catch (RuntimeException e) {
             return "redirect:/posts/" + postId + "?error=unauthorized";
         } catch (IOException e) {
@@ -221,8 +261,6 @@ public class PostController {
         return "redirect:/home";
     }
 
-
-    // 좋아요 기능
     @ResponseBody
     @PostMapping("/posts/{postId}/like")
     public String toggleLike(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
@@ -234,23 +272,22 @@ public class PostController {
 
         if (postLikeService.isLiked(post, user)) {
             postLikeService.unlike(post, user);
-            return "unliked"; // 취소 성공 응답
+            return "unliked";
         } else {
             postLikeService.like(post, user);
-            return "liked"; // 추가 성공 응답
+            return "liked";
         }
     }
-    
-    // Travel과 통화 정보를 함께 담는 내부 클래스
+
     public static class TravelWithCurrency {
         private final Travel travel;
         private final String currency;
-        
+
         public TravelWithCurrency(Travel travel, String currency) {
             this.travel = travel;
             this.currency = currency;
         }
-        
+
         public Travel getTravel() { return travel; }
         public String getCurrency() { return currency; }
     }
