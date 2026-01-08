@@ -149,9 +149,21 @@ public class PostController {
         List<Comment> comments = commentService.getPostComments(post);
         List<com.example.retripbackend.SNS.entity.PostImage> images = postService.getPostImages(post);
 
+        List<Map<String, Object>> locations = post.getTravel().getReceipts().stream()
+                .filter(r -> r.getLatitude() != null && r.getLongitude() != null)
+                .map(r -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("lat", r.getLatitude());
+                    m.put("lng", r.getLongitude());
+                    m.put("title", r.getStoreName());
+                    return m;
+                })
+                .toList();
+
         model.addAttribute("post", post);
         model.addAttribute("comments", comments);
         model.addAttribute("images", images);
+        model.addAttribute("locations", locations);
         model.addAttribute("isLiked", (currentUser != null) && postLikeService.isLiked(post, currentUser));
         model.addAttribute("isAuthor", (currentUser != null) && post.isAuthor(currentUser));
         model.addAttribute("googleMapApiKey", googleMapApiKey);

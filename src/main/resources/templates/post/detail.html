@@ -425,7 +425,7 @@
         <input type="hidden" name="travelId" th:value="${travel.travelId}">
 
         <div class="post-header">
-            <input type="text" name="title" class="post-title-input" th:value="${travel.city + ' 여행 가계부'}" placeholder="제목">
+            <input type="text" name="title" class="post-title-input" th:value="${travel.title}" placeholder="제목">
             <div class="post-meta">
                 <div class="meta-item">
                     <span class="meta-label">여행지</span>
@@ -504,6 +504,7 @@
     </form>
 </main>
 
+<!-- Google Maps API -->
 <script async defer th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}"></script>
 <script th:inline="javascript">
     let selectedFiles = [];
@@ -530,6 +531,8 @@
         streetViewControl: false
         });
 
+        const bounds = new google.maps.LatLngBounds();
+
         locations.forEach(loc => {
         const marker = new google.maps.Marker({
         position: { lat: loc.lat, lng: loc.lng },
@@ -537,6 +540,8 @@
         title: loc.title,
         animation: google.maps.Animation.DROP
         });
+
+        bounds.extend(marker.getPosition());
 
         const infoWindow = new google.maps.InfoWindow({
         content: `<div style="padding:6px;font-weight:500;">${loc.title}</div>`
@@ -546,6 +551,9 @@
         infoWindow.open(map, marker);
         });
         });
+        if (locations.length > 0) {
+            map.fitBounds(bounds);
+        }
     }
 
     function handleFileSelect(event) {
