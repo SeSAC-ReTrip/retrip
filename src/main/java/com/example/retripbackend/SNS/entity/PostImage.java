@@ -35,10 +35,14 @@ public class PostImage extends BaseEntity {
     @Column(nullable = false)
     private int displayOrder; // 이미지 순서
 
+    @Column
+    private Integer receiptIndex; // 영수증 인덱스 추가
+
     @Builder
-    public PostImage(Post post, String imageUrl, int displayOrder) {
+    public PostImage(Post post, String imageUrl, int displayOrder, Integer receiptIndex) {
         this.post = post;
         this.imageUrl = imageUrl;
         this.displayOrder = displayOrder;
+        this.receiptIndex = receiptIndex;
     }
 }
