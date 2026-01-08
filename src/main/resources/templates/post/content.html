@@ -489,7 +489,7 @@
             </div>
             <div class="meta-item">
                 <span class="meta-label">총 경비</span>
-                <span class="meta-value" th:text="${post.travel.totalAmount} + '원'">총 경비</span>
+                <span class="meta-value" th:with="currency=${post.travel.receipts != null and post.travel.receipts.size() > 0 and post.travel.receipts[0].currency != null and !post.travel.receipts[0].currency.isEmpty() ? post.travel.receipts[0].currency : 'KRW'}" th:text="${post.travel.totalAmount} + ' ' + ${currency}">총 경비</span>
             </div>
             <div class="meta-item">
                 <span class="meta-label">작성자</span>
@@ -508,12 +508,12 @@
     </div>
 
     <!-- 영수증 카드 1 (첫 번째 영수증) -->
-    <div class="receipt-card" th:if="${post.travel.receipts != null and post.travel.receipts.size() > 0}" th:with="receipt=${post.travel.receipts[0]}">
+    <div class="receipt-card" th:if="${post.travel.receipts != null and post.travel.receipts.size() > 0}" th:with="receipt=${post.travel.receipts[0]}, currency=${receipt.currency != null and !receipt.currency.isEmpty() ? receipt.currency : 'KRW'}">
         <div class="receipt-header">영수증 내용</div>
         <div class="receipt-info">
             <div class="receipt-row" th:text="'장소: ' + ${receipt.storeName}">장소</div>
             <div class="receipt-row" th:text="'결제일: ' + ${#temporals.format(receipt.paidAt, 'yyyy.MM.dd HH:mm')}">결제일</div>
-            <div class="receipt-row" th:text="'결제 금액: ' + ${receipt.amount} + '원'">결제 금액</div>
+            <div class="receipt-row" th:text="'결제 금액: ' + ${receipt.amount} + ' ' + ${currency}">결제 금액</div>
         </div>
     </div>
 
@@ -552,12 +552,12 @@
     </div>
 
     <!-- 영수증 카드 2 (두 번째 영수증, 있으면) -->
-    <div class="receipt-card" th:if="${post.travel.receipts != null and post.travel.receipts.size() > 1}" th:with="receipt=${post.travel.receipts[1]}">
+    <div class="receipt-card" th:if="${post.travel.receipts != null and post.travel.receipts.size() > 1}" th:with="receipt=${post.travel.receipts[1]}, currency=${receipt.currency != null and !receipt.currency.isEmpty() ? receipt.currency : 'KRW'}">
         <div class="receipt-header">영수증 내용</div>
         <div class="receipt-info">
             <div class="receipt-row" th:text="'장소: ' + ${receipt.storeName}">장소</div>
             <div class="receipt-row" th:text="'결제일: ' + ${#temporals.format(receipt.paidAt, 'yyyy.MM.dd HH:mm')}">결제일</div>
-            <div class="receipt-row" th:text="'결제 금액: ' + ${receipt.amount} + '원'">결제 금액</div>
+            <div class="receipt-row" th:text="'결제 금액: ' + ${receipt.amount} + ' ' + ${currency}">결제 금액</div>
         </div>
     </div>
 
