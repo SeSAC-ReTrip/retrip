@@ -104,9 +104,9 @@ public class PostService {
         return post;
     }
 
-    // 게시글 수정
+    // 기존 메서드는 유지하고, 이미지 포함 버전 추가
     @Transactional
-    public void updatePost(Long postId, String title, String content, User currentUser) {
+    public void updatePost(Long postId, String title, String content, User currentUser, MultipartFile[] images) throws IOException {
         Post post = postRepository.findById(postId)
             .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
 
@@ -115,6 +115,28 @@ public class PostService {
         }
 
         post.update(title, content);
+
+        // 이미지가 새로 업로드되었으면
+        if (images != null && images.length > 0 && !images[0].isEmpty()) {
+            // 기존 이미지 삭제
+            List<PostImage> oldImages = postImageRepository.findByPostOrderByDisplayOrderAsc(post);
+            postImageRepository.deleteAll(oldImages);
+
+            // 새 이미지 저장
+            List<String> imageUrls = fileStorageService.saveFiles(images);
+            String thumbnailUrl = fileStorageService.getThumbnailUrl(imageUrls);
+            post.updateImageUrl(thumbnailUrl);
+
+            // PostImage 엔티티 저장
+            for (int i = 0; i < imageUrls.size(); i++) {
+                PostImage postImage = PostImage.builder()
+                    .post(post)
+                    .imageUrl(imageUrls.get(i))
+                    .displayOrder(i)
+                    .build();
+                postImageRepository.save(postImage);
+            }
+        }
     }
 
     // 게시글 삭제

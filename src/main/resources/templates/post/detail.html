@@ -18,7 +18,6 @@
             padding-bottom: 100px;
         }
 
-        /* Header */
         .header {
             padding: 16px 20px;
             border-bottom: 1px solid #E8E5DC;
@@ -46,14 +45,12 @@
             height: 24px;
         }
 
-        /* Main Content */
         .main-content {
             max-width: 640px;
             margin: 0 auto;
             padding: 24px 20px;
         }
 
-        /* Post Header */
         .post-header {
             margin-bottom: 24px;
         }
@@ -119,7 +116,6 @@
             color: #9AE19C;
         }
 
-        /* Receipt Card */
         .receipt-card {
             background: #F5F3ED;
             border: 1px solid #E8E5DC;
@@ -154,7 +150,6 @@
             outline: none;
         }
 
-        /* Image Box */
         .image-box {
             width: 100%;
             aspect-ratio: 4/3;
@@ -177,7 +172,6 @@
             border-color: #9AE19C;
         }
 
-        /* Image Preview Slider - inside image-box */
         .image-preview-slider {
             display: none;
             width: 100%;
@@ -279,7 +273,6 @@
             display: none;
         }
 
-        /* Content Section */
         .content-section {
             margin-bottom: 24px;
         }
@@ -311,7 +304,6 @@
             background: #fff;
         }
 
-        /* Location Section */
         .location-section {
             display: flex;
             align-items: center;
@@ -341,7 +333,6 @@
             outline: none;
         }
 
-        /* Map Section */
         .map-section {
             margin-top: 40px;
             padding-top: 32px;
@@ -370,7 +361,6 @@
             height: 100%;
         }
 
-        /* Upload Button */
         .upload-button-container {
             position: fixed;
             bottom: 20px;
@@ -403,7 +393,6 @@
             box-shadow: 0 6px 16px rgba(61, 74, 60, 0.4);
         }
 
-        /* Responsive */
         @media (max-width: 480px) {
             .post-meta {
                 grid-template-columns: 1fr;
@@ -421,11 +410,16 @@
 </header>
 
 <main class="main-content">
-    <form id="finalForm" th:action="@{/posts/create}" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="travelId" th:value="${travel.travelId}">
+    <form id="finalForm"
+          th:action="${isEdit != null and isEdit == true ? '/posts/' + post.postId + '/edit' : '/posts/create'}"
+          method="post"
+          enctype="multipart/form-data">
+        <input type="hidden" name="travelId" th:value="${travel.travelId}" th:if="${isEdit == null or isEdit == false}">
 
         <div class="post-header">
-            <input type="text" name="title" class="post-title-input" th:value="${travel.city + ' 여행 가계부'}" placeholder="제목">
+            <input type="text" name="title" class="post-title-input"
+                   th:value="${isEdit != null and isEdit == true ? post.title : travel.city + ' 여행 가계부'}"
+                   placeholder="제목">
             <div class="post-meta">
                 <div class="meta-item">
                     <span class="meta-label">여행지</span>
@@ -459,23 +453,30 @@
             </div>
         </div>
 
+        <!-- 기존 이미지 데이터를 hidden div로 전달 -->
+        <div id="existingImagesData" style="display:none;">
+            <div th:each="image : ${images}" th:attr="data-image-url=${image.imageUrl}"></div>
+        </div>
+
         <!-- 이미지 업로드 영역 -->
         <div id="imageUploadArea">
             <div class="image-box" id="imageBox">
                 <div id="imagePreviewContainer" class="image-preview-slider"></div>
-                <div class="image-placeholder" id="imagePlaceholder" onclick="document.getElementById('fileInput').click()">
+                <div class="image-placeholder" id="imagePlaceholder">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                     <p class="upload-text">사진을 선택하세요 (여러 장 가능)</p>
                 </div>
             </div>
-            <input type="file" id="fileInput" name="images" class="file-input" accept="image/*" multiple onchange="handleFileSelect(event)">
+            <input type="file" id="fileInput" name="images" class="file-input" accept="image/*" multiple>
         </div>
 
         <div class="content-section">
             <h3 class="content-title">여행 설명 및 일기</h3>
-            <textarea name="content" class="content-textarea" placeholder="여행의 추억을 기록해보세요..."></textarea>
+            <textarea name="content" class="content-textarea"
+                      th:text="${isEdit != null and isEdit == true ? post.content : ''}"
+                      placeholder="여행의 추억을 기록해보세요..."></textarea>
         </div>
 
         <div class="location-section">
@@ -499,7 +500,8 @@
         </section>
 
         <div class="upload-button-container">
-            <button type="submit" class="upload-btn">업로드 하기</button>
+            <button type="submit" class="upload-btn"
+                    th:text="${isEdit != null and isEdit == true ? '수정 완료' : '업로드 하기'}">업로드 하기</button>
         </div>
     </form>
 </main>
@@ -511,40 +513,76 @@
     let startX = 0;
     let scrollLeft = 0;
 
+    // 기존 이미지 로드
+    function loadExistingImages() {
+        const existingImagesContainer = document.getElementById('existingImagesData');
+        if (!existingImagesContainer) return;
+
+        const imageDivs = existingImagesContainer.querySelectorAll('[data-image-url]');
+        if (imageDivs.length === 0) return;
+
+        const container = document.getElementById('imagePreviewContainer');
+        const imageBox = document.getElementById('imageBox');
+        const placeholder = document.getElementById('imagePlaceholder');
+
+        imageDivs.forEach((div) => {
+            const imageUrl = div.getAttribute('data-image-url');
+            const previewItem = document.createElement('div');
+            previewItem.className = 'preview-item';
+            previewItem.innerHTML = `
+                <img src="${imageUrl}" alt="preview" draggable="false">
+                <button type="button" class="remove-btn" data-remove="true">×</button>
+            `;
+            container.appendChild(previewItem);
+
+            selectedFiles.push({
+                existing: true,
+                imageUrl: imageUrl,
+                previewElement: previewItem
+            });
+        });
+
+        imageBox.classList.add('has-images');
+        placeholder.style.display = 'none';
+
+        setTimeout(() => {
+            initSliderDrag();
+        }, 100);
+    }
+
     function initMap() {
         const locations = [[${locations}]];
 
         if (!locations || locations.length === 0) {
-        console.warn("영수증 위치 데이터가 없습니다.");
-        return;
+            console.warn("영수증 위치 데이터가 없습니다.");
+            return;
         }
 
         const map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 13,
-        center: {
-        lat: locations[0].lat,
-        lng: locations[0].lng
-        },
-
-        mapTypeControl: false,
-        streetViewControl: false
+            zoom: 13,
+            center: {
+                lat: locations[0].lat,
+                lng: locations[0].lng
+            },
+            mapTypeControl: false,
+            streetViewControl: false
         });
 
         locations.forEach(loc => {
-        const marker = new google.maps.Marker({
-        position: { lat: loc.lat, lng: loc.lng },
-        map: map,
-        title: loc.title,
-        animation: google.maps.Animation.DROP
-        });
+            const marker = new google.maps.Marker({
+                position: { lat: loc.lat, lng: loc.lng },
+                map: map,
+                title: loc.title,
+                animation: google.maps.Animation.DROP
+            });
 
-        const infoWindow = new google.maps.InfoWindow({
-        content: `<div style="padding:6px;font-weight:500;">${loc.title}</div>`
-        });
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<div style="padding:6px;font-weight:500;">${loc.title}</div>`
+            });
 
-        marker.addListener("click", () => {
-        infoWindow.open(map, marker);
-        });
+            marker.addListener("click", () => {
+                infoWindow.open(map, marker);
+            });
         });
     }
 
@@ -562,7 +600,7 @@
                     previewItem.className = 'preview-item';
                     previewItem.innerHTML = `
                         <img src="${e.target.result}" alt="preview" draggable="false">
-                        <button type="button" class="remove-btn" onclick="removeImage(this)">×</button>
+                        <button type="button" class="remove-btn" data-remove="true">×</button>
                     `;
                     container.appendChild(previewItem);
 
@@ -608,14 +646,12 @@
 
     function initSliderDrag() {
         const imageContainer = document.getElementById('imagePreviewContainer');
-
         if (!imageContainer) return;
 
         imageContainer.addEventListener('scroll', () => {
             const scrollLeft = imageContainer.scrollLeft;
             const itemWidth = imageContainer.offsetWidth;
             const currentIndex = Math.round(scrollLeft / itemWidth);
-
             imageContainer.scrollTo({
                 left: currentIndex * itemWidth,
                 behavior: 'smooth'
@@ -623,9 +659,7 @@
         });
 
         imageContainer.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.remove-btn')) {
-                return;
-            }
+            if (e.target.closest('[data-remove]')) return;
             isDragging = true;
             startX = e.pageX - imageContainer.offsetLeft;
             scrollLeft = imageContainer.scrollLeft;
@@ -655,37 +689,53 @@
         let touchScrollLeft = 0;
 
         imageContainer.addEventListener('touchstart', (e) => {
-            if (e.target.closest('.remove-btn')) {
-                return;
-            }
+            if (e.target.closest('[data-remove]')) return;
             touchStartX = e.touches[0].pageX - imageContainer.offsetLeft;
             touchScrollLeft = imageContainer.scrollLeft;
         }, { passive: true });
 
         imageContainer.addEventListener('touchmove', (e) => {
-            if (e.target.closest('.remove-btn')) {
-                return;
-            }
+            if (e.target.closest('[data-remove]')) return;
             const x = e.touches[0].pageX - imageContainer.offsetLeft;
             const walk = (x - touchStartX) * 2;
             imageContainer.scrollLeft = touchScrollLeft - walk;
         }, { passive: true });
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initSliderDrag);
-    } else {
-        initSliderDrag();
-    }
+    // 페이지 로드 시 실행
+    document.addEventListener('DOMContentLoaded', function() {
+        // 기존 이미지 로드
+        loadExistingImages();
 
-    document.getElementById('finalForm').addEventListener('submit', function(e) {
-        const dataTransfer = new DataTransfer();
-        selectedFiles.forEach(fileData => {
-            dataTransfer.items.add(fileData.file);
+        // 파일 입력 이벤트
+        const fileInput = document.getElementById('fileInput');
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // placeholder 클릭 이벤트
+        const placeholder = document.getElementById('imagePlaceholder');
+        placeholder.addEventListener('click', function() {
+            fileInput.click();
         });
 
-        const fileInput = document.getElementById('fileInput');
-        fileInput.files = dataTransfer.files;
+        // 삭제 버튼 이벤트 (이벤트 위임)
+        const container = document.getElementById('imagePreviewContainer');
+        container.addEventListener('click', function(e) {
+            if (e.target.closest('[data-remove]')) {
+                removeImage(e.target.closest('[data-remove]'));
+            }
+        });
+
+        // 폼 제출 이벤트
+        document.getElementById('finalForm').addEventListener('submit', function(e) {
+            const dataTransfer = new DataTransfer();
+            selectedFiles.forEach(fileData => {
+                if (fileData.file) {
+                    dataTransfer.items.add(fileData.file);
+                }
+            });
+            const fileInput = document.getElementById('fileInput');
+            fileInput.files = dataTransfer.files;
+        });
     });
 </script>
 </body>

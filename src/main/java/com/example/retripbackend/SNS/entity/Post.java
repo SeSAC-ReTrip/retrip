@@ -58,6 +58,10 @@ public class Post extends BaseEntity {
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     private List<PostImage> images = new ArrayList<>();
 
+    public void updateImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
     // 빌더 패턴 적용 (기본값이 0인 필드들은 제외하고 생성자에 포함)
     @Builder
     public Post(User author, Travel travel, String title, String content, String imageUrl) {

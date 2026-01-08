@@ -14,6 +14,7 @@ import com.example.retripbackend.receipt.service.ReceiptService;
 import com.example.retripbackend.user.entity.User;
 import com.example.retripbackend.user.service.CustomUserDetailsService;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -194,18 +195,19 @@ public class PostController {
         return "post/detail";
     }
 
-    // 게시물 수정 처리
     @PostMapping("/posts/{postId}/edit")
     public String edit(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
         @PathVariable Long postId,
         @RequestParam String title,
-        @RequestParam String content) {
+        @RequestParam String content,
+        @RequestParam(value = "images", required = false) MultipartFile[] images) {  // 이미지 파라미터 추가
         try {
-            postService.updatePost(postId, title, content, userDetails.getUser());
+            postService.updatePost(postId, title, content, userDetails.getUser(), images);  // images 전달
         } catch (RuntimeException e) {
             return "redirect:/posts/" + postId + "?error=unauthorized";
+        } catch (IOException e) {
+            return "redirect:/posts/" + postId + "?error=upload";
         }
-
         return "redirect:/posts/" + postId;
     }
 
