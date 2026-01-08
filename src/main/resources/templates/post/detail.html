@@ -116,38 +116,45 @@
             color: #9AE19C;
         }
 
-        .receipt-card {
+        /* 영수증 카드 스타일 */
+        .receipt-section {
             background: #F5F3ED;
             border: 1px solid #E8E5DC;
             border-radius: 12px;
             padding: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
-        .receipt-header-input {
-            width: 100%;
-            font-size: 15px;
+        .receipt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #E8E5DC;
+        }
+
+        .receipt-title {
+            font-size: 16px;
             font-weight: 600;
             color: #3D4A3C;
-            border: none;
-            background: none;
-            margin-bottom: 12px;
-            outline: none;
         }
 
-        .receipt-info {
+        .receipt-meta {
             display: flex;
             flex-direction: column;
             gap: 8px;
+            margin-bottom: 16px;
         }
 
-        .receipt-input {
+        .receipt-meta-item {
             font-size: 14px;
             color: #5A6F57;
-            border: none;
-            background: none;
-            padding: 4px 0;
-            outline: none;
+        }
+
+        .receipt-meta-label {
+            color: #A0A99D;
+            margin-right: 8px;
         }
 
         .image-box {
@@ -156,7 +163,7 @@
             background: linear-gradient(135deg, #F5F3ED 0%, #EAE7DC 100%);
             border: 2px dashed #D4CFC0;
             border-radius: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             overflow: hidden;
             position: relative;
             transition: all 0.2s;
@@ -273,6 +280,46 @@
             display: none;
         }
 
+        .receipt-textarea {
+            width: 100%;
+            min-height: 100px;
+            font-size: 14px;
+            color: #5A6F57;
+            line-height: 1.6;
+            border: 1px solid #E8E5DC;
+            border-radius: 8px;
+            padding: 12px;
+            background: #FEFDFB;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .receipt-textarea:focus {
+            border-color: #9AE19C;
+            background: #fff;
+        }
+
+        .receipt-location {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: #fff;
+            border: 1px solid #E8E5DC;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #5A6F57;
+        }
+
+        .location-icon-small {
+            width: 16px;
+            height: 16px;
+            color: #9AE19C;
+            flex-shrink: 0;
+        }
+
         .content-section {
             margin-bottom: 24px;
         }
@@ -302,35 +349,6 @@
         .content-textarea:focus {
             border-color: #9AE19C;
             background: #fff;
-        }
-
-        .location-section {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 16px;
-            background: #F5F3ED;
-            border: 1px solid #E8E5DC;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            cursor: pointer;
-        }
-
-        .location-icon {
-            width: 20px;
-            height: 20px;
-            color: #9AE19C;
-            flex-shrink: 0;
-        }
-
-        .location-input {
-            flex: 1;
-            font-size: 14px;
-            color: #5A6F57;
-            font-weight: 500;
-            border: none;
-            background: none;
-            outline: none;
         }
 
         .map-section {
@@ -445,51 +463,63 @@
             </div>
         </div>
 
-        <div class="receipt-card">
-            <div class="receipt-header-input" th:text="${travel.city + ' 여행 경비 내역'}">영수증 내용</div>
-            <div class="receipt-info">
-                <div class="receipt-input">총 지출 건수: <span th:text="${travel.receipts != null ? #lists.size(travel.receipts) : 0}">0</span>건</div>
-                <div class="receipt-input">총 금액: <span th:text="${#numbers.formatInteger(travel.totalAmount, 0, 'COMMA') + '원'}">0원</span></div>
-            </div>
-        </div>
-
         <!-- 기존 이미지 데이터를 hidden div로 전달 -->
         <div id="existingImagesData" style="display:none;">
-            <div th:each="image : ${images}" th:attr="data-image-url=${image.imageUrl}"></div>
+            <div th:each="image : ${images}"
+                 th:attr="data-image-url=${image.imageUrl},data-receipt-index=${image.receiptIndex}"></div>
         </div>
 
-        <!-- 이미지 업로드 영역 -->
-        <div id="imageUploadArea">
-            <div class="image-box" id="imageBox">
-                <div id="imagePreviewContainer" class="image-preview-slider"></div>
-                <div class="image-placeholder" id="imagePlaceholder">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        <!-- 영수증별 세션 -->
+        <div id="receiptsContainer">
+            <div th:each="receipt, stat : ${travel.receipts}" class="receipt-section" th:attr="data-receipt-index=${stat.index}">
+                <!-- 영수증 헤더 -->
+                <div class="receipt-header">
+                    <div class="receipt-title">
+                        <span th:text="${travel.city}">토요</span> 여행 경비 내역
+                    </div>
+                </div>
+
+                <!-- 영수증 메타 정보 -->
+                <div class="receipt-meta">
+                    <div class="receipt-meta-item">
+                        <span class="receipt-meta-label">장소:</span>
+                        <span th:text="${receipt.storeName != null ? receipt.storeName : '장소 미입력'}">EXIT. HAKU O CAPTAIN</span>
+                    </div>
+                    <div class="receipt-meta-item">
+                        <span class="receipt-meta-label">결제일:</span>
+                        <span th:text="${#temporals.format(receipt.paidAt, 'yyyy.MM.dd HH:mm')}">2022.11.11 20:19</span>
+                    </div>
+                    <div class="receipt-meta-item">
+                        <span class="receipt-meta-label">결제 금액:</span>
+                        <span th:text="${#numbers.formatInteger(receipt.amount, 0, 'COMMA')}">3080</span>원
+                    </div>
+                </div>
+
+                <!-- 이미지 업로드 영역 -->
+                <div class="image-box" th:id="${'imageBox_' + stat.index}">
+                    <div th:id="${'imagePreviewContainer_' + stat.index}" class="image-preview-slider"></div>
+                    <div class="image-placeholder" th:id="${'imagePlaceholder_' + stat.index}">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <p class="upload-text">사진을 선택하세요 (여러 장 가능)</p>
+                    </div>
+                </div>
+                <input type="file" th:id="${'fileInput_' + stat.index}" th:name="${'images_' + stat.index}" class="file-input" accept="image/*" multiple>
+
+                <!-- 여행 설명 및 일기 -->
+                <textarea th:id="${'content_' + stat.index}" th:name="${'content_' + stat.index}" class="receipt-textarea"
+                          placeholder></textarea>
+
+                <!-- 여행 경로 -->
+                <div class="receipt-location">
+                    <svg class="location-icon-small" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
-                    <p class="upload-text">사진을 선택하세요 (여러 장 가능)</p>
+                    <span th:text="${receipt.storeName}">EXIT. HAKU O CAPTAIN</span>
                 </div>
             </div>
-            <input type="file" id="fileInput" name="images" class="file-input" accept="image/*" multiple>
-        </div>
-
-        <div class="content-section">
-            <h3 class="content-title">여행 설명 및 일기</h3>
-            <textarea name="content" class="content-textarea"
-                      th:text="${isEdit != null and isEdit == true ? post.content : ''}"
-                      placeholder="여행의 추억을 기록해보세요..."></textarea>
-        </div>
-
-        <div class="location-section">
-            <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            <input type="text" class="location-input"
-                   th:value="${travel.receipts != null and travel.receipts.size() > 0
-                 and travel.receipts[0].storeName != null
-                 ? travel.receipts[0].storeName
-                 : travel.city}"
-                   placeholder="위치">
         </div>
 
         <section class="map-section">
@@ -508,22 +538,55 @@
 
 <script async defer th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}"></script>
 <script th:inline="javascript">
-    let selectedFiles = [];
+    // 영수증별 파일 관리 객체
+    const receiptFilesMap = new Map();
     let isDragging = false;
     let startX = 0;
     let scrollLeft = 0;
+    let currentReceiptIndex = null;
 
-    // 기존 이미지 로드
-    function loadExistingImages() {
+    // 영수증 개수 가져오기
+    const receiptsCount = [[${travel.receipts != null ? #lists.size(travel.receipts) : 0}]];
+
+    // 각 영수증별 초기화
+    function initializeReceipts() {
+        for (let i = 0; i < receiptsCount; i++) {
+            receiptFilesMap.set(i, []);
+
+            const fileInput = document.getElementById(`fileInput_${i}`);
+            const placeholder = document.getElementById(`imagePlaceholder_${i}`);
+            const container = document.getElementById(`imagePreviewContainer_${i}`);
+
+            if (fileInput && placeholder) {
+                fileInput.addEventListener('change', (e) => handleFileSelect(e, i));
+                placeholder.addEventListener('click', () => fileInput.click());
+            }
+
+            if (container) {
+                container.addEventListener('click', function(e) {
+                    if (e.target.closest('[data-remove]')) {
+                        removeImage(e.target.closest('[data-remove]'), i);
+                    }
+                });
+
+                initSliderDrag(container, i);
+            }
+
+            // 기존 이미지 로드 (수정 모드일 경우)
+            loadExistingImages(i);
+        }
+    }
+
+    function loadExistingImages(receiptIndex) {
         const existingImagesContainer = document.getElementById('existingImagesData');
         if (!existingImagesContainer) return;
 
-        const imageDivs = existingImagesContainer.querySelectorAll('[data-image-url]');
+        const imageDivs = existingImagesContainer.querySelectorAll(`[data-receipt-index="${receiptIndex}"]`);
         if (imageDivs.length === 0) return;
 
-        const container = document.getElementById('imagePreviewContainer');
-        const imageBox = document.getElementById('imageBox');
-        const placeholder = document.getElementById('imagePlaceholder');
+        const container = document.getElementById(`imagePreviewContainer_${receiptIndex}`);
+        const imageBox = document.getElementById(`imageBox_${receiptIndex}`);
+        const placeholder = document.getElementById(`imagePlaceholder_${receiptIndex}`);
 
         imageDivs.forEach((div) => {
             const imageUrl = div.getAttribute('data-image-url');
@@ -535,19 +598,135 @@
             `;
             container.appendChild(previewItem);
 
-            selectedFiles.push({
+            const files = receiptFilesMap.get(receiptIndex);
+            files.push({
                 existing: true,
                 imageUrl: imageUrl,
                 previewElement: previewItem
             });
         });
 
-        imageBox.classList.add('has-images');
-        placeholder.style.display = 'none';
+        if (receiptFilesMap.get(receiptIndex).length > 0) {
+            imageBox.classList.add('has-images');
+            placeholder.style.display = 'none';
+        }
+    }
 
-        setTimeout(() => {
-            initSliderDrag();
-        }, 100);
+    function handleFileSelect(event, receiptIndex) {
+        const files = Array.from(event.target.files);
+        const container = document.getElementById(`imagePreviewContainer_${receiptIndex}`);
+        const imageBox = document.getElementById(`imageBox_${receiptIndex}`);
+        const placeholder = document.getElementById(`imagePlaceholder_${receiptIndex}`);
+        const receiptFiles = receiptFilesMap.get(receiptIndex);
+
+        files.forEach(file => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'preview-item';
+                    previewItem.innerHTML = `
+                        <img src="${e.target.result}" alt="preview" draggable="false">
+                        <button type="button" class="remove-btn" data-remove="true">×</button>
+                    `;
+                    container.appendChild(previewItem);
+
+                    receiptFiles.push({
+                        file: file,
+                        previewElement: previewItem
+                    });
+
+                    if (receiptFiles.length > 0) {
+                        imageBox.classList.add('has-images');
+                        placeholder.style.display = 'none';
+                    }
+
+                    setTimeout(() => {
+                        container.scrollLeft = container.scrollWidth;
+                    }, 100);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        event.target.value = '';
+    }
+
+    function removeImage(button, receiptIndex) {
+        const previewItem = button.closest('.preview-item');
+        const container = document.getElementById(`imagePreviewContainer_${receiptIndex}`);
+        const imageBox = document.getElementById(`imageBox_${receiptIndex}`);
+        const placeholder = document.getElementById(`imagePlaceholder_${receiptIndex}`);
+        const receiptFiles = receiptFilesMap.get(receiptIndex);
+
+        const index = Array.from(container.children).indexOf(previewItem);
+        if (index !== -1) {
+            receiptFiles.splice(index, 1);
+        }
+        previewItem.remove();
+
+        if (receiptFiles.length === 0) {
+            imageBox.classList.remove('has-images');
+            placeholder.style.display = 'flex';
+        }
+    }
+
+    function initSliderDrag(imageContainer, receiptIndex) {
+        if (!imageContainer) return;
+
+        imageContainer.addEventListener('scroll', () => {
+            const scrollLeft = imageContainer.scrollLeft;
+            const itemWidth = imageContainer.offsetWidth;
+            const currentIndex = Math.round(scrollLeft / itemWidth);
+            imageContainer.scrollTo({
+                left: currentIndex * itemWidth,
+                behavior: 'smooth'
+            });
+        });
+
+        imageContainer.addEventListener('mousedown', (e) => {
+            if (e.target.closest('[data-remove]')) return;
+            isDragging = true;
+            currentReceiptIndex = receiptIndex;
+            startX = e.pageX - imageContainer.offsetLeft;
+            scrollLeft = imageContainer.scrollLeft;
+            imageContainer.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        imageContainer.addEventListener('mouseleave', () => {
+            isDragging = false;
+            imageContainer.style.cursor = 'grab';
+        });
+
+        imageContainer.addEventListener('mouseup', () => {
+            isDragging = false;
+            imageContainer.style.cursor = 'grab';
+        });
+
+        imageContainer.addEventListener('mousemove', (e) => {
+            if (!isDragging || currentReceiptIndex !== receiptIndex) return;
+            e.preventDefault();
+            const x = e.pageX - imageContainer.offsetLeft;
+            const walk = (x - startX) * 2;
+            imageContainer.scrollLeft = scrollLeft - walk;
+        });
+
+        let touchStartX = 0;
+        let touchScrollLeft = 0;
+
+        imageContainer.addEventListener('touchstart', (e) => {
+            if (e.target.closest('[data-remove]')) return;
+            touchStartX = e.touches[0].pageX - imageContainer.offsetLeft;
+            touchScrollLeft = imageContainer.scrollLeft;
+        }, { passive: true });
+
+        imageContainer.addEventListener('touchmove', (e) => {
+            if (e.target.closest('[data-remove]')) return;
+            const x = e.touches[0].pageX - imageContainer.offsetLeft;
+            const walk = (x - touchStartX) * 2;
+            imageContainer.scrollLeft = touchScrollLeft - walk;
+        }, { passive: true });
     }
 
     function initMap() {
@@ -586,155 +765,27 @@
         });
     }
 
-    function handleFileSelect(event) {
-        const files = Array.from(event.target.files);
-        const container = document.getElementById('imagePreviewContainer');
-        const imageBox = document.getElementById('imageBox');
-        const placeholder = document.getElementById('imagePlaceholder');
-
-        files.forEach(file => {
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'preview-item';
-                    previewItem.innerHTML = `
-                        <img src="${e.target.result}" alt="preview" draggable="false">
-                        <button type="button" class="remove-btn" data-remove="true">×</button>
-                    `;
-                    container.appendChild(previewItem);
-
-                    const fileData = {
-                        file: file,
-                        previewElement: previewItem
-                    };
-                    selectedFiles.push(fileData);
-
-                    if (selectedFiles.length > 0) {
-                        imageBox.classList.add('has-images');
-                        placeholder.style.display = 'none';
-                    }
-
-                    setTimeout(() => {
-                        container.scrollLeft = container.scrollWidth;
-                        initSliderDrag();
-                    }, 100);
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        event.target.value = '';
-    }
-
-    function removeImage(button) {
-        const previewItem = button.closest('.preview-item');
-        const container = document.getElementById('imagePreviewContainer');
-        const imageBox = document.getElementById('imageBox');
-        const placeholder = document.getElementById('imagePlaceholder');
-        const index = Array.from(container.children).indexOf(previewItem);
-        if (index !== -1) {
-            selectedFiles.splice(index, 1);
-        }
-        previewItem.remove();
-
-        if (selectedFiles.length === 0) {
-            imageBox.classList.remove('has-images');
-            placeholder.style.display = 'flex';
-        }
-    }
-
-    function initSliderDrag() {
-        const imageContainer = document.getElementById('imagePreviewContainer');
-        if (!imageContainer) return;
-
-        imageContainer.addEventListener('scroll', () => {
-            const scrollLeft = imageContainer.scrollLeft;
-            const itemWidth = imageContainer.offsetWidth;
-            const currentIndex = Math.round(scrollLeft / itemWidth);
-            imageContainer.scrollTo({
-                left: currentIndex * itemWidth,
-                behavior: 'smooth'
-            });
-        });
-
-        imageContainer.addEventListener('mousedown', (e) => {
-            if (e.target.closest('[data-remove]')) return;
-            isDragging = true;
-            startX = e.pageX - imageContainer.offsetLeft;
-            scrollLeft = imageContainer.scrollLeft;
-            imageContainer.style.cursor = 'grabbing';
-            e.preventDefault();
-        });
-
-        imageContainer.addEventListener('mouseleave', () => {
-            isDragging = false;
-            imageContainer.style.cursor = 'grab';
-        });
-
-        imageContainer.addEventListener('mouseup', () => {
-            isDragging = false;
-            imageContainer.style.cursor = 'grab';
-        });
-
-        imageContainer.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            e.preventDefault();
-            const x = e.pageX - imageContainer.offsetLeft;
-            const walk = (x - startX) * 2;
-            imageContainer.scrollLeft = scrollLeft - walk;
-        });
-
-        let touchStartX = 0;
-        let touchScrollLeft = 0;
-
-        imageContainer.addEventListener('touchstart', (e) => {
-            if (e.target.closest('[data-remove]')) return;
-            touchStartX = e.touches[0].pageX - imageContainer.offsetLeft;
-            touchScrollLeft = imageContainer.scrollLeft;
-        }, { passive: true });
-
-        imageContainer.addEventListener('touchmove', (e) => {
-            if (e.target.closest('[data-remove]')) return;
-            const x = e.touches[0].pageX - imageContainer.offsetLeft;
-            const walk = (x - touchStartX) * 2;
-            imageContainer.scrollLeft = touchScrollLeft - walk;
-        }, { passive: true });
-    }
-
     // 페이지 로드 시 실행
     document.addEventListener('DOMContentLoaded', function() {
-        // 기존 이미지 로드
-        loadExistingImages();
-
-        // 파일 입력 이벤트
-        const fileInput = document.getElementById('fileInput');
-        fileInput.addEventListener('change', handleFileSelect);
-
-        // placeholder 클릭 이벤트
-        const placeholder = document.getElementById('imagePlaceholder');
-        placeholder.addEventListener('click', function() {
-            fileInput.click();
-        });
-
-        // 삭제 버튼 이벤트 (이벤트 위임)
-        const container = document.getElementById('imagePreviewContainer');
-        container.addEventListener('click', function(e) {
-            if (e.target.closest('[data-remove]')) {
-                removeImage(e.target.closest('[data-remove]'));
-            }
-        });
+        initializeReceipts();
 
         // 폼 제출 이벤트
         document.getElementById('finalForm').addEventListener('submit', function(e) {
-            const dataTransfer = new DataTransfer();
-            selectedFiles.forEach(fileData => {
-                if (fileData.file) {
-                    dataTransfer.items.add(fileData.file);
+            for (let i = 0; i < receiptsCount; i++) {
+                const dataTransfer = new DataTransfer();
+                const receiptFiles = receiptFilesMap.get(i);
+
+                receiptFiles.forEach(fileData => {
+                    if (fileData.file) {
+                        dataTransfer.items.add(fileData.file);
+                    }
+                });
+
+                const fileInput = document.getElementById(`fileInput_${i}`);
+                if (fileInput) {
+                    fileInput.files = dataTransfer.files;
                 }
-            });
-            const fileInput = document.getElementById('fileInput');
-            fileInput.files = dataTransfer.files;
+            }
         });
     });
 </script>
