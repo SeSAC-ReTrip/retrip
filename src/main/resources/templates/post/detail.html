@@ -487,25 +487,27 @@
                     </div>
                     <input type="file" th:attr="id='fileInput_' + ${receipt.receiptId}, name='receiptImages_' + ${receipt.receiptId}" class="file-input" accept="image/*" multiple th:onchange="'handleReceiptFileSelect(event, ' + ${receipt.receiptId} + ')'">
                 </div>
+
+                <!-- 영수증별 여행 설명 및 일기 -->
+                <div class="content-section">
+                    <h3 class="content-title">영수증 일기</h3>
+                    <textarea th:attr="name='receiptDescriptions_' + ${receipt.receiptId}, id='receiptDescription_' + ${receipt.receiptId}" class="content-textarea" th:value="${receipt.description}" placeholder="이 영수증에 대한 추억은 말이지요..."></textarea>
+                </div>
+
+                <!-- 영수증별 결제 장소 표시 -->
+                <div class="location-section">
+                    <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <input type="text" class="location-input" th:value="${receipt.storeName != null ? receipt.storeName : travel.city}" placeholder="위치" readonly>
+                </div>
             </div>
         </div>
 
         <div class="content-section">
-            <h3 class="content-title">여행 설명 및 일기</h3>
-            <textarea name="content" class="content-textarea" placeholder="여행의 추억을 기록해보세요..."></textarea>
-        </div>
-
-        <div class="location-section">
-            <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            <input type="text" class="location-input"
-                   th:value="${travel.receipts != null and travel.receipts.size() > 0
-                 and travel.receipts[0].storeName != null
-                 ? travel.receipts[0].storeName
-                 : travel.city}"
-                   placeholder="위치">
+            <h3 class="content-title">여행 요약</h3>
+            <textarea name="content" class="content-textarea" placeholder="이번 여행은..."></textarea>
         </div>
 
         <section class="map-section">
