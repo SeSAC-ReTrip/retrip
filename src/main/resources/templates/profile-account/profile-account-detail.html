@@ -22,6 +22,9 @@
         .header {
             padding: 16px 20px;
             border-bottom: 1px solid #E8E5DC;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .back-btn {
@@ -44,6 +47,32 @@
         .back-btn svg {
             width: 24px;
             height: 24px;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #E8E5DC;
+            background: #FEFDFB;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3D4A3C;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .header-btn:hover {
+            background: #F5F3ED;
+            border-color: #D4CFC0;
         }
 
         /* Page Header */
@@ -267,6 +296,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
     </button>
+    <div class="header-buttons">
+        <button class="header-btn" onclick="editAccount()">수정</button>
+        <button class="header-btn" onclick="deleteAccount()">삭제</button>
+    </div>
 </header>
 
 <!-- Page Header -->
@@ -468,6 +501,81 @@
     function goHome() {
         // 홈 페이지로 이동
         window.location.href = '/';
+    }
+
+    function editAccount() {
+        // travelId 가져오기
+        const travelIdElement = document.querySelector('[data-travel-id]');
+        const travelId = travelIdElement ? travelIdElement.getAttribute('data-travel-id') : null;
+        
+        // URL 파라미터에서 travelId 가져오기 (대안)
+        if (!travelId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlTravelId = urlParams.get('travelId');
+            if (urlTravelId) {
+                // 첫 번째 영수증 ID 찾기
+                const firstReceiptCard = document.querySelector('.receipt-card[data-receipt-id]');
+                if (firstReceiptCard) {
+                    const receiptId = firstReceiptCard.getAttribute('data-receipt-id');
+                    window.location.href = '/users/me/account/confirm?receiptId=' + receiptId + '&travelId=' + urlTravelId;
+                } else {
+                    // 영수증이 없으면 select 페이지로 이동
+                    window.location.href = '/users/me/account/select?travelId=' + urlTravelId;
+                }
+                return;
+            }
+        }
+        
+        // 첫 번째 영수증 ID 찾기
+        const firstReceiptCard = document.querySelector('.receipt-card[data-receipt-id]');
+        if (firstReceiptCard && travelId) {
+            const receiptId = firstReceiptCard.getAttribute('data-receipt-id');
+            window.location.href = '/users/me/account/confirm?receiptId=' + receiptId + '&travelId=' + travelId;
+        } else if (travelId) {
+            // 영수증이 없으면 select 페이지로 이동
+            window.location.href = '/users/me/account/select?travelId=' + travelId;
+        } else {
+            // travelId가 없으면 기본 select 페이지로 이동
+            window.location.href = '/users/me/account/select';
+        }
+    }
+
+    function deleteAccount() {
+        // travelId 가져오기
+        const travelIdElement = document.querySelector('[data-travel-id]');
+        let travelId = travelIdElement ? travelIdElement.getAttribute('data-travel-id') : null;
+        
+        // URL 파라미터에서 travelId 가져오기 (대안)
+        if (!travelId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            travelId = urlParams.get('travelId');
+        }
+        
+        if (!travelId) {
+            alert('가계부 정보를 찾을 수 없습니다.');
+            return;
+        }
+        
+        // 페이지 제목 가져오기
+        const pageTitleElement = document.querySelector('.page-title');
+        const title = pageTitleElement ? pageTitleElement.textContent.trim() : '가계부';
+        
+        // 확인 팝업
+        if (confirm(title + ' 가계부를 삭제하시겠습니까?')) {
+            // 삭제 폼 생성 및 제출
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/users/me/account/delete';
+            
+            const travelIdInput = document.createElement('input');
+            travelIdInput.type = 'hidden';
+            travelIdInput.name = 'travelId';
+            travelIdInput.value = travelId;
+            
+            form.appendChild(travelIdInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
     }
 </script>
 </body>

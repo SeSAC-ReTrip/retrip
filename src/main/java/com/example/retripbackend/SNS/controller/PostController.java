@@ -29,7 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 @RequiredArgsConstructor
-public class PostController {
+public class    PostController {
 
     private final PostService postService;
     private final CommentService commentService;

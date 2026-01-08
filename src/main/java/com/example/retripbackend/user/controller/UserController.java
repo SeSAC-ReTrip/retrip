@@ -448,6 +448,26 @@ public class UserController {
         return "profile-account/profile-account-detail";
     }
 
+    // 가계부 삭제 처리
+    @PostMapping("/me/account/delete")
+    public String deleteAccount(
+        @AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        @RequestParam Long travelId) {
+        User user = userDetails.getUser();
+        
+        try {
+            travelService.deleteTravel(travelId, user);
+            log.info("가계부 삭제 완료: travelId={}, userId={}", travelId, user.getUserId());
+            return "redirect:/users/me/account";
+        } catch (IllegalArgumentException e) {
+            log.warn("가계부 삭제 실패: travelId={}, error={}", travelId, e.getMessage());
+            return "redirect:/users/me/account";
+        } catch (Exception e) {
+            log.error("가계부 삭제 오류: travelId={}, error={}", travelId, e.getMessage(), e);
+            return "redirect:/users/me/account";
+        }
+    }
+
     // 좋아요 리스트 조회
     @GetMapping("/me/liked")
     public String myLikes(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
