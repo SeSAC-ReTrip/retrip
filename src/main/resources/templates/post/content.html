@@ -174,6 +174,17 @@
             margin-bottom: 20px;
         }
 
+        /* Receipt Section */
+        .receipt-section {
+            margin-bottom: 40px;
+            padding-bottom: 32px;
+            border-bottom: 2px solid #E8E5DC;
+        }
+
+        .receipt-section:last-of-type {
+            border-bottom: none;
+        }
+
         .receipt-header {
             font-size: 15px;
             font-weight: 600;
@@ -507,66 +518,58 @@
         </div>
     </div>
 
-    <!-- 영수증 카드 1 (첫 번째 영수증) -->
-    <div class="receipt-card" th:if="${post.travel.receipts != null and post.travel.receipts.size() > 0}" th:with="receipt=${post.travel.receipts[0]}, currency=${receipt.currency != null and !receipt.currency.isEmpty() ? receipt.currency : 'KRW'}">
-        <div class="receipt-header">영수증 내용</div>
-        <div class="receipt-info">
-            <div class="receipt-row" th:text="'장소: ' + ${receipt.storeName}">장소</div>
-            <div class="receipt-row" th:text="'결제일: ' + ${#temporals.format(receipt.paidAt, 'yyyy.MM.dd HH:mm')}">결제일</div>
-            <div class="receipt-row" th:text="'결제 금액: ' + ${receipt.amount} + ' ' + ${currency}">결제 금액</div>
-        </div>
-    </div>
+    <!-- 영수증별 내용 표시 -->
+    <div th:if="${post.travel.receipts != null and !post.travel.receipts.empty}">
+        <div th:each="receipt, iterStat : ${post.travel.receipts}" class="receipt-section">
+            <!-- 영수증 카드 -->
+            <div class="receipt-card" th:with="currency=${receipt.currency != null and !receipt.currency.isEmpty() ? receipt.currency : 'KRW'}">
+                <div class="receipt-header" th:text="${receipt.storeName}">영수증 내용</div>
+                <div class="receipt-info">
+                    <div class="receipt-row" th:text="'장소: ' + ${receipt.storeName}">장소</div>
+                    <div class="receipt-row" th:text="'결제일: ' + ${#temporals.format(receipt.paidAt, 'yyyy.MM.dd HH:mm')}">결제일</div>
+                    <div class="receipt-row" th:text="'결제 금액: ' + ${receipt.amount} + ' ' + ${currency}">결제 금액</div>
+                    <div class="receipt-row" th:if="${receipt.category != null and !receipt.category.isEmpty()}" th:text="'카테고리: ' + ${receipt.category}">카테고리</div>
+                    <div class="receipt-row" th:if="${receipt.address != null and !receipt.address.isEmpty()}" th:text="'주소: ' + ${receipt.address}">주소</div>
+                </div>
+            </div>
 
-    <!-- 이미지 표시 영역 (슬라이더) -->
-    <div th:if="${images != null and !images.empty}" class="image-slider-container" style="margin-bottom: 20px;">
-        <button class="slider-nav prev" onclick="slideImage(-1)">‹</button>
-        <div class="image-slider" id="contentImageSlider">
-            <div class="image-slide" th:each="image : ${images}">
-                <img th:src="@{${image.imageUrl}}" alt="게시물 이미지" onerror="this.style.display='none'">
+            <!-- 영수증별 이미지 표시 -->
+            <div th:if="${receipt.imageUrl != null and !receipt.imageUrl.isEmpty()}" class="image-slider-container" style="margin-bottom: 20px;">
+                <div class="image-slider" th:attr="id='receiptImageSlider_' + ${receipt.receiptId}">
+                    <div class="image-slide">
+                        <img th:src="@{${receipt.imageUrl}}" alt="영수증 이미지" onerror="this.style.display='none'">
+                    </div>
+                </div>
+            </div>
+            <div th:if="${receipt.imageUrl == null or receipt.imageUrl.isEmpty()}" class="image-box">
+                <div class="image-placeholder">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 영수증별 일기 표시 -->
+            <div class="content-section" th:if="${receipt.description != null and !receipt.description.isEmpty()}">
+                <h3 class="content-title">영수증 일기</h3>
+                <p class="content-text" th:text="${receipt.description}">내용</p>
+            </div>
+
+            <!-- 영수증별 결제 장소 표시 -->
+            <div class="location-section">
+                <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="location-text" th:text="${receipt.storeName != null ? receipt.storeName : post.travel.city}">위치</span>
             </div>
         </div>
-        <button class="slider-nav next" onclick="slideImage(1)">›</button>
-    </div>
-    <div th:if="${images == null or images.empty}" class="image-box">
-        <div class="image-placeholder">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-        </div>
     </div>
 
-    <div class="content-section">
-        <h3 class="content-title">영수증, 사진 등 설명 및 일기</h3>
+    <!-- 전체 여행 요약 -->
+    <div class="content-section" th:if="${post.content != null and !post.content.isEmpty()}">
+        <h3 class="content-title">여행 요약</h3>
         <p class="content-text" th:text="${post.content}">내용</p>
-    </div>
-
-    <div class="location-section">
-        <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-        </svg>
-        <span class="location-text"
-              th:text="${post.travel.receipts != null and post.travel.receipts.size() > 0
-               ? post.travel.receipts[0].storeName
-               : post.travel.city}">위치</span>
-    </div>
-
-    <!-- 영수증 카드 2 (두 번째 영수증, 있으면) -->
-    <div class="receipt-card" th:if="${post.travel.receipts != null and post.travel.receipts.size() > 1}" th:with="receipt=${post.travel.receipts[1]}, currency=${receipt.currency != null and !receipt.currency.isEmpty() ? receipt.currency : 'KRW'}">
-        <div class="receipt-header">영수증 내용</div>
-        <div class="receipt-info">
-            <div class="receipt-row" th:text="'장소: ' + ${receipt.storeName}">장소</div>
-            <div class="receipt-row" th:text="'결제일: ' + ${#temporals.format(receipt.paidAt, 'yyyy.MM.dd HH:mm')}">결제일</div>
-            <div class="receipt-row" th:text="'결제 금액: ' + ${receipt.amount} + ' ' + ${currency}">결제 금액</div>
-        </div>
-    </div>
-
-    <div class="image-box" th:if="${post.travel.receipts != null and post.travel.receipts.size() > 1}">
-        <div class="image-placeholder">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-        </div>
     </div>
 
     <!-- 지도 섹션 -->
