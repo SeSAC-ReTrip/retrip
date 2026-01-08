@@ -499,8 +499,23 @@
     }
 
     function goHome() {
-        // 홈 페이지로 이동
-        window.location.href = '/';
+        // travelId 가져오기
+        const travelIdElement = document.querySelector('[data-travel-id]');
+        let travelId = travelIdElement ? travelIdElement.getAttribute('data-travel-id') : null;
+        
+        // URL 파라미터에서 travelId 가져오기 (대안)
+        if (!travelId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            travelId = urlParams.get('travelId');
+        }
+        
+        if (travelId) {
+            // 게시물 작성 페이지로 이동
+            window.location.href = '/posts/detail?travelId=' + travelId;
+        } else {
+            // travelId가 없으면 홈 페이지로 이동
+            window.location.href = '/';
+        }
     }
 
     function editAccount() {
