@@ -81,6 +81,11 @@ public class Receipt extends BaseEntity {
         this.description = description;
     }
 
+    // 이미지 URL 업데이트 (SNS용 이미지)
+    public void updateImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
     // 영수증 정보 수정
     public void updateReceiptInfo(String storeName, Integer amount, LocalDateTime paidAt,
         String category, String address, String currency) {

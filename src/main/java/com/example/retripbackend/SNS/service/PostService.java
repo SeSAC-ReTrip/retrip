@@ -6,9 +6,13 @@ import com.example.retripbackend.SNS.entity.Travel;
 import com.example.retripbackend.SNS.repository.PostImageRepository;
 import com.example.retripbackend.SNS.repository.PostRepository;
 import com.example.retripbackend.SNS.service.FileStorageService;
+import com.example.retripbackend.receipt.entity.Receipt;
+import com.example.retripbackend.receipt.repository.ReceiptRepository;
+import com.example.retripbackend.receipt.service.ReceiptService;
 import com.example.retripbackend.user.entity.User;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +30,8 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostImageRepository postImageRepository;
     private final FileStorageService fileStorageService;
+    private final ReceiptService receiptService;
+    private final ReceiptRepository receiptRepository;
 
     // 게시글 피드 조회 (최신순)
     public Page<Post> getLatestPosts(int page, int size) {
@@ -98,6 +104,84 @@ public class PostService {
                     .displayOrder(i)
                     .build();
                 postImageRepository.save(postImage);
+            }
+        }
+        
+        return post;
+    }
+
+    // 게시글 작성 (영수증별 이미지와 설명 포함)
+    @Transactional
+    public Post createPostWithReceipts(User author, Travel travel, String title, String content,
+        Map<Long, MultipartFile[]> receiptImagesMap, Map<Long, String> receiptDescriptionsMap) throws IOException {
+        
+        // Post 생성 (전체 여행 요약 포함)
+        String thumbnailUrl = null;
+        
+        // 첫 번째 receipt의 첫 번째 이미지를 썸네일로 사용
+        if (receiptImagesMap != null && !receiptImagesMap.isEmpty()) {
+            for (Map.Entry<Long, MultipartFile[]> entry : receiptImagesMap.entrySet()) {
+                MultipartFile[] files = entry.getValue();
+                if (files != null && files.length > 0 && files[0] != null && !files[0].isEmpty()) {
+                    List<String> imageUrls = fileStorageService.saveFiles(files);
+                    if (imageUrls != null && !imageUrls.isEmpty()) {
+                        thumbnailUrl = imageUrls.get(0);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        Post post = Post.builder()
+            .author(author)
+            .travel(travel)
+            .title(title)
+            .content(content != null ? content : "")
+            .imageUrl(thumbnailUrl)
+            .build();
+        
+        post = postRepository.save(post);
+        
+        // 각 receipt별로 이미지와 설명 처리
+        if (receiptImagesMap != null || receiptDescriptionsMap != null) {
+            // travel의 모든 receipt를 순회
+            List<Receipt> receipts = receiptService.getReceiptsByTravel(travel);
+            
+            for (Receipt receipt : receipts) {
+                Long receiptId = receipt.getReceiptId();
+                
+                // 이미지 처리
+                if (receiptImagesMap != null && receiptImagesMap.containsKey(receiptId)) {
+                    MultipartFile[] files = receiptImagesMap.get(receiptId);
+                    if (files != null && files.length > 0 && files[0] != null && !files[0].isEmpty()) {
+                        List<String> imageUrls = fileStorageService.saveFiles(files);
+                        if (imageUrls != null && !imageUrls.isEmpty()) {
+                            // 첫 번째 이미지를 receipt의 imageUrl로 저장
+                            receipt.updateImageUrl(imageUrls.get(0));
+                            
+                            // 나머지 이미지는 PostImage로 저장
+                            for (int i = 1; i < imageUrls.size(); i++) {
+                                PostImage postImage = PostImage.builder()
+                                    .post(post)
+                                    .imageUrl(imageUrls.get(i))
+                                    .displayOrder(i - 1)
+                                    .build();
+                                postImageRepository.save(postImage);
+                            }
+                        }
+                    }
+                }
+                
+                // 설명 처리
+                if (receiptDescriptionsMap != null && receiptDescriptionsMap.containsKey(receiptId)) {
+                    String description = receiptDescriptionsMap.get(receiptId);
+                    if (description != null && !description.trim().isEmpty()) {
+                        receipt.updateDescription(description);
+                    }
+                }
+                
+                // Receipt 저장
+                receiptRepository.save(receipt);
             }
         }
         

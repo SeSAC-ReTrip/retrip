@@ -128,6 +128,15 @@
             margin-bottom: 20px;
         }
 
+        /* Receipt Section */
+        .receipt-section {
+            margin-bottom: 32px;
+        }
+
+        .image-upload-area {
+            margin-bottom: 20px;
+        }
+
         .receipt-header-input {
             width: 100%;
             font-size: 15px;
@@ -451,44 +460,54 @@
             </div>
         </div>
 
-        <div class="receipt-card">
-            <div class="receipt-header-input" th:text="${travel.city + ' 여행 경비 내역'}">영수증 내용</div>
-            <div class="receipt-info">
-                <div class="receipt-input">총 지출 건수: <span th:text="${travel.receipts != null ? #lists.size(travel.receipts) : 0}">0</span>건</div>
-                <div class="receipt-input">총 금액: <span th:text="${#numbers.formatInteger(travel.totalAmount, 0, 'COMMA') + '원'}">0원</span></div>
-            </div>
-        </div>
+        <!-- 영수증별 요약 카드 및 이미지 업로드 영역 -->
+        <div th:if="${travel.receipts != null and !travel.receipts.empty}">
+            <div th:each="receipt, iterStat : ${travel.receipts}" class="receipt-section">
+                <!-- 영수증 카드 -->
+                <div class="receipt-card">
+                    <div class="receipt-header-input" th:text="${receipt.storeName}">영수증</div>
+                    <div class="receipt-info">
+                        <div class="receipt-input">결제일: <span th:text="${#temporals.format(receipt.paidAt, 'yyyy.MM.dd HH:mm')}">결제일</span></div>
+                        <div class="receipt-input">결제 금액: <span th:text="${#numbers.formatInteger(receipt.amount, 0, 'COMMA') + ' ' + (receipt.currency != null and !receipt.currency.isEmpty() ? receipt.currency : 'KRW')}">결제 금액</span></div>
+                        <div class="receipt-input" th:if="${receipt.category != null and !receipt.category.isEmpty()}">카테고리: <span th:text="${receipt.category}">카테고리</span></div>
+                        <div class="receipt-input" th:if="${receipt.address != null and !receipt.address.isEmpty()}">주소: <span th:text="${receipt.address}">주소</span></div>
+                    </div>
+                </div>
 
-        <!-- 이미지 업로드 영역 -->
-        <div id="imageUploadArea">
-            <div class="image-box" id="imageBox">
-                <div id="imagePreviewContainer" class="image-preview-slider"></div>
-                <div class="image-placeholder" id="imagePlaceholder" onclick="document.getElementById('fileInput').click()">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                <!-- 영수증별 이미지 업로드 영역 -->
+                <div class="image-upload-area">
+                    <div class="image-box" th:attr="id='imageBox_' + ${receipt.receiptId}">
+                        <div class="image-preview-slider" th:attr="id='imagePreviewContainer_' + ${receipt.receiptId}"></div>
+                        <div class="image-placeholder" th:attr="id='imagePlaceholder_' + ${receipt.receiptId}, onclick='document.getElementById(\'fileInput_' + ${receipt.receiptId} + '\').click()'">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <p class="upload-text">사진을 선택하세요 (여러 장 가능)</p>
+                        </div>
+                    </div>
+                    <input type="file" th:attr="id='fileInput_' + ${receipt.receiptId}, name='receiptImages_' + ${receipt.receiptId}" class="file-input" accept="image/*" multiple th:onchange="'handleReceiptFileSelect(event, ' + ${receipt.receiptId} + ')'">
+                </div>
+
+                <!-- 영수증별 여행 설명 및 일기 -->
+                <div class="content-section">
+                    <h3 class="content-title">영수증 일기</h3>
+                    <textarea th:attr="name='receiptDescriptions_' + ${receipt.receiptId}, id='receiptDescription_' + ${receipt.receiptId}" class="content-textarea" th:value="${receipt.description}" placeholder="이 영수증에 대한 추억은 말이지요..."></textarea>
+                </div>
+
+                <!-- 영수증별 결제 장소 표시 -->
+                <div class="location-section">
+                    <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
-                    <p class="upload-text">사진을 선택하세요 (여러 장 가능)</p>
+                    <input type="text" class="location-input" th:value="${receipt.storeName != null ? receipt.storeName : travel.city}" placeholder="위치" readonly>
                 </div>
             </div>
-            <input type="file" id="fileInput" name="images" class="file-input" accept="image/*" multiple onchange="handleFileSelect(event)">
         </div>
 
         <div class="content-section">
-            <h3 class="content-title">여행 설명 및 일기</h3>
-            <textarea name="content" class="content-textarea" placeholder="여행의 추억을 기록해보세요..."></textarea>
-        </div>
-
-        <div class="location-section">
-            <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            <input type="text" class="location-input"
-                   th:value="${travel.receipts != null and travel.receipts.size() > 0
-                 and travel.receipts[0].storeName != null
-                 ? travel.receipts[0].storeName
-                 : travel.city}"
-                   placeholder="위치">
+            <h3 class="content-title">여행 요약</h3>
+            <textarea name="content" class="content-textarea" placeholder="이번 여행은..."></textarea>
         </div>
 
         <section class="map-section">
@@ -507,7 +526,8 @@
 <!-- Google Maps API -->
 <script async defer th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}"></script>
 <script th:inline="javascript">
-    let selectedFiles = [];
+    // receipt별로 선택된 파일을 관리하는 객체
+    let receiptFiles = {};
     let isDragging = false;
     let startX = 0;
     let scrollLeft = 0;
@@ -556,11 +576,17 @@
         }
     }
 
-    function handleFileSelect(event) {
+    // 영수증별 파일 선택 처리
+    function handleReceiptFileSelect(event, receiptId) {
         const files = Array.from(event.target.files);
-        const container = document.getElementById('imagePreviewContainer');
-        const imageBox = document.getElementById('imageBox');
-        const placeholder = document.getElementById('imagePlaceholder');
+        const container = document.getElementById('imagePreviewContainer_' + receiptId);
+        const imageBox = document.getElementById('imageBox_' + receiptId);
+        const placeholder = document.getElementById('imagePlaceholder_' + receiptId);
+
+        // receiptId별 파일 배열 초기화
+        if (!receiptFiles[receiptId]) {
+            receiptFiles[receiptId] = [];
+        }
 
         files.forEach(file => {
             if (file.type.startsWith('image/')) {
@@ -570,7 +596,7 @@
                     previewItem.className = 'preview-item';
                     previewItem.innerHTML = `
                         <img src="${e.target.result}" alt="preview" draggable="false">
-                        <button type="button" class="remove-btn" onclick="removeImage(this)">×</button>
+                        <button type="button" class="remove-btn" onclick="removeReceiptImage(this, ${receiptId})">×</button>
                     `;
                     container.appendChild(previewItem);
 
@@ -578,16 +604,16 @@
                         file: file,
                         previewElement: previewItem
                     };
-                    selectedFiles.push(fileData);
+                    receiptFiles[receiptId].push(fileData);
 
-                    if (selectedFiles.length > 0) {
+                    if (receiptFiles[receiptId].length > 0) {
                         imageBox.classList.add('has-images');
                         placeholder.style.display = 'none';
                     }
 
                     setTimeout(() => {
                         container.scrollLeft = container.scrollWidth;
-                        initSliderDrag();
+                        initReceiptSliderDrag(receiptId);
                     }, 100);
                 };
                 reader.readAsDataURL(file);
@@ -597,27 +623,33 @@
         event.target.value = '';
     }
 
-    function removeImage(button) {
+    // 영수증별 이미지 제거
+    function removeReceiptImage(button, receiptId) {
         const previewItem = button.closest('.preview-item');
-        const container = document.getElementById('imagePreviewContainer');
-        const imageBox = document.getElementById('imageBox');
-        const placeholder = document.getElementById('imagePlaceholder');
+        const container = document.getElementById('imagePreviewContainer_' + receiptId);
+        const imageBox = document.getElementById('imageBox_' + receiptId);
+        const placeholder = document.getElementById('imagePlaceholder_' + receiptId);
         const index = Array.from(container.children).indexOf(previewItem);
-        if (index !== -1) {
-            selectedFiles.splice(index, 1);
+        if (index !== -1 && receiptFiles[receiptId]) {
+            receiptFiles[receiptId].splice(index, 1);
         }
         previewItem.remove();
 
-        if (selectedFiles.length === 0) {
+        if (!receiptFiles[receiptId] || receiptFiles[receiptId].length === 0) {
             imageBox.classList.remove('has-images');
             placeholder.style.display = 'flex';
         }
     }
 
-    function initSliderDrag() {
-        const imageContainer = document.getElementById('imagePreviewContainer');
+    // 영수증별 슬라이더 드래그 초기화
+    function initReceiptSliderDrag(receiptId) {
+        const imageContainer = document.getElementById('imagePreviewContainer_' + receiptId);
 
         if (!imageContainer) return;
+
+        // 이미 이벤트 리스너가 등록되어 있으면 중복 방지
+        if (imageContainer.dataset.initialized === 'true') return;
+        imageContainer.dataset.initialized = 'true';
 
         imageContainer.addEventListener('scroll', () => {
             const scrollLeft = imageContainer.scrollLeft;
@@ -630,33 +662,37 @@
             });
         });
 
+        let isDraggingLocal = false;
+        let startXLocal = 0;
+        let scrollLeftLocal = 0;
+
         imageContainer.addEventListener('mousedown', (e) => {
             if (e.target.closest('.remove-btn')) {
                 return;
             }
-            isDragging = true;
-            startX = e.pageX - imageContainer.offsetLeft;
-            scrollLeft = imageContainer.scrollLeft;
+            isDraggingLocal = true;
+            startXLocal = e.pageX - imageContainer.offsetLeft;
+            scrollLeftLocal = imageContainer.scrollLeft;
             imageContainer.style.cursor = 'grabbing';
             e.preventDefault();
         });
 
         imageContainer.addEventListener('mouseleave', () => {
-            isDragging = false;
+            isDraggingLocal = false;
             imageContainer.style.cursor = 'grab';
         });
 
         imageContainer.addEventListener('mouseup', () => {
-            isDragging = false;
+            isDraggingLocal = false;
             imageContainer.style.cursor = 'grab';
         });
 
         imageContainer.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
+            if (!isDraggingLocal) return;
             e.preventDefault();
             const x = e.pageX - imageContainer.offsetLeft;
-            const walk = (x - startX) * 2;
-            imageContainer.scrollLeft = scrollLeft - walk;
+            const walk = (x - startXLocal) * 2;
+            imageContainer.scrollLeft = scrollLeftLocal - walk;
         });
 
         let touchStartX = 0;
@@ -680,20 +716,23 @@
         }, { passive: true });
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initSliderDrag);
-    } else {
-        initSliderDrag();
-    }
-
+    // 폼 제출 시 receipt별 파일 처리
     document.getElementById('finalForm').addEventListener('submit', function(e) {
-        const dataTransfer = new DataTransfer();
-        selectedFiles.forEach(fileData => {
-            dataTransfer.items.add(fileData.file);
-        });
+        // 각 receipt별로 파일 입력 필드에 파일 추가
+        Object.keys(receiptFiles).forEach(receiptId => {
+            const files = receiptFiles[receiptId];
+            if (files && files.length > 0) {
+                const dataTransfer = new DataTransfer();
+                files.forEach(fileData => {
+                    dataTransfer.items.add(fileData.file);
+                });
 
-        const fileInput = document.getElementById('fileInput');
-        fileInput.files = dataTransfer.files;
+                const fileInput = document.getElementById('fileInput_' + receiptId);
+                if (fileInput) {
+                    fileInput.files = dataTransfer.files;
+                }
+            }
+        });
     });
 </script>
 </body>

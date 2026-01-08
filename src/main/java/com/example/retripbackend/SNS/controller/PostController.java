@@ -14,6 +14,7 @@ import com.example.retripbackend.receipt.service.ReceiptService;
 import com.example.retripbackend.user.entity.User;
 import com.example.retripbackend.user.service.CustomUserDetailsService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 @Controller
 @RequiredArgsConstructor
@@ -122,13 +124,63 @@ public class    PostController {
 
     @PostMapping("/posts/create")
     public String create(@AuthenticationPrincipal CustomUserDetailsService.CustomUserDetails userDetails,
+        HttpServletRequest request,
         @RequestParam Long travelId,
         @RequestParam String title,
-        @RequestParam String content,
-        @RequestParam(value = "images", required = false) MultipartFile[] images) {
+        @RequestParam(required = false) String content) {
         try {
             Travel travel = travelService.getTravelById(travelId);
-            Post post = postService.createPost(userDetails.getUser(), travel, title, content, images);
+            
+            // Multipart 요청인지 확인
+            if (!(request instanceof MultipartHttpServletRequest)) {
+                return "redirect:/posts/detail?travelId=" + travelId + "&error=Invalid request";
+            }
+            
+            MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+            
+            // receipt별 이미지와 설명을 Map으로 수집
+            Map<Long, MultipartFile[]> receiptImagesMap = new HashMap<>();
+            Map<Long, String> receiptDescriptionsMap = new HashMap<>();
+            
+            // 모든 파라미터를 순회하며 receipt별 데이터 수집
+            for (String paramName : multipartRequest.getParameterMap().keySet()) {
+                if (paramName.startsWith("receiptDescriptions_")) {
+                    String receiptIdStr = paramName.replace("receiptDescriptions_", "");
+                    try {
+                        Long receiptId = Long.parseLong(receiptIdStr);
+                        String description = multipartRequest.getParameter(paramName);
+                        receiptDescriptionsMap.put(receiptId, description);
+                    } catch (NumberFormatException e) {
+                        // receiptId 파싱 실패 시 무시
+                    }
+                }
+            }
+            
+            // 모든 파일 파라미터를 순회하며 receipt별 이미지 수집
+            for (String paramName : multipartRequest.getFileMap().keySet()) {
+                if (paramName.startsWith("receiptImages_")) {
+                    String receiptIdStr = paramName.replace("receiptImages_", "");
+                    try {
+                        Long receiptId = Long.parseLong(receiptIdStr);
+                        List<MultipartFile> files = multipartRequest.getFiles(paramName);
+                        if (files != null && !files.isEmpty()) {
+                            receiptImagesMap.put(receiptId, files.toArray(new MultipartFile[0]));
+                        }
+                    } catch (NumberFormatException e) {
+                        // receiptId 파싱 실패 시 무시
+                    }
+                }
+            }
+            
+            Post post = postService.createPostWithReceipts(
+                userDetails.getUser(), 
+                travel, 
+                title, 
+                content, 
+                receiptImagesMap, 
+                receiptDescriptionsMap
+            );
+            
             return "redirect:/posts/upload/complete?postId=" + post.getPostId();
         } catch (Exception e) {
             return "redirect:/posts/detail?travelId=" + travelId + "&error=" + e.getMessage();
