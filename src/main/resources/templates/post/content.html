@@ -557,97 +557,89 @@
     </section>
 </main>
 
-<!-- Google Maps API -->
-<script async defer
-        th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}">
-</script>
-
+<!-- Google Maps -->
 <script th:inline="javascript">
-    window.initMap = function () {
+    function initMap() {
+        const locations = [[${locations}]];
 
-        let center = { lat: 37.5665, lng: 126.9780 };
-        const locations = [];
-
-        /*[# th:each="receipt : ${post.travel.receipts}"]*/
-        if (/*[[${receipt.latitude}]]*/ null !== null &&
-            /*[[${receipt.longitude}]]*/ null !== null) {
-
-            locations.push({
-                lat: /*[[${receipt.latitude}]]*/ 0,
-                lng: /*[[${receipt.longitude}]]*/ 0,
-                title: /*[[${#strings.escapeJavaScript(receipt.storeName)}]]*/ ""
-            });
-        }
-        /*[/]*/
-
-        if (locations.length > 0) {
-            center = locations[0];
+        if (!locations || locations.length === 0) {
+            console.warn("위치 데이터 없음");
+            return;
         }
 
         const map = new google.maps.Map(document.getElementById("map"), {
             zoom: 13,
-            center: center,
+            center: {
+                lat: locations[0].lat,
+                lng: locations[0].lng
+            },
             mapTypeControl: false,
             streetViewControl: false
         });
 
-        locations.forEach(location => {
+        const bounds = new google.maps.LatLngBounds();
+
+        locations.forEach(loc => {
             const marker = new google.maps.Marker({
-                position: location,
+                position: { lat: loc.lat, lng: loc.lng },
                 map: map,
-                title: location.title,
-                icon: {
-                    path: "M12 2C8.13 2 5.13 5 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z",
-                    fillColor: "#E74C3C",
-                    fillOpacity: 1,
-                    strokeColor: "#ffffff",
-                    strokeWeight: 2,
-                    scale: 1.5
-                }
+                title: loc.title,
+                animation: google.maps.Animation.DROP
             });
 
+            bounds.extend(marker.getPosition());
+
             const infoWindow = new google.maps.InfoWindow({
-                content: `<div style="padding:8px;font-weight:500;">${location.title}</div>`
+                content: `<div style="padding:6px;font-weight:500;">${loc.title}</div>`
             });
 
             marker.addListener("click", () => {
                 infoWindow.open(map, marker);
             });
         });
+        if (locations.length > 0) {
+            map.fitBounds(bounds);
+        }
     }
 
-
-        // 이미지 슬라이더 네비게이션
-        function slideImage(direction) {
-            const slider = document.getElementById('contentImageSlider');
-            if (!slider) return;
-            
-            const slideWidth = slider.offsetWidth;
-            const currentScroll = slider.scrollLeft;
-            const targetScroll = currentScroll + (slideWidth * direction);
-            
-            slider.scrollTo({
-                left: targetScroll,
-                behavior: 'smooth'
-            });
-        }
-
-        // 슬라이더 스크롤 이벤트로 버튼 상태 업데이트
+    // 이미지 슬라이더 네비게이션
+    function slideImage(direction) {
         const slider = document.getElementById('contentImageSlider');
-        if (slider) {
-            const prevBtn = document.querySelector('.slider-nav.prev');
-            const nextBtn = document.querySelector('.slider-nav.next');
-            
-            function updateNavButtons() {
-                if (prevBtn && nextBtn) {
-                    prevBtn.disabled = slider.scrollLeft <= 0;
-                    nextBtn.disabled = slider.scrollLeft >= slider.scrollWidth - slider.offsetWidth - 10;
-                }
+        if (!slider) return;
+
+        const slideWidth = slider.offsetWidth;
+        const currentScroll = slider.scrollLeft;
+        const targetScroll = currentScroll + (slideWidth * direction);
+
+        slider.scrollTo({
+            left: targetScroll,
+            behavior: 'smooth'
+        });
+    }
+
+    // 슬라이더 스크롤 이벤트로 버튼 상태 업데이트
+    const slider = document.getElementById('contentImageSlider');
+    if (slider) {
+        const prevBtn = document.querySelector('.slider-nav.prev');
+        const nextBtn = document.querySelector('.slider-nav.next');
+
+        function updateNavButtons() {
+            if (prevBtn && nextBtn) {
+                prevBtn.disabled = slider.scrollLeft <= 0;
+                nextBtn.disabled = slider.scrollLeft >= slider.scrollWidth - slider.offsetWidth - 10;
             }
-            
-            slider.addEventListener('scroll', updateNavButtons);
-            updateNavButtons(); // 초기 상태 설정
         }
-    </script>
+
+        slider.addEventListener('scroll', updateNavButtons);
+        updateNavButtons(); // 초기 상태 설정
+    }
+</script>
+
+<!-- Google Maps API -->
+<script async defer
+        th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapApiKey} + '&callback=initMap'}">
+</script>
+
+
 </body>
 </html>
