@@ -91,7 +91,7 @@
 
         /* Filter Section */
         .filter-section {
-            padding: 16px 20px;
+            padding: 24px 20px 16px 20px;
             display: flex;
             gap: 12px;
         }
@@ -186,21 +186,8 @@
         .post-author {
             display: flex;
             align-items: center;
-            gap: 8px;
-            color: #6FAF71;
+            color: #5A6F57;
             font-size: 14px;
-        }
-
-        .author-icon {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #E8F9E8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #9AE19C;
-            font-size: 12px;
         }
 
         /* Empty State */
@@ -321,9 +308,11 @@
         </div>
         <div class="post-info">
             <h3 class="post-title" th:text="${post.title}">제목</h3>
+            <div class="post-location" style="margin-bottom: 8px; color: #5A6F57; font-size: 14px;">
+                <span th:text="${post.travel.city + ', ' + post.travel.country + ' - ' + #temporals.format(post.travel.startDate, 'yyyy.MM.dd') + ' ~ ' + #temporals.format(post.travel.endDate, 'yyyy.MM.dd')}">도시, 나라 - 여행기간</span>
+            </div>
             <div class="post-author">
-                <span class="author-icon">👤</span>
-                <span th:text="${post.author.name}">작성자</span>
+                <span>@<span th:text="${post.author.name}">작성자</span></span>
             </div>
         </div>
     </article>
